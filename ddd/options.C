@@ -671,10 +671,12 @@ void dddToggleWarnIfLockedCB (Widget, XtPointer, XtPointer call_data)
 
 void dddSetBuiltinPlotWindowCB (Widget, XtPointer client_data, XtPointer)
 {
-    if ((int)(long)client_data)
-	app_data.plot_term_type = "xlib";
-    else
-	app_data.plot_term_type = "x11";
+    (void)client_data;
+    // deactivate defunct builtin xlib display
+    //if ((int)(long)client_data)
+    //    app_data.plot_term_type = "xlib";
+    //else
+    app_data.plot_term_type = "x11";
 
     string plot_term_type = downcase(app_data.plot_term_type);
 

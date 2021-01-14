@@ -1893,6 +1893,7 @@ BreakPoint *SourceView::watchpoint_at(const string& expr)
 		    // Expr matches EXPR(...)  (e.g. a qualified function name)
 		    return bp;
 		}
+		break;
 
 	    case 2:
 		if (bp->expr().contains("`" + expr, -1) ||
@@ -2286,6 +2287,56 @@ String SourceView::read_from_gdb(const string& file_name, long& length,
     return text;
 }
 
+bool utf8toUnicode(wchar_t &unicode, const char *text, int &pos, const int length)
+{
+    const unsigned char *utext = (const unsigned char *)text;
+    unicode = 0;
+    if (utext==nullptr || pos>=length || utext[pos] == 0)
+        return false;
+
+    if ((utext[pos] & 0x80) == 0)
+    {
+        // U+0000-U+007F
+        unicode = utext[pos];
+        pos += 1;
+        return true;
+    }
+
+    if (pos+1>=length || utext[pos+1] == 0)
+        return false;
+
+    if ((utext[pos] & 0xe0) == 0xc0 && (utext[pos+1] & 0xc0) == 0x80)
+    {
+        // U+0080-U+07FF
+        unicode = ((utext[pos] & 0x1f) << 6) | (utext[pos+1] & 0x3f);
+        pos += 2;
+        return true;
+    }
+
+    if (pos+2>=length || utext[pos+2] == 0)
+        return false;
+
+    if ((utext[pos] & 0xf0) == 0xe0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80)
+    {
+        // U+0800-U+FFFF
+        unicode = ((utext[pos] & 0x1f) << 12) | ((utext[pos+1] & 0x3f) << 6) | (utext[pos+2] & 0x3f);
+        pos += 3;
+        return true;
+    }
+
+    if (pos+2>=length || utext[pos+2] == 0)
+        return false;
+
+    if ((utext[pos] & 0xf8) == 0xf0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80 && (utext[pos+3] & 0xc0) == 0x80)
+    {
+        // U+10000-U+10FFFF
+        unicode = ((utext[pos] & 0x1f) << 18) | ((utext[pos+1] & 0x3f) << 12) | ((utext[pos+2] & 0x3f) << 6) | (utext[pos+3] & 0x3f);
+        pos += 4;
+        return true;
+    }
+
+    return false;
+}
 
 // Read file FILE_NAME and format it
 String SourceView::read_indented(string& file_name, long& length, 
@@ -2396,6 +2447,66 @@ String SourceView::read_indented(string& file_name, long& length,
 
     // At this point, we have a source text.
     file_name = full_file_name;
+    
+    
+    // determine utf-8 encoding
+    bool utf8 = true;
+    // simple test
+    for (t = 0; t < length; t++)
+    {
+        if (((unsigned char)text[t]) == 0xc0 || ((unsigned char)text[t]) == 0xc1 || ((unsigned char)text[t]) >= 0xf5)
+        {
+            utf8 = false;
+            break;
+        }
+    }
+    
+    // determine new length and check encoding
+    if (utf8 == true)
+    {
+        int newlength = 0;
+        int pos = 0;
+        wchar_t unicode;
+        while (pos<length)
+        {
+            bool res = utf8toUnicode(unicode, text, pos, length);
+            if (res==false)
+                break;
+            
+            newlength ++;
+        }
+
+        if (pos==length)
+        {
+            // map utf-8 to latin1
+            // undisplayable characters (unicode > 255) are mapped to "_"
+            // This should be ok for source code, since only the display 
+            // of non-latin1 comments and string literals is affected.
+            char* newtext = XtMalloc(unsigned(newlength + 1));
+            
+            int pos = 0;
+            wchar_t unicode;
+            int newpos = 0;
+            while (pos<length)
+            {
+                bool res = utf8toUnicode(unicode, text, pos, length);
+                if (res==false)
+                    break;
+
+                if (unicode<=255)
+                    newtext[newpos] = unicode;
+                else
+                    newtext[newpos] = '_';
+                
+                newpos++;
+            }
+    
+            XtFree(text);
+            
+            length = newlength;
+            text = newtext;
+        }
+    }
 
     // Determine text length and number of lines
     int lines = 0;
@@ -6601,7 +6712,7 @@ void SourceView::set_bp_commands(IntArray& nrs, const StringArray& commands,
 		string command = commands[j];
 
 		if (is_graph_cmd(command) || is_running_cmd(command) ||
-		    gdb->type() == PERL && command.contains(' ', 1))
+		    (gdb->type() == PERL && command.contains(' ', 1)))
 		{
 		    // If:
 		    // - this is a DDD command, or
