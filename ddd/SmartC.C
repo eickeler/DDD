@@ -65,8 +65,22 @@ int smart_compare(const char *s1, const char *s2)
 	}
 	else
 	{
-	    // Simple string comparison
-	    return *s1 - *s2;
+	    // Simple case-insensitive string comparison
+// 	    return *s1 - *s2;
+            if (*s1==*s2) // only for s1 == s2 =='\0'
+                return 0;
+
+            char c1 = *s1;
+            char c2 = *s2;
+            if (c1>=0x61 && c1<=0x7a)
+                c1 -= 0x20;
+            if (c2>=0x61 && c2<=0x7a)
+                c2 -= 0x20;
+            if (c1!=c2)
+                return c1 - c2;
+
+            s1++;
+            s2++;
 	}
     }
 }
