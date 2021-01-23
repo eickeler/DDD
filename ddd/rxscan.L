@@ -1,5 +1,10 @@
 /* $Id$ -*- C++ -*- */
 /* DDD regexp scanner */
+%option prefix="ddd"
+%option outfile="rxscan.C"
+%option prefix="ddd"
+%option 8bit
+%option noyywrap
 
 %{
 // Copyright (C) 1997-1999 Technische Universitaet Braunschweig, Germany.
@@ -27,6 +32,9 @@
 // `http://www.gnu.org/software/ddd/',
 // or send a mail to the DDD developers <ddd@gnu.org>.
 
+#include "regexps.h"
+#include <algorithm>
+    
 char rxscan_rcsid[] = 
     "$Id$";
 
@@ -67,7 +75,7 @@ static int the_length;		// Number of characters to read
     while (*the_prefix != '\0' && k < max_size) \
         buf[k++] = *the_prefix++; \
 \
-    int len = min(max_size, the_length); \
+    int len = std::min(max_size, the_length); \
     if (len == 0) \
         result = YY_NULL; \
     else \
@@ -83,7 +91,7 @@ static int the_length;		// Number of characters to read
 #define YY_NO_UNPUT
 
 // Reset the scanner
-static void reset_scanner(void) { yyrestart(yyin); }
+void reset_scanner(void) { yyrestart(yyin); }
 
 #else // !defined(FLEX_SCANNER)
 
@@ -130,16 +138,16 @@ static void reset_scanner(void) { pushback_ptr = pushback; }
 #endif // !defined(FLEX_SCANNER)
 
 
-#define YY_SKIP_YYWRAP
-extern "C" int yywrap(void)
-{
-    return 1;
-}
+// #define YY_SKIP_YYWRAP
+// extern "C" int yywrap(void)
+// {
+//     return 1;
+// }
 
 // Returning values
 #ifdef FLEX_SCANNER
 
-#define YY_DECL static const regex *yylex ( void )
+#define YY_DECL const regex *yylex ( void )
 #define RETURN(x) return x
 
 #else
