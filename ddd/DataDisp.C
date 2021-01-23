@@ -2619,6 +2619,8 @@ void DataDisp::RefreshArgsCB(XtPointer, XtIntervalId *timer_id)
 	case Array:
 	case List:
 	case Struct:
+        case STLVector:
+        case STLList:
 	    rotate_ok = disp_value_arg->expanded();
 	    break;
 

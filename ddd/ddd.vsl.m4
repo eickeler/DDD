@@ -66,6 +66,7 @@ struct_color(box)    = color(box, "FOREGROUND_COLOR");
 list_color(box)      = color(box, "FOREGROUND_COLOR");
 array_color(box)     = color(box, "DATA_COLOR");
 reference_color(box) = color(box, "DATA_COLOR");
+stl_vector_color(box) = color(box, "DATA_COLOR");
 changed_color(box)   = color(box, "FOREGROUND_COLOR", "CHANGED_COLOR");
 shadow_color(box)    = color(box, "SHADOW_COLOR");
 
@@ -243,6 +244,14 @@ reference_value (ref, value) ->
 // Collapsed reference
 collapsed_reference_value () -> 
   reference_color(vcenter(value_rm("...") & hfill()));
+
+// STLVector
+stl_vector_value (para, value) -> 
+  stl_vector_color(value_rm(para & ": ") & value & hfill());
+
+// Collapsed STLVector
+collapsed_stl_vector_value () -> 
+  stl_vector_color(value_rm("...") & hfill());
 
 // Changed value
 changed_value (value) -> 

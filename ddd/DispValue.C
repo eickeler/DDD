@@ -195,6 +195,8 @@ bool DispValue::sequence_pending(const string& value,
 	case Reference:
 	case Array:
         case UserCommand:
+        case STLVector:
+        case STLList:
 	    // In a composite, we always read everything up to the
 	    // final delimiter.
 	    return false;
@@ -323,7 +325,7 @@ void DispValue::init(DispValue *parent, int depth, string& value,
             mytype = List;
         else if (parent == 0 && is_user_command(print_name))
             mytype = UserCommand;
-        else
+        else if (checkSTL(value, mytype)==false)
             mytype = determine_type(value);
     }
 
@@ -491,7 +493,7 @@ void DispValue::init(DispValue *parent, int depth, string& value,
 	read_array_end(value);
 
 	// Expand only if at top-level.
-	myexpanded = (depth == 0 || nchildren() <= 1);
+	myexpanded = (depth == 0 || nchildren() <= 1 || (depth == 1 && parent->type() == STLVector));
 
 #if LOG_CREATE_VALUES
 	std::clog << mytype << " has " << nchildren() << " members\n";
@@ -746,8 +748,12 @@ void DispValue::init(DispValue *parent, int depth, string& value,
 		return;
 	    }
 	}
-
-	if (mytype == List && !value.empty())
+	
+	if (parent != nullptr && parent->type() == STLList)
+        {
+            read_struct_end(value);
+        }
+	else if (mytype == List && !value.empty())
 	{
 	    // Add remaining value as text
 	    _children += parse_child(depth, value, "");
@@ -760,7 +766,7 @@ void DispValue::init(DispValue *parent, int depth, string& value,
 	}
 
 	// Expand only if at top-level.
-	myexpanded = (depth == 0 || nchildren() <= 1);
+	myexpanded = (depth == 0 || nchildren() <= 1  || (depth == 1 && parent->type() == STLList));
 
 #if LOG_CREATE_VALUES
 	std::clog << mytype << " "
@@ -786,6 +792,55 @@ void DispValue::init(DispValue *parent, int depth, string& value,
 
 	_children += parse_child(depth, ref, addr, myfull_name, Pointer);
 	_children += parse_child(depth, value, myfull_name);
+
+	if (background(value.length()))
+	{
+	    init(parent, depth, value);
+	    return;
+	}
+
+	perl_type = '$';	// No such thing in Perl...
+	break;
+    }
+
+    case STLVector:
+    {
+	myexpanded = true;
+
+	int sep = value.index('=');
+
+	string para = value.before(sep);
+	value = value.after(sep);
+
+
+	_children += parse_child(depth, para, myfull_name, Text);
+	_children += parse_child(depth, value, myfull_name, Array);
+
+	if (background(value.length()))
+	{
+	    init(parent, depth, value);
+	    return;
+	}
+
+	perl_type = '$';	// No such thing in Perl...
+	break;
+    }
+
+    case STLList:
+    {
+	myexpanded = true;
+
+	int sep = value.index('=');
+
+	string para = value.before(sep);
+	value = value.after(sep);
+
+        // remove opening brackets
+	sep = value.index('{');
+	value = value.after(sep);
+
+	_children += parse_child(depth, para, myfull_name, Text);
+	_children += parse_child(depth, value, myfull_name, List);
 
 	if (background(value.length()))
 	{
@@ -942,6 +997,9 @@ string DispValue::dereferenced_name() const
     case List:
     case Struct:
     case Reference:
+    case UserCommand:
+    case STLVector:
+    case STLList:
 	return "";
 
     case UnknownType:
@@ -1181,6 +1239,7 @@ DispValue *DispValue::_update(DispValue *source,
 	case Simple:
 	case Text:
 	case Pointer:
+        case UserCommand:
 	    // Atomic values
 	    if (_value != source->value())
 	    {
@@ -1198,6 +1257,8 @@ DispValue *DispValue::_update(DispValue *source,
 	    // FALL THROUGH
 	case Reference:
 	case Sequence:
+        case STLVector:
+        case STLList:
 	    // Numbered children.  If size changed, we assume
 	    // the whole has been changed.
 	    if (nchildren() == source->nchildren())
@@ -1342,6 +1403,7 @@ bool DispValue::structurally_equal(const DispValue *source,
 	case Simple:
 	case Text:
 	case Pointer:
+        case UserCommand:
 	    return true;	// Structurally equal
 		
 	case Array:
@@ -1373,6 +1435,8 @@ bool DispValue::structurally_equal(const DispValue *source,
 	case Struct:
 	case Sequence:
 	case Reference:
+        case STLVector:
+        case STLList:
 	{
 	    if (nchildren() != source->nchildren())
 		return false;

@@ -41,7 +41,9 @@ enum DispValueType {
     Sequence,			// Sequence of values.
     List,			// List of values.  Last member may be text.
     Text,			// Multi-line text.  Last member of a list.
-    UserCommand                 // text output of user command
+    UserCommand,                // text output of user command
+    STLVector,                  // Vector from standard template library
+    STLList                     // Types from standard template library that can be displayed as list 
 };
 
 std::ostream& operator<<(std::ostream& os, DispValueType type);

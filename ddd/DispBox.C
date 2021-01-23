@@ -730,6 +730,22 @@ Box *DispBox::_create_value_box(const DispValue *dv, const DispValue *parent)
 	break;
     }
 
+    case STLVector:
+    case STLList:
+    {
+	if (dv->collapsed())
+	    vbox = eval(dv, "collapsed_stl_vector_value");
+	else
+	{
+	    VSLArgList args;
+	    for (int i = 0; i < 2; i++)
+		args += create_value_box(dv->child(i), dv);
+
+	    vbox = eval(dv, "stl_vector_value", args);
+	}
+	break;
+    }
+
     case UnknownType:
 	assert(0);
 	abort();

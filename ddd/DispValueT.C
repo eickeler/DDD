@@ -38,15 +38,18 @@ std::ostream& operator<<(std::ostream& os, DispValueType type)
 {
     switch (type)
     {
-    case UnknownType: os << "Unknown";   break;
-    case Simple:      os << "Simple";    break;
-    case Pointer:     os << "Pointer";   break;
-    case Array:       os << "Array";     break;
-    case Struct:      os << "Struct";    break;
-    case Reference:   os << "Reference"; break;
-    case Sequence:    os << "Sequence";  break;
-    case List:        os << "List";	 break;
-    case Text:        os << "Text";	 break;
+    case UnknownType: os << "Unknown";     break;
+    case Simple:      os << "Simple";      break;
+    case Pointer:     os << "Pointer";     break;
+    case Array:       os << "Array";       break;
+    case Struct:      os << "Struct";      break;
+    case Reference:   os << "Reference";   break;
+    case Sequence:    os << "Sequence";    break;
+    case List:        os << "List";	   break;
+    case Text:        os << "Text";	   break;
+    case UserCommand: os << "UserCommand"; break;
+    case STLVector:   os << "STLVector";   break;
+    case STLList:     os << "STLList";     break;
     }
     
     return os;
