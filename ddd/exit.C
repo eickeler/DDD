@@ -769,7 +769,8 @@ static void PostXtErrorCB(XtPointer client_data, XtIntervalId *)
 
 static XtAppContext xt_error_app_context = 0;
 
-static void ddd_xt_error(String message = 0)
+static void ddd_xt_error(String message = 0) _X_NORETURN ;
+static void ddd_xt_error(String message)
 {
     ddd_has_crashed = true;
 
@@ -808,6 +809,8 @@ static void ddd_xt_error(String message = 0)
     // Return to main event loop
     entered--;
     goto_main_loop(-1);
+    
+    while (1); //no effect - just make gcc happy
 }
 
 void ddd_install_xt_error(XtAppContext app_context)
