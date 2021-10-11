@@ -366,6 +366,7 @@ class SourceView {
 
     // Return current source name (name under this source is known to GDB)
     static StringStringAssoc source_name_cache;
+    static string get_source_name(string filename = "");
     static string current_source_name();
 
     // File name of current source (for JDB)

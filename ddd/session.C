@@ -223,6 +223,7 @@ static void copy(const string& from_name, const string& to_name, std::ostream& m
     if (to == 0)
     {
 	action.failed(strerror(errno));
+        fclose(from);
 	return;
     }
 

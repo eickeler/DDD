@@ -2367,7 +2367,7 @@ String SourceView::read_indented(string& file_name, long& length,
 
     if (text == 0 || length == 0)
     {
-	for (int trial = 1; (text == 0 || length == 0) && trial <= 2; trial++)
+	for (int trial = 1; (text == 0 || length == 0) && trial <= 3; trial++)
 	{
 	    switch (trial)
 	    {
@@ -2382,6 +2382,13 @@ String SourceView::read_indented(string& file_name, long& length,
 		if (full_file_name == full_path(file_name))
 		    continue;
 		break;
+                
+            case 3:
+                // Loop #3: used file list from debugger
+                full_file_name = get_source_name(file_name);
+                if (full_file_name == full_path(file_name))
+                    continue;
+                break;
 	    }
 
 	    // Attempt #1.  Try to read file from remote source.
@@ -2413,10 +2420,7 @@ String SourceView::read_indented(string& file_name, long& length,
     // Attempt #4.  Read file from GDB.
     if (text == 0 || length == 0)
     {
-	string saved_current_file_name = current_file_name;
-	current_file_name = full_file_name;
-	string source_name = current_source_name();
-	current_file_name = saved_current_file_name;
+	string source_name = get_source_name(file_name);
 
 	text = read_from_gdb(source_name, length, silent);
 
@@ -5076,10 +5080,14 @@ void SourceView::find(const string& s,
 
 //-----------------------------------------------------------------------
 // Return source name
+// use "" as parameter filename the current_file_name is used
 //-----------------------------------------------------------------------
 
-string SourceView::current_source_name()
+string SourceView::get_source_name(string filename)
 {
+    if (filename =="")
+        filename = current_file_name;
+    
     string source = "";
 
     switch (gdb->type())
@@ -5087,7 +5095,7 @@ string SourceView::current_source_name()
     case GDB:
 	// GDB internally recognizes only `source names', i.e., the
 	// source file name as compiled into the executable.
-	if (source_name_cache[current_file_name].empty())
+	if (source_name_cache[filename].empty())
 	{
 	    // Try the current source.
 	    string ans = gdb_question("info source");
@@ -5096,11 +5104,11 @@ string SourceView::current_source_name()
 		ans = ans.before('\n');
 		ans = ans.after(' ', -1);
 
-		if (base_matches(ans, current_file_name))
+		if (base_matches(ans, filename))
 		{
 		    // For security, we request that source and current
 		    // file have the same basename.
-		    source_name_cache[current_file_name] = ans;
+		    source_name_cache[filename] = ans;
 		}
 		else
 		{
@@ -5132,29 +5140,29 @@ string SourceView::current_source_name()
 
 			for (int i = 0; i < n + 1; i++)
 			{
-			    if (base_matches(sources[i], current_file_name))
+			    if (base_matches(sources[i], filename))
 			    {
 				const string& src = sources[i];
-				source_name_cache[current_file_name] = src;
+				source_name_cache[filename] = src;
 				break;
 			    }
 			}
 			
 			delete[] sources;
 
-			if (source_name_cache[current_file_name].empty())
+			if (source_name_cache[filename].empty())
 			{
 			    // No such source text.  Store the base name
 			    // such that GDB is not asked again.
-			    string base = basename(current_file_name.chars());
-			    source_name_cache[current_file_name] = base;
+			    string base = basename(filename.chars());
+			    source_name_cache[filename] = base;
 			}
 		    }
 		}
 	    }
 	}
 
-	source = source_name_cache[current_file_name];
+	source = source_name_cache[filename];
 	break;
 
     case BASH:
@@ -5167,19 +5175,19 @@ string SourceView::current_source_name()
 	if (app_data.use_source_path)
 	{
 	    // These debuggers use full file names.
-	    source = full_path(current_file_name);
+	    source = full_path(filename);
 	}
 	break;
 
     case JDB:
-	if (source_name_cache.has(current_file_name))
+	if (source_name_cache.has(filename))
 	{
 	    // Use the source name as stored by read_class()
-	    source = source_name_cache[current_file_name];
+	    source = source_name_cache[filename];
 	}
 	if (source.empty())
 	{
-	    source = basename(current_file_name.chars());
+	    source = basename(filename.chars());
 	    strip_java_suffix(source);
 	}
 	break;
@@ -5187,10 +5195,16 @@ string SourceView::current_source_name()
 
     // In case this does not work, use the current base name.
     if (source.empty())
-	source = basename(current_file_name.chars());
+	source = basename(filename.chars());
 
     return source;
 }
+
+string SourceView::current_source_name()
+{
+    return get_source_name("");
+}
+
 
 string SourceView::line_of_cursor()
 {
