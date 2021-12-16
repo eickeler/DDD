@@ -1539,13 +1539,13 @@ string PosBuffer::answer_ended ()
     {
     case Null:
     {
-	assert (pos_buffer.empty());
+	//assert (pos_buffer.empty());
 	return auto_cmd_part;
     }
 
     case PosPart:
     {
-	assert (pos_buffer.empty());
+	//assert (pos_buffer.empty());
 	const string ans = auto_cmd_part + answer_buffer;
 	answer_buffer = "";
 	return ans;
@@ -1553,7 +1553,7 @@ string PosBuffer::answer_ended ()
 
     case PosComplete:
     {
-	assert (!pos_buffer.empty());
+	//assert (!pos_buffer.empty());
 	return auto_cmd_part;
     }
 

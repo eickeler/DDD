@@ -817,7 +817,7 @@ void DispValue::init(DispValue *parent, int depth, string& value,
                 sep = value.index(',', sep+1);
                 para = value.before(sep);
                 value = value.after(sep);
-                string emptyvalue = "";
+                string emptyvalue = " ";
                 _children += parse_child(depth, para, myfull_name, Text);
                 _children += parse_child(depth, emptyvalue, myfull_name, Text);
             }
@@ -830,7 +830,7 @@ void DispValue::init(DispValue *parent, int depth, string& value,
         }
         else
         {
-            string emptyvalue = "";
+            string emptyvalue = " ";
             _children += parse_child(depth, value, myfull_name, Text);
             _children += parse_child(depth, emptyvalue, myfull_name, Text);
             
