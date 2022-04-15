@@ -121,6 +121,10 @@ public:
 	delete[] _values;
     }
 
+// GCC 11.2 complains that the size allocated by new is zero.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#pragma GCC diagnostic ignored "-Warray-bounds"
     // Assignment
     DynArray<T>& operator = (const DynArray<T>& m)
     {
@@ -134,12 +138,14 @@ public:
 
 	    for (int i = 0; i < _allocated_size; i++)
 		_values[i] = m._values[i];
+	    //_values = m._values;
 
 	    delete[] old_values;
 	}
 
 	return *this;
     }
+#pragma GCC diagnostic push
 
     // Comparison
     bool operator == (const DynArray<T>& m) const
