@@ -1986,7 +1986,7 @@ static void _SelectOrMove(Widget w, XEvent *event, String *params,
 
     Time t = time(event);
     Boolean double_click = 
-	(Time(t - lastSelectTime) <= Time(XtGetMultiClickTime(XtDisplay(w))));
+	(Time(t - lastSelectTime) <= Time(2 * XtGetMultiClickTime(XtDisplay(w))));
     lastSelectTime = t;
 
     GraphNode *node = graphEditGetNodeAtPoint(w, p);
