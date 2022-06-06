@@ -68,7 +68,7 @@ static void SetSizeCB(Widget w, XtPointer, XtPointer)
     the_size = XtName(w);
 }
 
-static Widget octal_w;		// Initial items
+static Widget hex_w;		// Initial items
 static Widget byte_w;
 static Widget long_w;
 
@@ -79,8 +79,8 @@ static Widget wide_char_w;
 static Widget wide_string_w;
 
 static MMDesc format_menu[] = { 
-    { "o", MMPush, { SetFormatCB, 0 }, 0, &octal_w, 0, 0 },
-    { "x", MMPush, { SetFormatCB, 0 }, 0, 0, 0, 0},
+    { "x", MMPush, { SetFormatCB, 0 }, 0, &hex_w, 0, 0},
+    { "o", MMPush, { SetFormatCB, 0 }, 0, 0, 0, 0 },
     { "d", MMPush, { SetFormatCB, 0 }, 0, 0, 0, 0},
     { "u", MMPush, { SetFormatCB, 0 }, 0, &unsigned_char_w, 0, 0 },
     { "t", MMPush, { SetFormatCB, 0 }, 0, &binary_w, 0, 0 },
@@ -223,11 +223,13 @@ static string examine_command()
       addr.gsub("\t","");	//izbaci sve tabove
 
       //zameni % sa $, pa ako je bilo ikakvih zamena, radi dalje
+      //% replaced by $, and as there have been other replacements, we like to move on
       if (addr.gsub("%","$") > 0) {
 	left_par = addr.index("(");
 	right_par = addr.index(")", left_par+1);
 
 	//samo ako ima zagrada, treba dalje analizirati
+    //only if there is a problem, further analysis is needed
 	if ((left_par != -1) && (right_par != -1)) {
 	  addr_addr = "";		//adresa
 	  addr_base = "";		//baza
@@ -267,6 +269,7 @@ static string examine_command()
 	}
       }
       //ZARKO - prikaz sadrzaja memorije kod opsteg formata adresiranja
+      //ZARKO - displaying the memory of the opsteg addressing format
     }
     
     string fmt = "/" + repeat + format(the_format, the_size);
@@ -343,7 +346,7 @@ void gdbExamineCB(Widget w, XtPointer, XtPointer)
 	manage_child(long_w,           gdb->type() == DBX);
 
 	// Initialize: use `o' and `b' as default menu items
-	XtCallActionProc(octal_w, "ArmAndActivate", 
+	XtCallActionProc(hex_w, "ArmAndActivate", 
 			 (XEvent *)0, (String *)0, 0);
 	XtCallActionProc(byte_w, "ArmAndActivate", 
 			 (XEvent *)0, (String *)0, 0);
