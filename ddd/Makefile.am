@@ -1388,6 +1388,9 @@ FIG2DEV = fig2dev
 FIG2PS  = $(FIG2DEV) -L eps
 FIG2PDF = $(FIG2DEV) -L pdf
 
+# The Ghostscript command.  (gs)
+GS = gs
+GSOPT = -q -sDEVICE=pdfwrite -dCompatibilityLevel=1.4
 
 # We use giftoppm/ppmtogif to get optimal GIF compression.
 .eps.gif:
@@ -1411,7 +1414,9 @@ FIG2PDF = $(FIG2DEV) -L pdf
 
 .fig.pdf:
 	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
-	(cd `dirname $<` && $(FIG2PDF) `basename $<` ) > $@
+	(cd `dirname $<` && $(FIG2PDF) `basename $<` ) > $@-17
+	$(GS) $(GSOPT) -o $@ $@-17
+	rm $@-17
 
 # Our `texinfo.tex' must reside in the current directory, otherwise
 # texi2dvi will use the default.
@@ -1436,9 +1441,6 @@ picdir = $(srcdir)/PICS
 buildpicdir = $(top_builddir)/ddd/PICS
 PS_IMAGES = \
 	$(buildpicdir)/disclaimer.eps           \
-	$(buildpicdir)/dddback.eps		\
-	$(buildpicdir)/dddlogo.eps		\
-	$(buildpicdir)/dddsplash.eps            \
 	$(buildpicdir)/ddd-aliases.eps          \
 	$(buildpicdir)/ddd-all.eps              \
 	$(buildpicdir)/ddd-arguments.eps        \
@@ -1926,7 +1928,7 @@ $(buildpicdir)/tut-value.pdf:            $(buildpicdir)/tut-value.eps
 
 
 # The logo comes in XPM source
-$(buildpicdir)/dddsplash.eps: $(icondir)/dddsplash.xpm
+$(buildpicdir)/dddsplash.pdf: $(icondir)/dddsplash.xpm
 	$(CONVERT) $(icondir)/dddsplash.xpm $@
 
 $(buildpicdir)/dddsplash.gif: $(icondir)/dddsplash.xpm
@@ -1938,7 +1940,7 @@ $(buildpicdir)/dddsplash.jpg: $(icondir)/dddsplash.xpm
 $(buildpicdir)/dddsplash.png: $(icondir)/dddsplash.xpm
 	$(CONVERT) -quality 100 $(icondir)/dddsplash.xpm $@
 
-$(buildpicdir)/dddlogo.eps: $(buildicondir)/dddlogo.xpm
+$(buildpicdir)/dddlogo.pdf: $(buildicondir)/dddlogo.xpm
 	$(CONVERT) $(buildicondir)/dddlogo.xpm $@
 
 $(buildpicdir)/dddlogo.gif: $(buildicondir)/dddlogo.xpm
@@ -1950,7 +1952,7 @@ $(buildpicdir)/dddlogo.jpg: $(buildicondir)/dddlogo.xpm
 $(buildpicdir)/dddlogo.png: $(buildicondir)/dddlogo.xpm
 	$(CONVERT) -quality 100 $(buildicondir)/dddlogo.xpm $@
 
-$(buildpicdir)/dddback.eps: $(icondir)/dddback.xpm
+$(buildpicdir)/dddback.pdf: $(icondir)/dddback.xpm
 	$(CONVERT) $(icondir)/dddback.xpm $@
 
 $(buildpicdir)/dddback.gif: $(icondir)/dddback.xpm
