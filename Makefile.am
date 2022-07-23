@@ -122,6 +122,7 @@ snapshot:
 		-o -name CVS -prune \
 		-o -name PICS -prune \
 		-o -name html -prune \
+		-o -name 'autom4te.*'-prune \
 		-o -name proto-toplev -prune \
 		-o -name etc -prune \
 		-o -name tests -prune \

@@ -61,7 +61,6 @@ SVNREPO="svn://svn.savannah.gnu.org/ddd/trunk"
 
 echo make-current[$$]: start at `date`
 
-echo "Creating ddd-$date.tar.gz$expires_msg..."
 echo "Target is $target"
 echo "Working directory is $tmpdir"
 mkdir -p $target
@@ -107,14 +106,7 @@ else
   version="$VERSION-$date"
 fi
 
-echo "EXPIRES=$EXPIRES"
-echo "expires=$expires"
-echo "VERSION=$VERSION"
-echo "version=$version"
-echo "NICKNAME=$NICKNAME"
-echo "nickname=$nickname"
-echo "final=$final"
-
+echo "Creating ddd-$version.tar.gz$expires_msg..."
 
 # Go ahead...
 if [ "$expires" = "" ]; then
@@ -122,13 +114,6 @@ if [ "$expires" = "" ]; then
 else
   expires_msg=" (expires $expires)"
 fi
-
-echo "expires_msg=$expires_msg"
-
-#  TEMPORARY FIX
-sed 's/DDD_NAMES/EXPIRES=\nAC_SUBST(EXPIRES)\nDDD_NAMES/' configure.ac > configure.ac~
-mv configure.ac~ configure.ac
-
 
 if $final; then
   :
@@ -143,12 +128,15 @@ mv configure.ac~ configure.ac
 fi
 
 # Set up configure scripts.
-autoreconf -ifv
+echo "autoreconf -ifv"
+autoreconf -ifv &> autoreconf.log
 
 # Configure the package.
-sh ./configure -v
+echo "./configure -v"
+sh ./configure -v &> configure.log
 
 # Create distribution.
+echo "make dist"
 make dist &> make.log 
 
 if [ -f ddd-$version.tar.gz ]; then
