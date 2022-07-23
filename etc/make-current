@@ -72,6 +72,7 @@ trap "exit 1" 1 2 15
 trap "set +x; echo -n 'Cleaning up...'; rm -fr $tmpdir; echo done." 0
 
 # Check out sources to $tmpdir
+echo "svn co $SVNREPO ."
 svn co $SVNREPO . > svn.log
 
 # Extract VERSION, EXPIRES, NICKNAME
