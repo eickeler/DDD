@@ -170,6 +170,7 @@ to the developers' mailing list @email{bug-ddd@@gnu.org}. @*
 \subtitle \textsf{\value{EDITION} Edition, for \value{DDD} Version \value{VERSION}}
 \subtitle \textsf{Last updated \value{DATE}}
 \vskip 2\baselineskip
+\center \image{PICS/dddlogo34, 15cm}
 \author \titlesf{Andreas Zeller}
 @end titlepage
 @end tex
@@ -182,6 +183,7 @@ to the developers' mailing list @email{bug-ddd@@gnu.org}. @*
 @end tex
 
 @vskip 0pt plus 1filll
+@noindent
 Copyright @copyright{} 2004 Universit@"at des Saarlandes @*
 Lehrstuhl Softwaretechnik @*
 Postfach 15 11 50 @*
@@ -189,6 +191,7 @@ Postfach 15 11 50 @*
 GERMANY
 @sp 1
 
+@noindent
 Distributed by @*
 Free Software Foundation, Inc. @*
 59 Temple Place -- Suite 330 @*
@@ -196,9 +199,11 @@ Boston, MA 02111-1307 @*
 USA
 @sp 1
 
+@noindent
 @DDD{} and this manual are available via @*
 @uref{http://www.gnu.org/software/ddd/, the @DDD{} @WWW{} page}.
 
+@noindent
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -206,6 +211,7 @@ Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
 copy of the license is included in the section entitled ``GNU Free
 Documentation License''; @xref{Documentation License}, for details.
 
+@noindent
 Send questions, comments, suggestions, etc. to @email{ddd@@gnu.org}. @*
 Submit bug reports at @uref{http://savannah.gnu.org/bugs/?group=ddd},
 the @DDD{} bug tracker. Incoming bug reports are automatically copied

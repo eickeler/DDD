@@ -153,7 +153,7 @@ Send bug reports to @email{bug-ddd@@gnu.org}. @*
 \subtitle \textsf{\value{EDITION} Edition, for \value{DDD} Version \value{VERSION}}
 \subtitle \textsf{Last updated \value{DATE}}
 \vskip 2\baselineskip
-\center \image{PICS/dddlogo, 15cm}
+\center \image{PICS/dddlogo34, 15cm}
 \author \titlesf{Andreas Zeller}
 @end titlepage
 @end tex
