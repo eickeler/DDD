@@ -53,8 +53,8 @@ is a potential bug.  Find out what's going on and let us know; use GNU
 make as a workaround.)
 
 
-Building DDD from the repository
-============================
+Configuring DDD from the repository
+===================================
 
 If you have downloaded a tarball of DDD sources, skip this section.
 
@@ -69,36 +69,44 @@ Download the latest sources:
 Configure for building DDD:
   $ cd ddd
   $ autoreconf -ifv
-
-To build DDD, continue with the next section.
-
-
-Build and Install DDD
-=====================
-
-If you downloaded sources from the repository:
-
-  $ cd ddd  --  the directory you downloaded
-
-If you downloaded sources from a tarball:
-
-  $ tar xfz ddd-<version>.tgz
-  $ cd ddd-<version>
+  $ cd ..
+  $ mkdir build
+  $ cd build
 
 Configure DDD:
 
-  $ ./configure
+  $ ../ddd/configure 
+
+To build DDD, continue with the section titled "Make DDD" below.
+
+
+Configure DDD from tarball
+==========================
+
+Downloaded a tarball located at http://ftp.gnu.org/gnu/ddd/.
+
+  $ tar xfz ddd-<version>.tar.gz
+  $ mkdir build
+  $ cd build
+
+Configure DDD:
+
+  $ ../ddd-<version>/configure
 
 This will configure DDD to install in /usr/local.  If you want to
 install in a different directory, for example, under your home
 directory, specify --prefix:
 
-  $ ./configure --prefix=$HOME
+  $ ../ddd-<version>/configure --prefix=$HOME
 
 This may issue warnings about missing libraries or support programs.
 Install these and re-run configure until it issues the following:
 
   configuration is done.  Type `make' to make DDD.
+
+
+Make DDD and Install
+====================
 
 Build DDD:
 
