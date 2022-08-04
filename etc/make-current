@@ -30,21 +30,24 @@
 # This script checks out the current DDD development tree, as
 # stored in SVN, and creates a DDD release-of-the-day (`ROTD').
 
-# Usage: `make-current [-final] 
+# Usage: `make-current [-final][-keep] 
 # -final: make an official release (else: release-of-the-day).
+# -keep: retain temporary build directory
 
 # Some Bash versions issue the name of the directory they're changing into :-(
 unset CDPATH
 
 # Check args
-final=false;
-case "$0" in
-  *final*) final=true;;
-esac
-if [ "$1" = "-final" ]; then
-  final=true
-  shift
-fi
+final=false
+keep=false
+
+for arg in "$@"
+do
+  case "$arg" in
+    *final*) final=true;;
+    *keep*) keep=true;;
+  esac
+done
 
 # Fetch the date in ISO 8601 YYYY-MM-DD format.
 year=`date +"%Y"`
@@ -69,7 +72,7 @@ cd $tmpdir
 
 # We are working in `$HOME/tmp/ddd'.  In case of trouble, clean up.
 trap "exit 1" 1 2 15
-trap "set +x; echo -n 'Cleaning up...'; rm -fr $tmpdir; echo done." 0
+trap "set +x; echo -n 'Cleaning up...'; if [ "$keep" == "false" ]; then rm -fr $tmpdir; fi; echo done." 0
 
 # Check out sources to $tmpdir
 echo "svn co $SVNREPO ."

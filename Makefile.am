@@ -71,7 +71,7 @@ REL = 1
 
 # Build a DDD distribution from archive.
 .PHONY: dist
-dist: diststuff disttouch distclean \
+dist: diststuff disttouch \
 	snapshot htmldist picsdist
 
 # RPM spec
