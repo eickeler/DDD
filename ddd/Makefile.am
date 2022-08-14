@@ -1004,26 +1004,26 @@ bug.$(OBJEXT):	$(srcdir)/bug.C
 # 1. Create a displaced mask in FILE-mask.pbm, using `pnmcut' and `pnmpaste'
 # 2. Add the mask to FILE.xbm, using `pnmarith'.
 #.xbm.xpmxx:
-	@$(ECHO) "Creating $@"
-	@-base=`$(ECHO) $@ | $(SED) 's,.*/,,' | $(SED) 's/[.]x[bp]m.*//'`; \
-	$(SED) 's/unsigned //' $< | \
-	$(XBMTOPBM) > $${base}-object.pbm; \
-	$(PNMMARGIN) 1 $${base}-object.pbm | \
-	$(PNMCUT) 0 0 29 25 | \
-	$(PNMINVERT) | \
-	$(PNMPASTE) -and $${base}-object.pbm 0 0 > $${base}-mask.pbm; \
-	$(PPMTOXPM) $${base}-object.pbm | \
-	$(SED) -e 's/#00*/grey50/' -e 's/#FF*/grey/' \
-	-e 's/\<black\>/grey50/' -e 's/\<white\>/grey/' | \
-	$(XPMTOPPM) > $${base}-button.ppm; \
-	$(PNMARITH) -add $${base}-button.ppm $${base}-mask.pbm | \
-	$(PPMTOXPM) | \
-	$(SED) 's/c #BE[BE]*/c none   g none   m none  s Background/' | \
-	$(SED) 's/c #7F[7F]*/c grey50 g grey50 m black/' | \
-	$(SED) 's/c #FF*/c white  g white  m white/' | \
-	$(SED) "s/noname/$${base}_xx_xpm/" | $(DELETE_CR) > $@~; \
-	$(RM) $${base}-object.pbm $${base}-mask.pbm $${base}-button.ppm
-	@test -s $@~ && $(MV) $@~ $@ || ($(RM) $@~; test -s $@)
+#	@$(ECHO) "Creating $@"
+#	@-base=`$(ECHO) $@ | $(SED) 's,.*/,,' | $(SED) 's/[.]x[bp]m.*//'`; \
+#	$(SED) 's/unsigned //' $< | \
+#	$(XBMTOPBM) > $${base}-object.pbm; \
+#	$(PNMMARGIN) 1 $${base}-object.pbm | \
+#	$(PNMCUT) 0 0 29 25 | \
+#	$(PNMINVERT) | \
+#	$(PNMPASTE) -and $${base}-object.pbm 0 0 > $${base}-mask.pbm; \
+#	$(PPMTOXPM) $${base}-object.pbm | \
+#	$(SED) -e 's/#00*/grey50/' -e 's/#FF*/grey/' \
+#	-e 's/\<black\>/grey50/' -e 's/\<white\>/grey/' | \
+#	$(XPMTOPPM) > $${base}-button.ppm; \
+#	$(PNMARITH) -add $${base}-button.ppm $${base}-mask.pbm | \
+#	$(PPMTOXPM) | \
+#	$(SED) 's/c #BE[BE]*/c none   g none   m none  s Background/' | \
+#	$(SED) 's/c #7F[7F]*/c grey50 g grey50 m black/' | \
+#	$(SED) 's/c #FF*/c white  g white  m white/' | \
+#	$(SED) "s/noname/$${base}_xx_xpm/" | $(DELETE_CR) > $@~; \
+#	$(RM) $${base}-object.pbm $${base}-mask.pbm $${base}-button.ppm
+#	@test -s $@~ && $(MV) $@~ $@ || ($(RM) $@~; test -s $@)
 
 .xpm.xbmxx:
 	@$(ECHO) "Creating $@"
