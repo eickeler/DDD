@@ -1574,7 +1574,7 @@ PDF_IMAGES = \
 HTML_IMAGES = \
 	$(buildpicdir)/disclaimer$(IMGEXT2)           \
 	$(buildpicdir)/dddback$(IMGEXT2)	      \
-	$(buildpicdir)/dddlogo$(IMGEXT2)              \
+	$(buildpicdir)/dddlogo34$(IMGEXT2)            \
 	$(buildpicdir)/dddsplash$(IMGEXT2)            \
 	$(buildpicdir)/ddd-aliases$(IMGEXT2)          \
 	$(buildpicdir)/ddd-all$(IMGEXT2)              \
