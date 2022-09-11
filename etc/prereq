@@ -1,0 +1,127 @@
+#!/bin/bash
+
+# Check for prerequisite packages
+
+# This file is part of DDD.
+# 
+# DDD is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+# 
+# DDD is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with DDD -- see the file COPYING.
+# If not, see <http://www.gnu.org/licenses/>.
+# 
+# DDD is the data display debugger.
+# For details, see the DDD World-Wide-Web page, 
+# `http://www.gnu.org/software/ddd/',
+# or send a mail to the DDD developers <ddd@gnu.org>.
+
+# Usage:  prereq [-maint*]
+#  -maint | -maintainer:  Check for pre-reqs to build from repo
+
+maintainer=0
+
+usage()
+{
+  echo "Check for pre-requisite packages to build DDD"
+  echo "Usage:  $0 [-maint | maintainer]"
+  echo "  -maint | -maintainer:  Check for pre-reqs to build from repo"
+}
+
+for ARG in $*; do
+  case "$ARG" in 
+    -maint | -maintainer)
+	maintainer=1
+	;;
+    -h | -help | --help)
+	usage
+	exit 1   
+	;;
+    *)
+	echo "error: unrecognized argument: $ARG"
+	usage
+	exit 1   
+	;;
+  esac
+done 
+
+
+UBUNTUPKGS=( \
+  "binutils" "g++" "gcc" "make" "libmotif-dev" "libx11-dev" "libxpm-dev" \
+  "libxt-dev" "libncurses-dev" "gdb" "fonts-liberation" \
+  )
+UBUNTUDEVPKGS=( \
+  "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" \
+  "texlive-font-utils" "texlive-latex-base" \
+  )
+
+FEDORAPKGS=( \
+  "binutils" "gcc-c++" "gcc" "make" "motif-devel" "libX11-devel" "libXpm-devel" \
+  "libXt-devel" "ncurses-devel" "gdb" "liberation-fonts-common" "liberation-sans-fonts" \
+  "liberation-mono-fonts" "liberation-serif-fonts" \
+  )
+FEDORADEVPKGS=( \
+  "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" \
+  )
+
+
+if grep Ubuntu /etc/os-release > /dev/null; then
+  distro="UBUNTU"
+elif grep Fedora /etc/os-release > /dev/null; then
+  distro="FEDORA"
+else
+  distro="UNKNOWN"
+fi
+
+if [ "$distro" = "UNKNOWN" ]; then
+  echo "Cannot check pre-req's for $distro distro"
+  exit 1
+fi
+
+if [ "$distro" = "UBUNTU" ]; then
+  echo "Checking pre-req's for $distro distro"
+
+  if [ $maintainer = 1 ]; then
+    PKGS=( ${UBUNTUPKGS[*]} ${UBUNTUDEVPKGS[*]} )
+  else
+    PKGS=( ${UBUNTUPKGS[*]} )
+  fi
+  
+  for PKG in ${PKGS[@]}
+  do 
+    if dpkg -l $PKG > /dev/null; then
+      echo "$PKG installed"
+    else
+      echo "$PKG not installed"
+    fi
+  done
+fi
+
+
+if [ "$distro" = "FEDORA" ]; then
+  echo "Checking pre-req's for $distro distro"
+
+  if [ $maintainer = 1 ]; then
+    PKGS=( ${FEDORAPKGS[*]} ${FEDORADEVPKGS[*]} )
+  else
+    PKGS=( ${FEDORAPKGS[*]} )
+  fi
+  
+  INSTALLEDPKGS=$(rpm -qa)
+  for PKG in ${PKGS[@]}
+  do 
+    if echo $INSTALLEDPKGS | grep -q $PKG > /dev/null; then
+      echo "$PKG installed"
+    else
+      echo "$PKG not installed"
+    fi
+  done
+
+fi
