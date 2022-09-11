@@ -1650,7 +1650,7 @@ const char * font_menu_notes =
     "Selecting fonts with xfontsel:\n"
     "Only scalable fonts should be selected (ptSz=0).\n"
     "Default and Variable fonts must be proportional (spc=p),\n"
-    "Fixed and Dafa fonts must be monospaced (spc=m).\n"
+    "Fixed and Data fonts must be monospaced (spc=m).\n"
     DDD_NAME " only supports ISO8859-1 encoding.\n" ;
 
 static MMDesc font_preferences_menu [] =
