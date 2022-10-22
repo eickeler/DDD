@@ -28,7 +28,7 @@
 #ifndef _DDD_deref_h
 #define _DDD_deref_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Return dereferenced EXPR
 extern string deref(const string& expr, const string& symbol = "");

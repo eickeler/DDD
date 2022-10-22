@@ -28,7 +28,7 @@
 #ifndef _DDD_buttons_h
 #define _DDD_buttons_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include <X11/Intrinsic.h>
 
 // Create a button row named NAME with buttons as specified in LIST

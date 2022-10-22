@@ -28,8 +28,8 @@
 #ifndef _DDD_resolvePath_h
 #define _DDD_resolvePath_h
 
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 
 // Return full path of FILE, searching in a number of predefined places.
 // If not found, return "".

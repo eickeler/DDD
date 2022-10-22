@@ -32,13 +32,13 @@
 // A DispValue reads and stores type and value of a displayed expression
 //-----------------------------------------------------------------------------
 
-#include "strclass.h"
-#include "bool.h"
-#include "mutable.h"
+#include "base/strclass.h"
+#include "base/bool.h"
+#include "base/mutable.h"
 #include "DispValueA.h"
 #include "DispValueT.h"
-#include "StringSA.h"
-#include "Box.h"
+#include "template/StringSA.h"
+#include "box/Box.h"
 #include <Xm/Xm.h>
 
 class Agent;

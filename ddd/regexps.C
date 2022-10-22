@@ -29,9 +29,9 @@ char regexps_rcsid[] =
     "$Id$";
 
 #include "regexps.h"
-#include "assert.h"
-#include "misc.h"		// min()
-#include "casts.h"
+#include "base/assert.h"
+#include "base/misc.h"		// min()
+#include "base/casts.h"
 #include <string.h>
 #include <iostream>
 

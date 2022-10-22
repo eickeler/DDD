@@ -29,8 +29,8 @@
 #define _DDD_editing_h
 
 #include <X11/Intrinsic.h>
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 
 // Actions
 extern void controlAct            (Widget, XEvent*, String*, Cardinal*);

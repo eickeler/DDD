@@ -30,8 +30,8 @@ char vsldoc_rcsid[] =
 
 #include "vsldoc.h"
 #include "string-fun.h"
-#include "basename.h"
-#include "StringSA.h"
+#include "base/basename.h"
+#include "template/StringSA.h"
 
 #include <stdio.h>
 

@@ -32,11 +32,11 @@ char logplayer_rcsid[] =
 #include "logplayer.h"
 
 #include "assert.h"
-#include "bool.h"
-#include "strclass.h"
-#include "cook.h"
+#include "base/bool.h"
+#include "base/strclass.h"
+#include "base/cook.h"
 #include "config.h"
-#include "streampos.h"
+#include "base/streampos.h"
 
 #include <iostream>
 #include <fstream>

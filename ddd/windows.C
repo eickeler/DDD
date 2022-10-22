@@ -36,22 +36,22 @@ char windows_rcsid[] =
 #include "windows.h"
 
 #include "AppData.h"
-#include "BoxRegion.h"
+#include "box/BoxRegion.h"
 #include "DataDisp.h"
 #include "SourceView.h"
-#include "TimeOut.h"
+#include "agent/TimeOut.h"
 #include "assert.h"
 #include "cmdtty.h"
 #include "ddd.h"
 #include "editing.h"
 #include "exectty.h"
 #include "exit.h"
-#include "findParent.h"
-#include "frame.h"
+#include "x11/findParent.h"
+#include "x11/frame.h"
 #include "wm.h"
 #include "MinMaxA.h"
 #include "Tool.h"
-#include "XErrorB.h"
+#include "x11/XErrorB.h"
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
@@ -65,7 +65,7 @@ char windows_rcsid[] =
 #endif
 #include <X11/Xutil.h>
 
-#include "Sash.h"		// XmIsSash()
+#include "x11/Sash.h"		// XmIsSash()
 #include <Xm/Separator.h>	// XmIsSeparator()
 #include <Xm/SeparatoG.h>	// XmIsSeparatorGadget()
 

@@ -30,13 +30,13 @@ char xconfig_rcsid[] =
     "$Id$";
 
 #include "xconfig.h"
-#include "strclass.h"
-#include "bool.h"
-#include "cook.h"
+#include "base/strclass.h"
+#include "base/bool.h"
+#include "base/cook.h"
 #include "filetype.h"
 #include "shell.h"
 #include "assert.h"
-#include "casts.h"
+#include "base/casts.h"
 
 #include <unistd.h>
 #include <stdio.h>

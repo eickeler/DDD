@@ -35,13 +35,13 @@ char ArgField_rcsid[] =
 #include <Xm/TextF.h>
 #include <Xm/PushB.h>
 
-#include "verify.h"
-#include "charsets.h"
+#include "x11/verify.h"
+#include "x11/charsets.h"
 #include "AppData.h"
 #include "buttons.h"
 #include "string-fun.h"		// strip_space()
-#include "tabs.h"		// tabify()
-#include "ComboBox.h"
+#include "base/tabs.h"		// tabify()
+#include "motif/ComboBox.h"
 
 
 // Constructor

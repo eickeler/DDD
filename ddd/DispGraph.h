@@ -33,13 +33,13 @@
 //-----------------------------------------------------------------------------
 
 // Misc includes
-#include "strclass.h"
-#include "bool.h" 
-#include "Graph.h" 
-#include "HandlerL.h"
-#include "LineGraphE.h"
-#include "PosGraphN.h"
-#include "GraphNPA.h"
+#include "base/strclass.h"
+#include "base/bool.h" 
+#include "graph/Graph.h" 
+#include "agent/HandlerL.h"
+#include "graph/LineGraphE.h"
+#include "graph/PosGraphN.h"
+#include "graph/GraphNPA.h"
 #include "DispNodeM.h"
 
 //-----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ char HistoryDialog_rcsid[] =
 #include "HistoryD.h"
 
 #include "GDBAgent.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "ddd.h"
 #include "disp-read.h"
 #include "history.h"

@@ -30,8 +30,8 @@
 #define _DDD_disp_read_h
 
 // Misc includes
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 
 // DDD includes
 #include "GDBAgent.h"

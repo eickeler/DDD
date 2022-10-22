@@ -32,8 +32,8 @@
 #ifndef _DDD_value_read_h
 #define _DDD_value_read_h
 
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 #include "DispValueT.h"
 
 #include <iostream>

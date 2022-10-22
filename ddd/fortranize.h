@@ -28,7 +28,7 @@
 #ifndef _DDD_fortranize_h
 #define _DDD_fortranize_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Return ID in `fortranized' form -- that is, in lower/upper case and
 // with `_' appended.  If GLOBALS_FIRST is set, try global symbols first.

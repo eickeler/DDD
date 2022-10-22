@@ -28,7 +28,7 @@
 #ifndef _DDD_ctrl_h
 #define _DDD_ctrl_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Convert ^[character] sequence to control characters
 extern string ctrl(string name);

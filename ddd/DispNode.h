@@ -33,12 +33,12 @@
 //-----------------------------------------------------------------------------
 
 // Misc includes
-#include "strclass.h"
-#include "assert.h"
-#include "bool.h"
-#include "GraphNode.h"
-#include "HandlerL.h"
-#include "BoxGraphN.h"
+#include "base/strclass.h"
+#include "base/assert.h"
+#include "base/bool.h"
+#include "graph/GraphNode.h"
+#include "agent/HandlerL.h"
+#include "graph/BoxGraphN.h"
 #include "DispValue.h"
 
 class DispBox;

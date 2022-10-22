@@ -28,7 +28,7 @@
 #ifndef _DDD_dbx_lookup_h
 #define _DDD_dbx_lookup_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Find location of FUNC_NAME using DBX
 string dbx_lookup(const string& func_name, bool silent = true);

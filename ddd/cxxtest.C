@@ -40,7 +40,7 @@ char cxxtest_rcsid[] =
 #include "config.h"
 #endif
 
-#include "bool.h"
+#include "base/bool.h"
 
 #include <iostream>
 #include <stdlib.h>

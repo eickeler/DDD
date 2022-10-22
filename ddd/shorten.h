@@ -28,7 +28,7 @@
 #ifndef _DDD_shorten_h
 #define _DDD_shorten_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Shorten expression in EXPR to MAX_LENGTH
 extern void shorten(string& expr, unsigned max_length);

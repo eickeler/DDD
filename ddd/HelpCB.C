@@ -34,21 +34,21 @@ char HelpCB_rcsid[] =
 
 #include "config.h"
 
-#include "Agent.h"
-#include "ComboBox.h"
-#include "DestroyCB.h"
+#include "agent/Agent.h"
+#include "motif/ComboBox.h"
+#include "x11/DestroyCB.h"
 #include "HelpCB.h"
-#include "MakeMenu.h"
+#include "motif/MakeMenu.h"
 #include "SmartC.h"
-#include "TimeOut.h"
-#include "TextSetS.h"
+#include "agent/TimeOut.h"
+#include "motif/TextSetS.h"
 #include "ddd.h"		// process_pending_events()
-#include "findParent.h"
-#include "isid.h"
-#include "longName.h"
+#include "x11/findParent.h"
+#include "base/isid.h"
+#include "x11/longName.h"
 #include "toolbar.h"
 #include "windows.h"		// set_scrolled_window_size()
-#include "misc.h"		// min(), max()
+#include "base/misc.h"		// min(), max()
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,15 +78,15 @@ char HelpCB_rcsid[] =
 #include <X11/Shell.h>
 
 // Misc DDD includes
-#include "LessTifH.h"
-#include "strclass.h"
-#include "cook.h"
-#include "events.h"
+#include "motif/LessTifH.h"
+#include "base/strclass.h"
+#include "base/cook.h"
+#include "x11/events.h"
 #include "exit.h"
 #include "simpleMenu.h"
-#include "verify.h"
-#include "Delay.h"
-#include "StringA.h"
+#include "x11/verify.h"
+#include "x11/Delay.h"
+#include "template/StringA.h"
 #include "IntArray.h"
 #include "wm.h"
 #include "post.h"

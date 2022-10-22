@@ -31,19 +31,19 @@ char status_rcsid[] =
 #include "status.h"
 
 #include "Command.h"
-#include "Delay.h"
-#include "DestroyCB.h"
+#include "x11/Delay.h"
+#include "x11/DestroyCB.h"
 #include "GDBAgent.h"
 #include "HelpCB.h"
-#include "MakeMenu.h"
-#include "charsets.h"
+#include "motif/MakeMenu.h"
+#include "x11/charsets.h"
 #include "cmdtty.h"		// annotate()
 #include "ddd.h"
-#include "findParent.h"
+#include "x11/findParent.h"
 #include "mydialogs.h"
 #include "post.h"
 #include "string-fun.h"
-#include "verify.h"
+#include "x11/verify.h"
 
 #include <ctype.h>
 #include <Xm/Xm.h>
@@ -54,7 +54,7 @@ char status_rcsid[] =
 #include <Xm/MenuShell.h>
 
 #include <X11/IntrinsicP.h>	// LessTif hacks
-#include "LessTifH.h"
+#include "motif/LessTifH.h"
 
 //-----------------------------------------------------------------------------
 // Data

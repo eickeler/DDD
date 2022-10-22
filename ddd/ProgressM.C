@@ -32,10 +32,10 @@ char ProgressMeter_rcsid[] =
 
 #include "Command.h"
 #include "DispValue.h"
-#include "charsets.h"
+#include "x11/charsets.h"
 #include "ddd.h"
 #include "string-fun.h"
-#include "verify.h"
+#include "x11/verify.h"
 #include "version.h"
 #include "wm.h"
 

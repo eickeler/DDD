@@ -32,8 +32,8 @@
 #include <X11/Intrinsic.h>
 #include <iostream>
 
-#include "bool.h"
-#include "ExitCB.h"
+#include "base/bool.h"
+#include "x11/ExitCB.h"
 
 // Cleanup and signal handling
 extern void ddd_cleanup();

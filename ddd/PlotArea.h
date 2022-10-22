@@ -28,9 +28,9 @@
 #ifndef _DDD_PlotArea_h
 #define _DDD_PlotArea_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include <X11/Intrinsic.h>
-#include "ChunkQueue.h"
+#include "agent/ChunkQueue.h"
 #include "assert.h"
 
 class PlotArea;

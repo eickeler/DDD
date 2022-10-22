@@ -29,7 +29,7 @@
 #define _DDD_MinMaxAssoc_h
 
 #include <X11/Intrinsic.h>
-#include "Assoc.h"
+#include "template/Assoc.h"
 
 struct MinMax {
     Dimension min;

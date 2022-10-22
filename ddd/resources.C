@@ -36,7 +36,7 @@ char resources_rcsid[] =
 #include "stty.h"
 #include "config.h"
 #include "resolveP.h"
-#include "tabs.h"
+#include "base/tabs.h"
 
 #include <Xm/Xm.h>
 

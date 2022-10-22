@@ -31,21 +31,21 @@ char examine_rcsid[] =
 
 #include "examine.h"
 
-#include "bool.h"
+#include "base/bool.h"
 #include "ddd.h"
 #include "disp-read.h"
 #include "history.h"
-#include "strclass.h"
+#include "base/strclass.h"
 #include "string-fun.h"
-#include "verify.h"
+#include "x11/verify.h"
 #include "wm.h"
 #include "ArgField.h"
 #include "Command.h"
-#include "Delay.h"
-#include "DestroyCB.h"
+#include "x11/Delay.h"
+#include "x11/DestroyCB.h"
 #include "HelpCB.h"
 #include "HistoryD.h"
-#include "MakeMenu.h"
+#include "motif/MakeMenu.h"
 
 #include <Xm/SelectioB.h>
 #include <Xm/TextF.h>

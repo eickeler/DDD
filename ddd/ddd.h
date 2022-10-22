@@ -28,13 +28,13 @@
 #ifndef _DDD_ddd_h
 #define _DDD_ddd_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include <fstream>
 
 #include <X11/Intrinsic.h>
 #include <Xm/Xm.h>
 
-#include "bool.h"
+#include "base/bool.h"
 
 // GDB command widget
 extern Widget gdb_w;

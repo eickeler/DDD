@@ -42,11 +42,11 @@ char value_read_rcsid[] =
 #include <ctype.h>
 
 #include "string-fun.h"
-#include "assert.h"
+#include "base/assert.h"
 #include "comm-manag.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "ddd.h"
-#include "isid.h"
+#include "base/isid.h"
 #include "regexps.h"
 #include "GDBAgent.h"
 #include "PosBuffer.h"

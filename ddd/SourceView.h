@@ -53,21 +53,21 @@
 #include <Xm/Xm.h>
 
 // Misc includes
-#include "strclass.h"
-#include "Assoc.h"
-#include "MakeMenu.h"
-#include "StringA.h"
-#include "IntIntAA.h"
-#include "TextPosA.h"
+#include "base/strclass.h"
+#include "template/Assoc.h"
+#include "motif/MakeMenu.h"
+#include "template/StringA.h"
+#include "template/IntIntAA.h"
+#include "template/TextPosA.h"
 
 // DDD includes
 #include "ArgField.h"
 #include "GDBAgent.h"
 #include "BreakPM.h"
 #include "CodeCache.h"
-#include "Delay.h"
-#include "StringSA.h"
-#include "MString.h"
+#include "x11/Delay.h"
+#include "template/StringSA.h"
+#include "motif/MString.h"
 
 //-----------------------------------------------------------------------------
 extern GDBAgent* gdb;

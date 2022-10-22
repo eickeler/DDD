@@ -29,8 +29,8 @@ char environ_rcsid[] =
     "$Id$";
 
 #include "environ.h"
-#include "StringA.h"
-#include "bool.h"
+#include "template/StringA.h"
+#include "base/bool.h"
 #include "shell.h"
 
 #include <stdlib.h>		// getenv, putenv

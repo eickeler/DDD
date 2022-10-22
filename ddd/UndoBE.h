@@ -28,9 +28,9 @@
 #ifndef _DDD_UndoBufferEntry_h
 #define _DDD_UndoBufferEntry_h
 
-#include "StringSA.h"
+#include "template/StringSA.h"
 #include <vector>
-#include "bool.h"
+#include "base/bool.h"
 
 // Special value keys
 #define UB_POS           "pos"	        // Current source position

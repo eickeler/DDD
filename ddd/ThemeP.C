@@ -29,8 +29,8 @@ char ThemePattern_rcsid[] =
     "$Id$";
 
 #include "ThemeP.h"
-#include "cook.h"
-#include "glob.h"
+#include "base/cook.h"
+#include "base/glob.h"
 #include "string-fun.h"
 
 #include <iostream>

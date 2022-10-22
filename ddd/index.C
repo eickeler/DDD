@@ -29,7 +29,7 @@ char index_rcsid[] =
     "$Id$";
 
 #include "index.h"
-#include "misc.h"
+#include "base/misc.h"
 #include <string.h>
 
 

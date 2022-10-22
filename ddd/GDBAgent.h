@@ -41,13 +41,13 @@
 #ifndef _DDD_GDBAgent_h
 #define _DDD_GDBAgent_h
 
-#include "TTYAgent.h"
-#include "HandlerL.h"
-#include "strclass.h"
-#include "bool.h"
-#include "assert.h"
-#include "StringA.h"
-#include "VoidArray.h"
+#include "agent/TTYAgent.h"
+#include "agent/HandlerL.h"
+#include "base/strclass.h"
+#include "base/bool.h"
+#include "base/assert.h"
+#include "template/StringA.h"
+#include "template/VoidArray.h"
 
 //-----------------------------------------------------------------------------
 // Debugger types

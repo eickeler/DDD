@@ -40,8 +40,8 @@ char VSL_lex_rcsid[] =
 
 #include <stdio.h>
 #include <errno.h>
-#include "strclass.h"
-#include "casts.h"
+#include "base/strclass.h"
+#include "base/casts.h"
 
 static const int max_include_nesting = 40;    // max include nesting
 

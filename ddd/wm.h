@@ -29,7 +29,7 @@
 #define _DDD_wm_h
 
 #include <X11/Intrinsic.h>
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Window manager
 extern void wm_set_icon(Widget shell, Pixmap icon, Pixmap mask);

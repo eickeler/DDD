@@ -29,8 +29,8 @@
 #define _DDD_args_h
 
 #include <X11/Intrinsic.h>
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 
 void gdbRunCB(Widget w, XtPointer, XtPointer);
 

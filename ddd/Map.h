@@ -35,8 +35,8 @@
 #ifndef _DDD_Map_h
 #define _DDD_Map_h
 
-#include "bool.h"
-#include "assert.h"
+#include "base/bool.h"
+#include "base/assert.h"
 
 typedef void *MapRef;
 

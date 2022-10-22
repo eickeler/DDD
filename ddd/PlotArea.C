@@ -46,7 +46,7 @@ char PlotArea_rcsid[] =
 
 #include "PlotArea.h"
 
-#include "cook.h"
+#include "base/cook.h"
 
 #include <stdio.h>
 #include <stdlib.h>

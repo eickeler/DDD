@@ -28,10 +28,10 @@
 #ifndef _DDD_status_h
 #define _DDD_status_h
 
-#include "strclass.h"
-#include "bool.h"
-#include "Delay.h"
-#include "MString.h"
+#include "base/strclass.h"
+#include "base/bool.h"
+#include "x11/Delay.h"
+#include "motif/MString.h"
 #include <X11/Intrinsic.h>
 
 // Show MESSAGE in status window.

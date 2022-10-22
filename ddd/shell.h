@@ -28,8 +28,8 @@
 #ifndef _DDD_shell_h
 #define _DDD_shell_h
 
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 
 // Command management
 extern bool remote_gdb();

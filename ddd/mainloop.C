@@ -35,7 +35,7 @@ char mainloop_rcsid[] =
 #include "status.h"
 #include "ddd.h"
 #include "AppData.h"
-#include "SignalB.h"
+#include "base/SignalB.h"
 
 #include <setjmp.h>
 

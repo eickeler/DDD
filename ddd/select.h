@@ -28,7 +28,7 @@
 #ifndef _DDD_select_h
 #define _DDD_select_h
 
-#include "Agent.h"
+#include "agent/Agent.h"
 #include <X11/Intrinsic.h>
 
 // Selection

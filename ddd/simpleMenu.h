@@ -28,7 +28,7 @@
 #ifndef _DDD_simpleMenu_h
 #define _DDD_simpleMenu_h
 
-#include "MakeMenu.h"
+#include "motif/MakeMenu.h"
 
 extern MMDesc simple_edit_menu[];
 extern MMDesc simple_help_menu[];

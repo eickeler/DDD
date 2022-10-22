@@ -38,10 +38,10 @@
 #include <X11/Intrinsic.h>
 
 // Misc includes
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 #include "GDBAgent.h"
-#include "StringA.h"
+#include "template/StringA.h"
 
 // Breakpoint type, respectively:
 //  Breakpoint

@@ -28,8 +28,8 @@
 #ifndef _DDD_toolbar_h
 #define _DDD_toolbar_h
 
-#include "strclass.h"
-#include "MakeMenu.h"
+#include "base/strclass.h"
+#include "motif/MakeMenu.h"
 #include "ArgField.h"
 
 // Create a toolbar as child of parent, named `NAME_toolbar', having

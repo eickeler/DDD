@@ -28,7 +28,7 @@
 #ifndef _DDD_exectty_h
 #define _DDD_exectty_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include <stdlib.h>
 #include <X11/Intrinsic.h>
 

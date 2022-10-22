@@ -31,13 +31,13 @@ char simpleMenu_rcsid[] =
 #include "simpleMenu.h"
 
 #include "config.h"
-#include "MakeMenu.h"
+#include "motif/MakeMenu.h"
 #include "HelpCB.h"
-#include "TextSetS.h"
+#include "motif/TextSetS.h"
 #include "WhatNextCB.h"
-#include "events.h"
+#include "x11/events.h"
 #include "exit.h"
-#include "findParent.h"
+#include "x11/findParent.h"
 #include "tips.h"
 #include "show.h"
 

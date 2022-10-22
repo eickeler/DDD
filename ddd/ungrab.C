@@ -37,7 +37,7 @@ char ungrab_rcsid[] =
 #include "AppData.h"
 #include "CodeCache.h"
 #include "GDBAgent.h"
-#include "TimeOut.h"
+#include "agent/TimeOut.h"
 #include "assert.h"
 #include "buttons.h"
 #include "ddd.h"
@@ -48,10 +48,10 @@ char ungrab_rcsid[] =
 #include "status.h"
 #include "string-fun.h"
 #include "windows.h"
-#include "verify.h"
+#include "x11/verify.h"
 #include "Command.h"
 #include "HelpCB.h"
-#include "charsets.h"
+#include "x11/charsets.h"
 #include "wm.h"
 
 

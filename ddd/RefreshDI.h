@@ -28,7 +28,7 @@
 #ifndef _DDD_RefreshDisassembleInfo_h
 #define _DDD_RefreshDisassembleInfo_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include "status.h"
 #include <Xm/Text.h>
 

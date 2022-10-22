@@ -29,10 +29,10 @@
 #define _DDD_settings_h
 
 #include <X11/Intrinsic.h>
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 #include "GDBAgent.h"
-#include "StringA.h"
+#include "template/StringA.h"
 #include "options.h"
 
 // Debugger settings

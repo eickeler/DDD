@@ -32,14 +32,14 @@ char question_rcsid[] =
 
 #include "question.h"
 
-#include "assert.h"
-#include "cook.h"
+#include "base/assert.h"
+#include "base/cook.h"
 #include "ddd.h"
 #include "AppData.h"
 #include "Command.h"
 #include "GDBAgent.h"
-#include "Delay.h"
-#include "TimeOut.h"
+#include "x11/Delay.h"
+#include "agent/TimeOut.h"
 #include "disp-read.h"
 
 #include <X11/Intrinsic.h>

@@ -28,7 +28,7 @@
 #ifndef _DDD_logplayer_h
 #define _DDD_logplayer_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 extern void logplayer(const string& logname);
 

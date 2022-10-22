@@ -29,7 +29,7 @@
 #define _DDD_ThemePattern_h
 
 #include <iostream>
-#include "StringA.h"
+#include "template/StringA.h"
 
 class ThemePattern {
 private:

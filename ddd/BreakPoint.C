@@ -40,7 +40,7 @@ char BreakPoint_rcsid[] =
 
 // Misc includes
 #include "assert.h"
-#include "cook.h"
+#include "base/cook.h"
 
 // DDD includes
 #include "string-fun.h"

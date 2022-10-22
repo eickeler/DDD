@@ -33,7 +33,7 @@
 #define _DDD_string_fun_h
 
 // Misc includes
-#include "strclass.h"
+#include "base/strclass.h"
 
 //-----------------------------------------------------------------------------
 

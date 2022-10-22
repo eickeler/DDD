@@ -32,8 +32,8 @@ char PosBuffer_rcsid[] =
     "$Id$";
 
 // Misc includes
-#include "assert.h"
-#include "cook.h"
+#include "base/assert.h"
+#include "base/cook.h"
 
 // DDD includes
 #include "AppData.h"

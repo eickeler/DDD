@@ -33,13 +33,13 @@ char logo_rcsid[] =
 #include "logo.h"
 #include "config.h"
 
-#include "Xpm.h"
+#include "x11/Xpm.h"
 #include "assert.h"
 #include "string-fun.h"
 #include "AppData.h"
-#include "cook.h"
-#include "LessTifH.h"
-#include "InitImage.h"
+#include "base/cook.h"
+#include "motif/LessTifH.h"
+#include "x11/InitImage.h"
 
 // X bitmaps
 #include "icons/ddd.xbm"

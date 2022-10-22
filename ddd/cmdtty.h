@@ -28,8 +28,8 @@
 #ifndef _DDD_cmdtty_h
 #define _DDD_cmdtty_h
 
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 
 // Initialize command tty
 extern void init_command_tty();

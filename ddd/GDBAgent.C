@@ -145,15 +145,15 @@ char GDBAgent_rcsid[] =
 //-----------------------------------------------------------------------------
 
 #include "GDBAgent.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "ddd.h"
 #include "string-fun.h"
 #include "regexps.h"
 #include "index.h"
-#include "isid.h"
-#include "home.h"
+#include "base/isid.h"
+#include "base/home.h"
 #include "value-read.h"		// read_token
-#include "casts.h"
+#include "base/casts.h"
 
 #include <stdlib.h>
 #include <iostream>

@@ -30,8 +30,8 @@
 
 #include <X11/Intrinsic.h>
 #include <Xm/Text.h>
-#include "MString.h"
-#include "bool.h"
+#include "motif/MString.h"
+#include "base/bool.h"
 
 // Resources
 // Text to be displayed in context-sensitive help (via HelpOnContextCB)

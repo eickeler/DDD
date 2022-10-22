@@ -36,11 +36,11 @@ char decoration_rcsid[] =
 
 #include <Xm/Label.h>
 
-#include "DestroyCB.h"
-#include "MString.h"
-#include "frame.h"
-#include "strclass.h"
-#include "verify.h"
+#include "x11/DestroyCB.h"
+#include "motif/MString.h"
+#include "x11/frame.h"
+#include "base/strclass.h"
+#include "x11/verify.h"
 #include "version.h"
 #include "wm.h"
 

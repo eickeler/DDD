@@ -39,7 +39,7 @@ char disp_read_rcsid[] =
 #include "disp-read.h"
 #include "value-read.h"
 #include "string-fun.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "regexps.h"
 #include "AppData.h"
 

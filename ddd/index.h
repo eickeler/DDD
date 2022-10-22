@@ -28,7 +28,7 @@
 #ifndef _DDD_index_h
 #define _DDD_index_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Return index of R in S, starting with POS; PREFIX is the constant
 // prefix of R.

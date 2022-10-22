@@ -42,7 +42,7 @@ char gdbinit_rcsid[] =
 #include "string-fun.h"
 #include "ddd.h"
 #include "SourceView.h"
-#include "TimeOut.h"
+#include "agent/TimeOut.h"
 
 static void InvokeGDBFromShellHP(Agent *source, void *client_data, 
 				 void *call_data);

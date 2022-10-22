@@ -28,9 +28,9 @@
 #ifndef _DDD_HistoryFilter_h
 #define _DDD_HistoryFilter_h
 
-#include "bool.h"
-#include "strclass.h"
-#include "Assoc.h"
+#include "base/bool.h"
+#include "base/strclass.h"
+#include "template/Assoc.h"
 
 #include <X11/Intrinsic.h>
 

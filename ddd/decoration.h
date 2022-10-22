@@ -29,7 +29,7 @@
 #define _DDD_decoration_h
 
 #include <X11/Intrinsic.h>
-#include "bool.h"
+#include "base/bool.h"
 
 // Return a transient position on SCREEN (for command tool etc.) in POS_X/POS_Y
 extern void get_transient_pos(Screen *screen,

@@ -30,25 +30,25 @@ char fonts_rcsid[] =
     "$Id$";
 
 #include "fonts.h"
-#include "charsets.h"
+#include "x11/charsets.h"
 
 #include "AppData.h"
-#include "DestroyCB.h"
-#include "LessTifH.h"
-#include "LiterateA.h"
-#include "StringSA.h"
-#include "TextSetS.h"
+#include "x11/DestroyCB.h"
+#include "motif/LessTifH.h"
+#include "agent/LiterateA.h"
+#include "template/StringSA.h"
+#include "motif/TextSetS.h"
 #include "assert.h"
-#include "converters.h"
-#include "cook.h"
+#include "x11/converters.h"
+#include "base/cook.h"
 #include "ddd.h"
-#include "events.h"
+#include "x11/events.h"
 #include "shell.h"
 #include "status.h"
-#include "strclass.h"
+#include "base/strclass.h"
 #include "string-fun.h"
 #include "post.h"
-#include "TimeOut.h"
+#include "agent/TimeOut.h"
 
 #include <stdlib.h>		// atoi()
 #include <ctype.h>

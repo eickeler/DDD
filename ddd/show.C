@@ -33,11 +33,11 @@ char show_rcsid[] =
 #include "show.h"
 
 #include "AppData.h"
-#include "LiterateA.h"
+#include "agent/LiterateA.h"
 #include "SmartC.h"
 #include "build.h"
 #include "config.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "ddd.h"
 #include "gdbinit.h"
 #include "host.h"
@@ -56,7 +56,7 @@ char show_rcsid[] =
 #include <string.h>
 #include <errno.h>
 
-#include "Xpm.h"
+#include "x11/Xpm.h"
 #if HAVE_ATHENA
 #include <X11/Xaw/XawInit.h>
 #endif

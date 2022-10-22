@@ -38,21 +38,21 @@ char DispGraph_rcsid[] =
 #include "DispGraph.h"
 
 #include <math.h>
-#include "pi.h"
-#include "hypot.h"
+#include "base/pi.h"
+#include "base/hypot.h"
 #include <X11/StringDefs.h>
 
 #include "AppData.h"
-#include "GraphEdit.h"
+#include "graph/GraphEdit.h"
 #include "assert.h"
 #include "AliasGE.h"
-#include "HintGraphN.h"
-#include "VoidArray.h"
+#include "graph/HintGraphN.h"
+#include "template/VoidArray.h"
 #include "regexps.h"
-#include "BoxEdgeA.h"
+#include "graph/BoxEdgeA.h"
 #include "annotation.h"
 #include "DispBox.h"
-#include "EdgeAPA.h"
+#include "graph/EdgeAPA.h"
 
 DEFINE_TYPE_INFO_1(DispGraph, Graph)
 

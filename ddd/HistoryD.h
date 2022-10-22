@@ -28,7 +28,7 @@
 #ifndef _DDD_HistoryDialog_h
 #define _DDD_HistoryDialog_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Some useful history filters
 string arg_history_filter(const string& cmd);

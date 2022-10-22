@@ -33,17 +33,17 @@ char complete_rcsid[] =
 
 #include "AppData.h"
 #include "Command.h"
-#include "Delay.h"
+#include "x11/Delay.h"
 #include "SmartC.h"
 #include "ddd.h"
 #include "disp-read.h"
 #include "editing.h"
-#include "isid.h"
+#include "base/isid.h"
 #include "post.h"
 #include "question.h"
 #include "regexps.h"
 #include "string-fun.h"
-#include "casts.h"
+#include "base/casts.h"
 
 #include <ctype.h>
 

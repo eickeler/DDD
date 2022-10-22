@@ -28,7 +28,7 @@
 #ifndef _DDD_vsldoc_h
 #define _DDD_vsldoc_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Return initial comments from VSL file FILE; search it in PATH
 string vsldoc(const string& file, const string& path = ".");

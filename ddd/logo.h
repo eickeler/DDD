@@ -29,9 +29,9 @@
 #define _DDD_logo_h
 
 #include <X11/Intrinsic.h>
-#include "strclass.h"
+#include "base/strclass.h"
 #include "version.h"
-#include "MString.h"
+#include "motif/MString.h"
 
 // DDD logos
 

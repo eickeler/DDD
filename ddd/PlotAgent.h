@@ -28,12 +28,12 @@
 #ifndef _DDD_PlotAgent_h
 #define _DDD_PlotAgent_h
 
-#include "LiterateA.h"
+#include "agent/LiterateA.h"
 #include "assert.h"
-#include "StringA.h"
+#include "template/StringA.h"
 #include "IntArray.h"
-#include "PrintGC.h"
-#include "ChunkQueue.h"
+#include "base/PrintGC.h"
+#include "agent/ChunkQueue.h"
 
 #include <fstream>
 

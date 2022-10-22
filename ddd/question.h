@@ -28,8 +28,8 @@
 #ifndef _DDD_question_h
 #define _DDD_question_h
 
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 
 // Send COMMAND to GDB; return answer (NO_GDB_ANSWER if none)
 // TIMEOUT is either 0 (= use default timeout), -1 (= no timeout)

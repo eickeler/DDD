@@ -32,11 +32,11 @@ char resolvePath_rcsid[] =
 #include "root.h"
 #include "filetype.h"
 #include "session.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "status.h"
 #include "version.h"
-#include "ExitCB.h"
-#include "StringA.h"
+#include "x11/ExitCB.h"
+#include "template/StringA.h"
 
 #include <stdlib.h>
 

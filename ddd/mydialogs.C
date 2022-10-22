@@ -34,7 +34,7 @@ char mydialogs_rcsid[] =
 //-----------------------------------------------------------------------------
 
 #include "mydialogs.h"
-#include "LessTifH.h"
+#include "motif/LessTifH.h"
 #include "config.h"
 
 
@@ -50,10 +50,10 @@ char mydialogs_rcsid[] =
 
 // Misc includes
 #include "assert.h"
-#include "verify.h"
-#include "DestroyCB.h"
+#include "x11/verify.h"
+#include "x11/DestroyCB.h"
 #include "HelpCB.h"
-#include "MString.h"
+#include "motif/MString.h"
 #include "AppData.h"
 
 // Own includes

@@ -29,7 +29,7 @@
 #define _DDD_session_h
 
 #include <X11/Intrinsic.h>
-#include "strclass.h"
+#include "base/strclass.h"
 #include "version.h"
 
 // Name of default session

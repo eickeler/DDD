@@ -28,7 +28,7 @@
 #ifndef _DDD_annotation_h
 #define _DDD_annotation_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include "GDBAgent.h"
 
 // Return an annotation for an edge from FROM to TO

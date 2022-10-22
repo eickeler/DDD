@@ -29,8 +29,8 @@
 #ifndef _DDD_filetype_h
 #define _DDD_filetype_h
 
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 #include <time.h>		// time_t
 
 // True if FILE_NAME is a regular file

@@ -29,7 +29,7 @@ char ctrl_rcsid[] =
     "$Id$";
 
 #include "ctrl.h"
-#include "cook.h"
+#include "base/cook.h"
 #include <ctype.h>
 
 // Convert ^[character] sequence to control characters

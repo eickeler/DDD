@@ -32,8 +32,8 @@ char annotation_rcsid[] =
 
 #include "ddd.h"
 #include "GDBAgent.h"
-#include "cook.h"
-#include "isid.h"
+#include "base/cook.h"
+#include "base/isid.h"
 
 // Remove leading S from A
 static void strip_leading(string& a, const string& s)

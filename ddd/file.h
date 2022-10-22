@@ -29,8 +29,8 @@
 #define _DDD_file_h
 
 #include <X11/Intrinsic.h>
-#include "strclass.h"
-#include "StringA.h"
+#include "base/strclass.h"
+#include "template/StringA.h"
 
 // Open file, process, core, source ...
 extern void gdbOpenFileCB     (Widget, XtPointer, XtPointer);

@@ -29,7 +29,7 @@
 #define _DDD_plotter_h
 
 #include "PlotAgent.h"
-#include "strclass.h"
+#include "base/strclass.h"
 
 class DispValue;
 

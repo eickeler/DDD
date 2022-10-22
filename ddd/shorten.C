@@ -29,7 +29,7 @@ char shorten_rcsid[] =
     "$Id$";
 
 #include "shorten.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "regexps.h"
 #include "IntArray.h"
 #include <ctype.h>

@@ -30,7 +30,7 @@
 #define _DDD_regexps_h
 
 #include "config.h"
-#include "rxclass.h"
+#include "base/rxclass.h"
 
 #if !RUNTIME_REGEX
 

@@ -35,8 +35,8 @@ char DispBuffer_rcsid[] =
 #include "DispBuffer.h"
 
 // Misc includes
-#include "assert.h"
-#include "cook.h"
+#include "base/assert.h"
+#include "base/cook.h"
 
 // DDD includes
 #include "disp-read.h"

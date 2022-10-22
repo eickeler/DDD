@@ -32,7 +32,7 @@ char cmdtty_rcsid[] =
 
 #include "AppData.h"
 #include "GDBAgent.h"
-#include "ReadLineA.h"
+#include "agent/ReadLineA.h"
 #include "SourceView.h"
 #include "ddd.h"
 #include "editing.h"

@@ -34,7 +34,7 @@ char sashes_rcsid[] =
 #include <Xm/PanedW.h>
 #include <X11/StringDefs.h>
 
-#include "Sash.h"
+#include "x11/Sash.h"
 
 
 //-----------------------------------------------------------------------------

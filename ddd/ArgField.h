@@ -36,10 +36,10 @@
 #include <X11/Intrinsic.h>
 
 // Misc includes
-#include "HandlerL.h"
-#include "bool.h"
-#include "strclass.h"
-#include "assert.h"
+#include "agent/HandlerL.h"
+#include "base/bool.h"
+#include "base/strclass.h"
+#include "base/assert.h"
 
 
 //-----------------------------------------------------------------------------

@@ -35,7 +35,7 @@ char vsl_rcsid[] =
 
 #include "assert.h"
 #include <iostream>
-#include "strclass.h"
+#include "base/strclass.h"
 #include <stdlib.h>
 #include <sys/types.h>
 #include <time.h>
@@ -63,14 +63,14 @@ int main(void)
 #include <X11/Xaw/Cardinals.h>  // Definition ZERO
 #include "DocSpace.h"           // DocSpace Widget
 
-#include "bool.h"
-#include "ThemeVSLL.h"
-#include "VSLDef.h"
-#include "VSEFlags.h"
+#include "base/bool.h"
+#include "vslsrc/ThemeVSLL.h"
+#include "vslsrc/VSLDef.h"
+#include "vslsrc/VSEFlags.h"
 
-#include "Box.h"
-#include "StringBox.h"
-#include "ListBox.h"
+#include "box/Box.h"
+#include "box/StringBox.h"
+#include "box/ListBox.h"
 
 
 

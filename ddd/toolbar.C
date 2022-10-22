@@ -33,12 +33,12 @@ char toolbar_rcsid[] =
 
 #include "ddd.h"
 #include "logo.h"
-#include "misc.h"
-#include "verify.h"
+#include "base/misc.h"
+#include "x11/verify.h"
 #include "HelpCB.h"
-#include "Delay.h"
+#include "x11/Delay.h"
 #include "AppData.h"
-#include "converters.h"
+#include "x11/converters.h"
 
 #include <Xm/Xm.h>
 #include <Xm/Form.h>

@@ -28,7 +28,7 @@
 #ifndef _DDD_SmartCompare_h
 #define _DDD_SmartCompare_h
 
-#include "StringA.h"
+#include "template/StringA.h"
 
 // Compare S1 and S2, taking numerals into account
 // returns < 0, > 0, or 0 iff S1 < S2, S1 > S2, or S1 == S2.

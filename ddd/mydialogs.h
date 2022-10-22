@@ -36,10 +36,10 @@
 #include <Xm/Xm.h>
 
 // DDD includes
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 #include "IntArray.h"
-#include "charsets.h"
+#include "x11/charsets.h"
 
 // Create a selection box with a top-level shell.  This is like
 // XmCreateSelectionDialog, but the parent is a top-level shell.

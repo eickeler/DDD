@@ -28,9 +28,9 @@
 #ifndef _DDD_history_h
 #define _DDD_history_h
 
-#include "strclass.h"
-#include "bool.h"
-#include "StringA.h"
+#include "base/strclass.h"
+#include "base/bool.h"
+#include "template/StringA.h"
 #include "HistoryF.h"
 
 #include <X11/Intrinsic.h>

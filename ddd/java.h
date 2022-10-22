@@ -28,7 +28,7 @@
 #ifndef _DDD_java_h
 #define _DDD_java_h
 
-#include "StringA.h"
+#include "template/StringA.h"
 
 // Store all classes in current use path in CLASSES_LIST.  If
 // WITH_SOURCE_ONLY is set, consider only classes with loadable sources.

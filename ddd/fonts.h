@@ -28,7 +28,7 @@
 #ifndef _DDD_fonts_h
 #define _DDD_fonts_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 #include "AppData.h"
 
 #include <X11/Intrinsic.h>

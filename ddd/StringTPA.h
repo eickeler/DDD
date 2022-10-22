@@ -29,7 +29,7 @@
 #define _DDD_StringThemePatternAssoc_h
 
 #include "ThemeP.h"
-#include "Assoc.h"
+#include "template/Assoc.h"
 
 typedef Assoc<string, ThemePattern> StringThemePatternAssoc;
 typedef AssocIter<string, ThemePattern> StringThemePatternAssocIter;

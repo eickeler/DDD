@@ -28,7 +28,7 @@
 #ifndef _DDD_tempfile_h
 #define _DDD_tempfile_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Return the name of a temporary file.
 extern string tempfile();

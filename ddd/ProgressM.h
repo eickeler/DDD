@@ -28,8 +28,8 @@
 #ifndef _DDD_ProgressMeter_h
 #define _DDD_ProgressMeter_h
 
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 #include "status.h"
 
 #include <X11/Intrinsic.h>

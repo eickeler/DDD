@@ -35,7 +35,7 @@
 #include <X11/Xlib.h>
 
 #include "version.h"
-#include "OnOff.h"
+#include "x11/OnOff.h"
 #include "BindingS.h"
 
 // The DDD application class name

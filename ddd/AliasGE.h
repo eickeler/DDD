@@ -28,7 +28,7 @@
 #ifndef _DDD_AliasGraphEdge_h
 #define _DDD_AliasGraphEdge_h
 
-#include "ArcGraphE.h"
+#include "graph/ArcGraphE.h"
 
 class AliasGraphEdge: public ArcGraphEdge {
 public:

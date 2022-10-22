@@ -31,9 +31,9 @@ char args_rcsid[] =
 
 #include "args.h"
 
-#include "Delay.h"
+#include "x11/Delay.h"
 #include "HelpCB.h"
-#include "StringA.h"
+#include "template/StringA.h"
 #include "Command.h"
 #include "SourceView.h"
 #include "ddd.h"
@@ -41,11 +41,11 @@ char args_rcsid[] =
 #include "file.h"
 #include "mydialogs.h"
 #include "options.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "regexps.h"
 #include "session.h"
 #include "string-fun.h"
-#include "verify.h"
+#include "x11/verify.h"
 #include "wm.h"
 
 #include <Xm/Xm.h>

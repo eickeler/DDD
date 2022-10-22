@@ -32,14 +32,14 @@
 // Create display boxes via the VSL library
 //-----------------------------------------------------------------------------
 
-#include "strclass.h"
-#include "Box.h"
-#include "ThemeVSLL.h"
-#include "VSLArgList.h"
-#include "DataLink.h"
+#include "base/strclass.h"
+#include "box/Box.h"
+#include "vslsrc/ThemeVSLL.h"
+#include "vslsrc/VSLArgList.h"
+#include "box/DataLink.h"
 #include "DispValue.h"
 #include "ThemeM.h"
-#include "assert.h"
+#include "base/assert.h"
 
 //-----------------------------------------------------------------------------
 

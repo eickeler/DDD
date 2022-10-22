@@ -30,7 +30,7 @@ char select_rcsid[] =
 
 #include "select.h"
 
-#include "Delay.h"
+#include "x11/Delay.h"
 #include "GDBAgent.h"
 #include "HelpCB.h"
 #include "Command.h"
@@ -40,7 +40,7 @@ char select_rcsid[] =
 #include "mydialogs.h"
 #include "status.h"
 #include "string-fun.h"
-#include "verify.h"
+#include "x11/verify.h"
 #include "wm.h"
 
 #include <Xm/List.h>

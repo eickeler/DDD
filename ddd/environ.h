@@ -28,7 +28,7 @@
 #ifndef _DDD_environ_h
 #define _DDD_environ_h
 
-#include "strclass.h"
+#include "base/strclass.h"
 
 // Put NAME=VALUE into the environment
 extern void put_environment(const char *name, const char *value);

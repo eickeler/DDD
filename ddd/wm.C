@@ -33,7 +33,7 @@ char wm_rcsid[] =
 #include "Command.h"
 #include "ddd.h"
 #include "string-fun.h"
-#include "findParent.h"
+#include "x11/findParent.h"
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>

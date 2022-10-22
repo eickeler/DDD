@@ -38,15 +38,15 @@ char Tool_rcsid[] =
 #include <Xm/DialogS.h>
 #include <Xm/MwmUtil.h>
 
-#include "Delay.h"
-#include "DeleteWCB.h"
-#include "DestroyCB.h"
-#include "bool.h"
-#include "casts.h"
+#include "x11/Delay.h"
+#include "x11/DeleteWCB.h"
+#include "x11/DestroyCB.h"
+#include "base/bool.h"
+#include "base/casts.h"
 #include "buttons.h"
 #include "decoration.h"
-#include "strclass.h"
-#include "verify.h"
+#include "base/strclass.h"
+#include "x11/verify.h"
 #include "windows.h"
 
 

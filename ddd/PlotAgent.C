@@ -30,7 +30,7 @@ char PlotAgent_rcsid[] =
     "$Id$";
 
 #include "PlotAgent.h"
-#include "cook.h"
+#include "base/cook.h"
 #include "version.h"
 #include "tempfile.h"
 

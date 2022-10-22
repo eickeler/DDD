@@ -35,9 +35,9 @@ char DispNode_rcsid[] =
 
 #include "DispNode.h"
 
-#include "cook.h"
+#include "base/cook.h"
 #include "AppData.h"
-#include "CompositeB.h"
+#include "box/CompositeB.h"
 #include "DispValue.h"
 #include "DispBox.h"
 #include "AliasGE.h"

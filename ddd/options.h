@@ -28,8 +28,8 @@
 #ifndef _DDD_options_h
 #define _DDD_options_h
 
-#include "strclass.h"
-#include "bool.h"
+#include "base/strclass.h"
+#include "base/bool.h"
 #include <X11/Intrinsic.h>
 
 // Options

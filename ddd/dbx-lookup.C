@@ -30,11 +30,11 @@ char dbx_lookup_rcsid[] =
 
 #include "dbx-lookup.h"
 
-#include "StringSA.h"
-#include "cook.h"
+#include "template/StringSA.h"
+#include "base/cook.h"
 #include "ddd.h"
 #include "post.h"
-#include "misc.h"
+#include "base/misc.h"
 #include "question.h"
 #include "regexps.h"
 #include "index.h"

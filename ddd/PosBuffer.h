@@ -33,8 +33,8 @@
 //-----------------------------------------------------------------------------
 
 // Misc includes
-#include "bool.h"
-#include "strclass.h"
+#include "base/bool.h"
+#include "base/strclass.h"
 
 class PosBuffer {
     // What was in the previous answer?
