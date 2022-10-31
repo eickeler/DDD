@@ -104,4 +104,16 @@ extern WidgetClass pannerWidgetClass;
 typedef struct _PannerClassRec *PannerWidgetClass;
 typedef struct _PannerRec      *PannerWidget;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void CallActionPage(Widget gw, XEvent *event, String *params, Cardinal *num_params);
+
+#ifdef __cplusplus
+}
+#endif
+
+
+
 #endif /* _XawPanner_h */

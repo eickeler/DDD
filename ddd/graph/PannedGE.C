@@ -183,6 +183,7 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name,
     XtSetArg(args[arg], ARGSTR(XtNtop),       XawChainBottom); arg++;
     XtSetArg(args[arg], ARGSTR(XtNleft),      XawChainRight);  arg++;
     XtSetArg(args[arg], ARGSTR(XtNright),     XawChainRight);  arg++;
+    XtSetArg (args[arg], ARGSTR(XtNshadowThickness), 0);       arg++;
     Widget panner = 
 	verify(XtCreateWidget(panner_name.chars(), 
 			      pannerWidgetClass, form, args, arg));
@@ -360,8 +361,8 @@ static void PannerCB(Widget /* panner */,
     XtSetValues(graph_edit, args, arg);
 }
 
-// For a given graph editor W, return its panner
-Widget pannerOfGraphEdit(Widget w)
+// For a given graph editor W, return its form
+Widget formOfGraphEdit(Widget w)
 {
     XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
 
@@ -376,4 +377,23 @@ Widget pannerOfGraphEdit(Widget w)
     return parent;
 }
 
+// For a given graph editor W, return its panner
+Widget pannerOfGraphEdit(Widget w)
+{
+    XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
+   
+    Widget form = formOfGraphEdit(w);
+    
+    WidgetList list = nullptr;
+    Cardinal num_children = 0;
+    XtVaGetValues(form, XmNchildren, &list, XmNnumChildren, &num_children, NULL);
+    
+    for (Cardinal i=0; i<num_children; i++)
+   {
+      if (XtIsSubclass(list[i], pannerWidgetClass))
+          return list[i];
+   }
+
+   return nullptr;
+}
 

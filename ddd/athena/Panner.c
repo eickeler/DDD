@@ -1089,3 +1089,9 @@ ActionSet(Widget gw, XEvent *event, String *params, Cardinal *num_params)
 	XtSetValues(gw, args, 1);
     }
 }
+
+void CallActionPage(Widget gw, XEvent *event, String *params, Cardinal *num_params)
+{
+    ActionPage(gw, event, params, num_params);
+}
+

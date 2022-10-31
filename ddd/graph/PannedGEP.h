@@ -37,7 +37,7 @@
 extern "C" {
 #include <X11/IntrinsicP.h>
 #include <X11/CompositeP.h>
-#include <X11/Xaw/PortholeP.h>
+#include "athena/PortholeP.h"
 }
 #undef new
 #undef class
