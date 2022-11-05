@@ -333,6 +333,11 @@ these packages:
      `--with-motif-includes=DIR' and `--with-motif-libraries=DIR' to
      specify their locations.  See also `Locating Libraries', below.
    
+   * If `configure' doesn't find the Athena include and library files
+     automatically, you can use the `configure' options
+     `--with-athena-includes=DIR' and `--with-athena-libraries=DIR' to
+     specify their locations.  See also `Locating Libraries', below.
+   
    * If `configure' doesn't find the XPM include and library files
      automatically, you can use the `configure' options
      `--with-xpm-includes=DIR' and `--with-xpm-libraries=DIR' to specify

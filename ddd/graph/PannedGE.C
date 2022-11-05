@@ -37,13 +37,17 @@ char PannedGraphEdit_rcsid[] =
 #include "base/strclass.h"
 #include "Graph.h"
 
+#if HAVE_ATHENA && \
+    HAVE_X11_XAW_FORM_H && \
+    HAVE_X11_XAW_PANNER_H && \
+    HAVE_X11_XAW_PORTHOLE_H
 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-#include "athena/XawInit.h"
-#include "athena/Form.h"
-#include "athena/Panner.h"
-#include "athena/Porthole.h"
+#include <X11/Xaw/XawInit.h>
+#include <X11/Xaw/Form.h>
+#include <X11/Xaw/Panner.h>
+#include <X11/Xaw/Porthole.h>
 #include "PannedGEP.h"
 
 static void PortholeCB(Widget w, XtPointer client_data, XtPointer call_data);
@@ -183,7 +187,6 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name,
     XtSetArg(args[arg], ARGSTR(XtNtop),       XawChainBottom); arg++;
     XtSetArg(args[arg], ARGSTR(XtNleft),      XawChainRight);  arg++;
     XtSetArg(args[arg], ARGSTR(XtNright),     XawChainRight);  arg++;
-    XtSetArg (args[arg], ARGSTR(XtNshadowThickness), 0);       arg++;
     Widget panner = 
 	verify(XtCreateWidget(panner_name.chars(), 
 			      pannerWidgetClass, form, args, arg));
@@ -361,8 +364,8 @@ static void PannerCB(Widget /* panner */,
     XtSetValues(graph_edit, args, arg);
 }
 
-// For a given graph editor W, return its form
-Widget formOfGraphEdit(Widget w)
+// For a given graph editor W, return its panner
+Widget pannerOfGraphEdit(Widget w)
 {
     XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
 
@@ -377,23 +380,31 @@ Widget formOfGraphEdit(Widget w)
     return parent;
 }
 
+#else // No Athena 
+
+#include "ScrolledGE.h"
+
+Widget createPannedGraphEdit(Widget parent, const _XtString name, 
+			     ArgList graph_edit_args,
+			     Cardinal graph_edit_arg)
+{
+    static bool warned = false;
+    if (!warned)
+    {
+	std::cerr << "Warning: panned graph editors are not supported "
+	  "in this configuration.\n";
+	std::cerr << "Using scrolled graph editors instead.\n";
+	warned = true;
+    }
+
+    return createScrolledGraphEdit(parent, name,
+				   graph_edit_args, graph_edit_arg);
+}
+
 // For a given graph editor W, return its panner
 Widget pannerOfGraphEdit(Widget w)
 {
-    XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
-   
-    Widget form = formOfGraphEdit(w);
-    
-    WidgetList list = nullptr;
-    Cardinal num_children = 0;
-    XtVaGetValues(form, XmNchildren, &list, XmNnumChildren, &num_children, NULL);
-    
-    for (Cardinal i=0; i<num_children; i++)
-   {
-      if (XtIsSubclass(list[i], pannerWidgetClass))
-          return list[i];
-   }
-
-   return nullptr;
+    return scrollerOfGraphEdit(w);
 }
 
+#endif

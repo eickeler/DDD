@@ -6955,8 +6955,9 @@ DataDisp::DataDisp(Widget parent, Widget& data_buttons_w)
 
     if (app_data.panned_graph_editor)
     {
-	graph_edit = createPannedGraphEdit(parent, "graph_edit", args, arg);
-	graph_form_w = formOfGraphEdit(graph_edit);
+	graph_edit = createPannedGraphEdit(parent, 
+					   "graph_edit", args, arg);
+	graph_form_w = pannerOfGraphEdit(graph_edit);
     }
     else
     {

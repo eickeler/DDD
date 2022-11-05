@@ -513,6 +513,7 @@ X_CFLAGS=`echo $X_CFLAGS | $SED "s,-I,$ISYSTEM,g"`
 dnl
 ICE_FIND_MOTIF
 ICE_FIND_XPM
+ICE_FIND_ATHENA
 ICE_X_PERMISSIVE
 CXXFLAGS="$CXXFLAGS $X_PERMISSIVE"
 dnl
@@ -607,6 +608,40 @@ AC_CHECK_HEADERS(X11/xpm.h xpm.h)
 fi
 fi
 AC_SUBST(XPM_LIBS)
+dnl
+dnl
+dnl Check for Athena widget libraries
+dnl
+dnl
+XAW_LIBS=""
+if test "$athena_includes" != "no" && test "$athena_libraries" != "no"
+then
+AC_CHECK_LIB([Xaw],[XawTextSetInsertionPoint],
+	[XAW_LIBS="-lXaw ${XAW_LIBS}"
+	AC_DEFINE([HAVE_ATHENA],1,[Define if you have the X Athena widgets.])],
+        [],
+	[${XMU_LIBS} ${XT_LIBS} ${XPM_LIBS} ${XEXT_LIBS} ${X_PRE_LIBS} ${X11_LIBS} ${X_EXTRA_LIBS}])
+if test "$XAW_LIBS" = ""; then
+dnl A warning suffices here -- DDD also works without Athena.
+AC_MSG_WARN([The Athena widgets library '-lXaw' could not be found.
+                    If you have the athena library, please use the
+                    configure options '--with-athena-includes=DIR' and
+                    '--with-athena-libraries=DIR' to specify the Xaw location.
+                    If you do not have the athena library, use the configure
+                    option '--without-athena' to suppress this message.
+                    See the files 'config.log' and 'ddd/config.log'
+                    for further diagnostics.])
+fi
+fi
+if test "$XAW_LIBS" != ""; then
+AC_CHECK_HEADERS(X11/Xaw/Form.h X11/Xaw/Panner.h X11/Xaw/Porthole.h,[],[],
+[[#include <X11/Intrinsic.h>
+]])
+AC_CHECK_HEADERS(X11/Xmu/Editres.h,[],[],
+[[#include <X11/Intrinsic.h>
+]])
+fi
+AC_SUBST(XAW_LIBS)
 dnl
 dnl
 dnl Check for Motif widget libraries

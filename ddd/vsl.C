@@ -48,11 +48,19 @@ char vsl_rcsid[] =
 #define EXIT_FAILURE 1
 #endif
 
+#if !HAVE_ATHENA
+int main(void)
+{
+    std::cerr << "This program requires the Athena widget library.\n";
+    return EXIT_FAILURE;
+}
+#else
 
 #include <X11/Intrinsic.h>      // X Toolkit
 #include <X11/Xlib.h>           // X Library
-#include "athena/Viewport.h"   // Viewport Widget
+#include <X11/Xaw/Viewport.h>   // Viewport Widget
 #include <X11/StringDefs.h>     // String Definitions
+#include <X11/Xaw/Cardinals.h>  // Definition ZERO
 #include "DocSpace.h"           // DocSpace Widget
 
 #include "base/bool.h"
@@ -190,9 +198,9 @@ int main(int argc, char *argv[])
 
     // Init toolkit
     Widget toplevel = XtAppInitialize(&app_con, "Vsl", 
-				      (XrmOptionDescRec *)0, ((Cardinal)0), 
+				      (XrmOptionDescRec *)0, ZERO, 
 				      &argc, argv, (char**)fallback_resources, 
-				      ArgList(0), ((Cardinal)0));
+				      ArgList(0), ZERO);
 
     // Create Viewport
     Arg arglist[10];        // Arguments
@@ -320,4 +328,4 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-
+#endif // HAVE_ATHENA

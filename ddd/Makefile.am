@@ -566,37 +566,6 @@ DDD_SRC = \
 	WhatNextCB.C \
 	WhatNextCB.h
 
-# athena library. The part of the athena xaw library used by ddd
-ATHENA_SRC = \
-	athena/Form.c \
-	athena/FormP.h \
-	athena/Form.h \
-	athena/Porthole.c \
-	athena/Porthole.h \
-	athena/PortholeP.h \
-	athena/Panner.c \
-	athena/Panner.h \
-	athena/PannerP.h \
-	athena/XawInit.c \
-	athena/XawInit.h \
-	athena/Simple.c \
-	athena/Simple.h \
-	athena/SimpleP.h \
-	athena/Scrollbar.c \
-	athena/Scrollbar.h \
-	athena/ViewportP.h \
-	athena/Viewport.h \
-	athena/Viewport.c \
-	athena/Tip.c \
-	athena/Tip.h \
-	athena/TipP.h \
-	athena/Reports.h \
-	athena/Private.h \
-	athena/Converters.c \
-	athena/Pixmap.c \
-	athena/DisplayList.c \
-	athena/Actions.c
-
 # Automatically generated source files which should not be distributed.
 nodist_ddd_SOURCES = \
 	build.h      \
@@ -666,6 +635,9 @@ LIBXM = @XM_LIBS@
 # LIBXM = /path/to/libXm.a
 # This can be done interactively: "make LIBXM=/path/to/libXm.a"
 
+# Athena libraries.  (-lXaw)
+LIBXAW = @XAW_LIBS@
+
 # X Miscellaneous  Utilities needed for Athena and Motif >= 2.0 (lXmu)
 LIBXMU = @XMU_LIBS@
 
@@ -720,8 +692,7 @@ ddd_SOURCES = ddd.C \
 	$(BOX_SRC) \
 	$(VSL_SRC) \
 	$(GRAPH_SRC) \
-	$(DDD_SRC) \
-	$(ATHENA_SRC)
+	$(DDD_SRC)
 
 stringify_SOURCES = stringify.C
 ctest_SOURCES     = ctest.c
@@ -736,9 +707,7 @@ vsl_SOURCES       = vsl.C \
 	$(XSTUFF_SRC) \
 	$(MSTUFF_SRC) \
 	$(BOX_SRC) \
-	$(VSL_SRC) \
-	$(ATHENA_SRC)
-
+	$(VSL_SRC)
 
 cxxtest_LDADD = $(LIBM)
 ddd_LDADD = $(RPATH) $(ALL_X_LIBS) $(ALL_LIBS)

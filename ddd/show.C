@@ -57,7 +57,9 @@ char show_rcsid[] =
 #include <errno.h>
 
 #include "x11/Xpm.h"
-#include "athena/XawInit.h"
+#if HAVE_ATHENA
+#include <X11/Xaw/XawInit.h>
+#endif
 #include "HelpCB.h"
 
 #if !HAVE_POPEN_DECL
@@ -387,11 +389,13 @@ static void show_configuration(std::ostream& os, bool version_only)
 	"XPM " stringize(XpmFormat) "." stringize(XpmVersion) 
 	"." stringize(XpmRevision) ", "
 #endif
+#if HAVE_ATHENA
 	"Athena Panner"
 #if defined(XawVersion)
         " (" stringize(XawVersion) ")"
 #endif	
 	", "
+#endif // HAVE_ATHENA
 #if WITH_BUILTIN_VSLLIB
 	"VSL library, "
 #endif
