@@ -566,6 +566,12 @@ DDD_SRC = \
 	WhatNextCB.C \
 	WhatNextCB.h
 
+# part of the athena library modified for DDD
+ATHENA_SRC = \
+	athena_ddd/PannerM.c \
+	athena_ddd/PannerM.h \
+	athena_ddd/PannerMP.h 
+
 # Automatically generated source files which should not be distributed.
 nodist_ddd_SOURCES = \
 	build.h      \
@@ -692,7 +698,8 @@ ddd_SOURCES = ddd.C \
 	$(BOX_SRC) \
 	$(VSL_SRC) \
 	$(GRAPH_SRC) \
-	$(DDD_SRC)
+	$(DDD_SRC) \
+	$(ATHENA_SRC)
 
 stringify_SOURCES = stringify.C
 ctest_SOURCES     = ctest.c

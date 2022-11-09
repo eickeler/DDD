@@ -46,7 +46,7 @@ char PannedGraphEdit_rcsid[] =
 #include <X11/StringDefs.h>
 #include <X11/Xaw/XawInit.h>
 #include <X11/Xaw/Form.h>
-#include <X11/Xaw/Panner.h>
+#include "athena_ddd/PannerM.h"
 #include <X11/Xaw/Porthole.h>
 #include "PannedGEP.h"
 
@@ -168,7 +168,7 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name,
 			     ArgList graph_edit_args,
 			     Cardinal graph_edit_arg)
 {
-    Arg args[10];
+    Arg args[20];
     int arg = 0;
 
     string form_name = string(name) + "_form";
@@ -187,9 +187,14 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name,
     XtSetArg(args[arg], ARGSTR(XtNtop),       XawChainBottom); arg++;
     XtSetArg(args[arg], ARGSTR(XtNleft),      XawChainRight);  arg++;
     XtSetArg(args[arg], ARGSTR(XtNright),     XawChainRight);  arg++;
+    XtSetArg (args[arg], ARGSTR(XtNshadowThickness), 2);       arg++;
+    XtSetArg (args[arg], ARGSTR(XtNinternalSpace), 2);       arg++;
+    XtSetArg (args[arg], ARGSTR(XtNbackground), 0x00A7A7A7);     arg++;    
+    XtSetArg (args[arg], ARGSTR(XtNbottmShadowColor),0x00E3E3E3);     arg++;    
+    XtSetArg (args[arg], ARGSTR(XtNbottmShadowColor),0x00676767);     arg++;    
     Widget panner = 
 	verify(XtCreateWidget(panner_name.chars(), 
-			      pannerWidgetClass, form, args, arg));
+			      pannermWidgetClass, form, args, arg));
 
     string porthole_name = string(name) + "_porthole";
     arg = 0;
@@ -364,8 +369,8 @@ static void PannerCB(Widget /* panner */,
     XtSetValues(graph_edit, args, arg);
 }
 
-// For a given graph editor W, return its panner
-Widget pannerOfGraphEdit(Widget w)
+// For a given graph editor W, return its form
+Widget formOfGraphEdit(Widget w)
 {
     XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
 
@@ -378,6 +383,26 @@ Widget pannerOfGraphEdit(Widget w)
 	parent = XtParent(parent);
     }
     return parent;
+}
+
+// For a given graph editor W, return its panner
+Widget pannerOfGraphEdit(Widget w)
+{
+    XtCheckSubclass(w, GraphEditWidgetClass, "Bad widget class");
+   
+    Widget form = formOfGraphEdit(w);
+    
+    WidgetList list = nullptr;
+    Cardinal num_children = 0;
+    XtVaGetValues(form, XmNchildren, &list, XmNnumChildren, &num_children, NULL);
+    
+    for (Cardinal i=0; i<num_children; i++)
+   {
+      if (XtIsSubclass(list[i], pannermWidgetClass))
+          return list[i];
+   }
+
+   return nullptr;
 }
 
 #else // No Athena 
@@ -402,9 +427,14 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name,
 }
 
 // For a given graph editor W, return its panner
-Widget pannerOfGraphEdit(Widget w)
+Widget formOfGraphEdit(Widget w)
 {
     return scrollerOfGraphEdit(w);
+}
+
+Widget pannerOfGraphEdit(Widget w)
+{
+    return nullptr;
 }
 
 #endif

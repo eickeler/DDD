@@ -60,6 +60,7 @@ Widget createPannedGraphEdit(Widget parent, const _XtString name, ArgList arglis
 			     Cardinal argcount);
 
 // For a given graph editor W, return its panner
+Widget formOfGraphEdit(Widget w);
 Widget pannerOfGraphEdit(Widget w);
 
 #endif // _DDD_PannedGraphEdit_h

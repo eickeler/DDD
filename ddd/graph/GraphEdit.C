@@ -57,6 +57,9 @@ char GraphEdit_rcsid[] =
 #include "EdgeAPA.h"
 #include "GraphNPA.h"
 #include "base/casts.h"
+#include "PannedGE.h"
+#include "AppData.h"
+#include "athena_ddd/PannerM.h"
 
 #if XmVersion < 1002
 // Motif 1.1 backwards compatibility
@@ -248,6 +251,7 @@ static void DoLayout    (Widget, XEvent *, String *, Cardinal *);
 static void _Layout     (Widget, XEvent *, String *, Cardinal *);
 static void Normalize   (Widget, XEvent *, String *, Cardinal *);
 static void _Normalize  (Widget, XEvent *, String *, Cardinal *);
+static void CallPannerPage  (Widget, XEvent *, String *, Cardinal *);
 
 
 // Actions table
@@ -277,6 +281,7 @@ static XtActionsRec actions[] = {
     { XTARECSTR("_layout"),	_Layout },       //         [[+|-]DEGREES]])
     { XTARECSTR("normalize"),	Normalize },     // normalize()
     { XTARECSTR("_normalize"),	_Normalize },
+    { XTARECSTR("callpannerpage"),	CallPannerPage },
 };
 
 
@@ -324,6 +329,11 @@ static const char *defaultTranslations =
     "~Meta ~Ctrl<Key>N:        select-next()\n"
     "~Meta ~Ctrl<Key>A:        select-first()\n"
     "~Meta Ctrl<Key>A:         select-all()\n"
+    "~Shift ~Ctrl<Btn4Down>:   callpannerpage(+0,-.2p)\n"
+    "~Shift ~Ctrl<Btn5Down>:   callpannerpage(+0,+.25p)\n"
+    "~Shift Ctrl<Btn4Down>:   callpannerpage(-.25p,+0)\n"
+    "~Shift Ctrl<Btn5Down>:   callpannerpage(+.25p,+0)\n"
+
     ;
 
 // These translations override the XmPrimitive base translations
@@ -2942,6 +2952,20 @@ static void Normalize(Widget w, XEvent *event, String *params,
     graphEditRedraw(w);
 }
 
+static void CallPannerPage(Widget w, XEvent *event, String *params,
+    Cardinal *num_params)
+{
+#if HAVE_ATHENA
+    if (app_data.panned_graph_editor)
+    {
+        // redirect to panner
+        Widget panner = pannerOfGraphEdit(w);
+printf("params %s  %d\n", params[0], *num_params);
+
+        CallActionPage(panner, event, params, num_params);
+    }
+#endif
+}
 
 // Show and hide edges
 
