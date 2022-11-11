@@ -2960,7 +2960,6 @@ static void CallPannerPage(Widget w, XEvent *event, String *params,
     {
         // redirect to panner
         Widget panner = pannerOfGraphEdit(w);
-printf("params %s  %d\n", params[0], *num_params);
 
         CallActionPage(panner, event, params, num_params);
     }
