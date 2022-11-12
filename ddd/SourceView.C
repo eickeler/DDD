@@ -3909,6 +3909,7 @@ void SourceView::create_text(Widget parent, const char *base, bool editable,
     XtSetArg(args[arg], XmNallowResize,       True);              arg++;
     XtSetArg(args[arg], XmNeditMode,          XmMULTI_LINE_EDIT); arg++;
     XtSetArg(args[arg], XmNcursorPositionVisible, True);          arg++;
+    XtSetArg(args[arg], XmNpaneMaximum,       5000);              arg++;
 
     if (lesstif_version <= 82)
     {
