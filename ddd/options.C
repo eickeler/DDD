@@ -2839,6 +2839,10 @@ bool save_options(unsigned long flags)
 
     // Windows.
     os << "\n! Windows.\n";
+    // prevent writing file without active window
+    if (!app_data.data_window && !app_data.source_window && !app_data.debugger_console)
+        app_data.debugger_console = True;
+    
     os << bool_app_value(XtNopenDataWindow,      
 			 app_data.data_window)      << '\n';
     os << bool_app_value(XtNopenSourceWindow,    

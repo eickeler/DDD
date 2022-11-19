@@ -2311,6 +2311,10 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 	app_data.session = s.chars();
     }
     session_id = app_data.session;
+    
+    // activaste at least one window
+    if (!app_data.data_window && !app_data.source_window && !app_data.debugger_console)
+        app_data.debugger_console = True;
 
     // From this point on, APP_DATA is valid.
 
@@ -2622,7 +2626,6 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 
     // Re-register own converters to override Motif converters.
     registerOwnConverters();
-
     // Create menu bar
     MMDesc *menubar = common_menubar;
     if (app_data.separate_data_window && app_data.separate_source_window)
