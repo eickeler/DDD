@@ -1,0 +1,160 @@
+DDD and Fonts
+=============
+
+DDD uses the X font system.  This system was originally developed to 
+support the use of bitmapped fonts on CRT displays.  It has been extended 
+and modified several times since it's introduction with X11R1 in 1987.  
+In addition to bitmapped fonts, the X font system supports OpenType, 
+TrueType, PCF, and Adobe Type 1 PostScript scalable fonts.[1]  Font 
+support in X is provided in two ways:  server-side or client-side. 
+Essentially, this is whether font rendering is provided by an X server 
+for all clients, or whether the font rendering is done by each individual 
+GUI client.  
+
+DDD uses server-side fonts.  Server-side fonts have long been deprecated;
+most modern applications use client-side fonts.  Server-side fonts can be 
+listed using the 'xlsfonts' utility.  Client-side fonts are listed using 
+the 'fc-list' utility.  DDD uses the 'xfontsel' utility (or its underlying 
+library) to select the fonts it uses.  
+
+Server-side fonts use the X Logical Font Description (XLFD) font naming 
+standard.  A font name is made up of various characteristics, separated
+by dashes:
+ -foundry-family-weight-slant-width-style-pixels-points-hDPI-vDPI-spacing-avgwidth-charset
+
+For example:
+  -adobe-courier-bold-r-normal--10-100-75-75-m-60-iso8859-1
+is name of the Courier (family) font supplied by Adobe (foundry).  It is the 
+bold, roman (as opposed to italic or oblique) version of the normal (that is 
+not expanded or condensed) font set.  Each character is 10 pixels wide, 10 
+points (100/10) wide, designed to be rendered at 75dpi (both horizontally 
+and vertically).  It is a monospaced font (rather than proportional) where 
+the average character is 6 (60/10) pixels wide.  The font encoding is ISO-8859-1 
+(8-bit, single byte, Western Europe aka ISO Latin 1).  
+
+In many cases, asterisks can be used as wildcards.  Instead of the font name
+listed above, you can specify:
+  *courier-bold-*r*100*
+Or you can omit some characteristics if the other characteristics uniquely
+identify the font:
+  -*-courier-bold-r-*-*-10-*-*-*-*-*-*-*
+Additionally, there are a number of aliases for fonts.  The most common is
+  fixed:  -misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso8859-1
+
+Choice of fonts
+===============
+
+With version ddd-3.4, the default fonts used by DDD are Liberation Fonts, 
+which are designed to be compatible with Times New Roman, Arial, and 
+Courier New.  They are licensed under the SIL Open Font License[2].
+DDD uses both normal and bold font styles as well as monospaced (fixed) and
+proportional spaced fonts.  
+
+You may select a different font by going to Edit>Preferences>Fonts and
+either entering in the XLFD font name, abbreviation, or alias, or by selecting
+the font using the Browse button which will invoke the 'xfontsel' font selection
+tool.  DDD only supports ISO-8859-1 (Latin 1) font encoding.
+
+Font Errors
+===========
+
+When DDD cannot find a font, it will issue warnings like the following:
+   Warning: Cannot convert string "-*-liberation sans-medium-r-normal--0-120-0-0-p-0-iso8859-1" to type FontStruct
+   Warning: Cannot convert string "-*-liberation sans-medium-r-normal--0-100-0-0-p-0-iso8859-1" to type FontStruct
+
+This indicates that the specified font cannot be found on the X server.
+DDD will use a fallback font for the missing font, such as 'fixed'.
+
+You can verify whether a font has been installed on the server by running
+the X utility program 'xfontsel'.  Click on 'fmly' and see if the desired
+font family ('liberation' in the above warning messages) is listed.
+
+Installing fonts
+================
+
+On some Linux distributions, when a font is installed using the distro's 
+package manager, it is only installed as a client-side font.  DDD will not
+be able to find the font.  There are two ways to remedy this, the first is
+system-wide (needing root privileges) and the second for local user-specific fonts.
+Liberation Fonts are used in this example; if you use a different font replace
+the name as required. (Different Linux distributions install fonts in different
+locations or in multiple locations.  The paths used in this example are for 
+Ubuntu and may need to be modified for your distribution.)
+
+For system fonts:
+  1.  Install Liberation fonts
+    $ sudo apt-get install fonts-liberation
+  2.  Create font management files
+    $ sudo cd /usr/share/fonts/truetype/liberation
+    $ sudo mkfontscale
+    $ sudo mkfontdir
+  3.  Update FontPath
+    $ sudo vi /etc/X11/xorg.conf.d/10-fontpath.conf
+    Section "Files"
+        FontPath "/usr/share/fonts/truetype/liberation"
+    EndSection
+  4.  Reboot
+  5.  Check fonts:
+     $ xset -q | tail
+    ...
+    Font Path
+    /usr/share/fonts/truetype/liberation,/usr/share/fonts/X11/misc,/usr/share/fonts/X11/Type1,built-ins
+    ...
+    $ xfontsel
+    Under fmly, look for liberation-mono, liberation-sans, etc.
+
+For local fonts:
+  1.  Make local font directory
+    $ mkdir -p ~/.local/share/fonts
+  2.  Download Liberation fonts
+    $ cd ~/.local/share/fonts
+    $ wget https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz
+    (Latest fonts at https://github.com/liberationfonts/liberation-fonts/releases)
+    $ tar xfvz liberation-fonts-ttf-2.1.5.tar.gz
+    $ mkfontscale
+    $ mkfontdir
+  3.  Update bash startup script
+    $ F=`pwd`
+    $ echo "xset +fp $F" >> ~/.bashrc
+  4.  Source bash starup script
+    $ . ~/.bashrc
+  5.  Check fonts:
+     $ xset -q | tail
+    ...
+    Font Path
+    /home/<userid>/.local/share/fonts,/usr/share/fonts/X11/misc,/usr/share/fonts/X11/Type1,built-ins
+    ...
+    $ xfontsel
+    Under fmly, look for liberation-mono, liberation-sans, etc.
+
+
+Using X2Go server
+=================
+
+X2Go[3] is a remote desktop application, similar VNC[4] or RDP[5], based
+on the NX (NoMachine) libraries[6].  The font path is hard-coded in the
+libraries and updates to the FontPath as described above does not work.
+The font path when using X2Go is "/usr/share/nx/fonts/misc" which is a 
+link to "/usr/share/X11/fonts/misc".  
+
+The workaround to using Liberation (or other) fonts on X2Go is to copy them 
+to "/usr/share/X11/fonts/misc" and create fonts.dir and fonts.scale.  The 
+following example uses paths from a Fedora distribution.
+
+  $ cd /usr/share/X11/fonts/misc
+  $ sudo cp /usr/share/fonts/liberation-mono/*.ttf .
+  $ sudo cp /usr/share/fonts/liberation-sans/*.ttf .
+  $ sudo cp /usr/share/fonts/liberation-serif/*.ttf .
+  $ sudo mkfontdir
+  $ sudo mkfontscale
+
+Reboot your system, reconnect with X2Go, and check using xfontsel as 
+described above.
+
+
+[1] https://www.x.org/wiki/guide/fonts/
+[2] http://scripts.sil.org/OFL
+[3] https://wiki.x2go.org/doku.php
+[4] https://en.wikipedia.org/wiki/Virtual_Network_Computing
+[5] https://en.wikipedia.org/wiki/Remote_Desktop_Protocol
+[6] https://en.wikipedia.org/wiki/NX_technology

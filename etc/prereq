@@ -26,7 +26,7 @@
 # Usage:  prereq [-maint*]
 #  -maint | -maintainer:  Check for pre-reqs to build from repo
 
-maintainer=0
+MAINTAINER=0
 
 usage()
 {
@@ -38,7 +38,7 @@ usage()
 for ARG in $*; do
   case "$ARG" in 
     -maint | -maintainer)
-	maintainer=1
+	MAINTAINER=1
 	;;
     -h | -help | --help)
 	usage
@@ -52,10 +52,9 @@ for ARG in $*; do
   esac
 done 
 
-
 UBUNTUPKGS=( \
   "binutils" "g++" "gcc" "make" "libmotif-dev" "libx11-dev" "libxpm-dev" \
-  "libxt-dev" "libncurses-dev" "gdb" "fonts-liberation" \
+  "libxt-dev" "libxaw7-dev" "libxpm-dev" "libncurses-dev" "gdb" "fonts-liberation" \
   )
 UBUNTUDEVPKGS=( \
   "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" \
@@ -64,31 +63,37 @@ UBUNTUDEVPKGS=( \
 
 FEDORAPKGS=( \
   "binutils" "gcc-c++" "gcc" "make" "motif-devel" "libX11-devel" "libXpm-devel" \
-  "libXt-devel" "ncurses-devel" "gdb" "liberation-fonts-common" "liberation-sans-fonts" \
-  "liberation-mono-fonts" "liberation-serif-fonts" \
+  "libXaw-devel" "libXt-devel" "ncurses-devel" "gdb" "liberation-fonts-common" \
+  "liberation-sans-fonts" "liberation-mono-fonts" "liberation-serif-fonts" \
+  "netpbm-progs" \
   )
 FEDORADEVPKGS=( \
   "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" \
   )
 
+NEEDED=""
 
 if grep Ubuntu /etc/os-release > /dev/null; then
-  distro="UBUNTU"
-elif grep Fedora /etc/os-release > /dev/null; then
-  distro="FEDORA"
+  DISTRO="UBUNTU"
+  INSTALLED=$(dpkg -l | cut -d ' ' -f 3 | cut -d ':' -f 1)
+  INSTALLED=" $INSTALLED "
+elif grep Fedora /etc/redhat-release > /dev/null; then
+  DISTRO="FEDORA"
 else
-  distro="UNKNOWN"
+  DISTRO="UNKNOWN"
 fi
 
-if [ "$distro" = "UNKNOWN" ]; then
-  echo "Cannot check pre-req's for $distro distro"
+if [ "$DISTRO" = "UNKNOWN" ]; then
+  echo "Cannot check pre-req's for $DISTRO distro"
+  usage
   exit 1
 fi
 
-if [ "$distro" = "UBUNTU" ]; then
-  echo "Checking pre-req's for $distro distro"
+if [ "$DISTRO" = "UBUNTU" ]; then
+  echo "Checking pre-req's for $DISTRO distro"
+  echo ""
 
-  if [ $maintainer = 1 ]; then
+  if [ $MAINTAINER = 1 ]; then
     PKGS=( ${UBUNTUPKGS[*]} ${UBUNTUDEVPKGS[*]} )
   else
     PKGS=( ${UBUNTUPKGS[*]} )
@@ -96,32 +101,41 @@ if [ "$distro" = "UBUNTU" ]; then
   
   for PKG in ${PKGS[@]}
   do 
-    if dpkg -l $PKG > /dev/null; then
+    if echo $INSTALLED | grep " $PKG " &> /dev/null ; then
       echo "$PKG installed"
     else
       echo "$PKG not installed"
+      NEEDED="$NEEDED $PKG"
     fi
   done
+
 fi
 
-
-if [ "$distro" = "FEDORA" ]; then
+if [ "$DISTRO" = "FEDORA" ]; then
   echo "Checking pre-req's for $distro distro"
 
-  if [ $maintainer = 1 ]; then
+  if [ $MAINTAINER = 1 ]; then
     PKGS=( ${FEDORAPKGS[*]} ${FEDORADEVPKGS[*]} )
   else
     PKGS=( ${FEDORAPKGS[*]} )
   fi
-  
-  INSTALLEDPKGS=$(rpm -qa)
+ 
   for PKG in ${PKGS[@]}
   do 
-    if echo $INSTALLEDPKGS | grep -q $PKG > /dev/null; then
+    if dnf list installed $PKG &> /dev/null ; then
       echo "$PKG installed"
     else
       echo "$PKG not installed"
+      NEEDED="$NEEDED $PKG"
     fi
   done
 
+fi
+
+echo " "
+if [ "$NEEDED" == "" ] ; then
+  echo "All prerequsite packages installed"
+else 
+  echo "The following packages need to be installed:"
+  echo $NEEDED
 fi

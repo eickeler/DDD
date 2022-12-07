@@ -90,7 +90,7 @@ To build DDD, continue with the section titled "Make DDD" below.
 Configure DDD from tarball
 ==========================
 
-Downloaded a tarball located at http://ftp.gnu.org/gnu/ddd/.
+Download a tarball located at http://ftp.gnu.org/gnu/ddd/.
 
   $ tar xfz ddd-<version>.tar.gz
   $ mkdir build
@@ -124,7 +124,10 @@ For a simple check before installation, type
   $ make check
 	
 This creates a sample C++ program `cxxtest' and then runs DDD
-on it by invoking `./ddd cxxtest'.  Enjoy!
+on it by invoking `./ddd cxxtest'. 
+
+If you receive errors that say "Warning: Cannot convert string"
+when you run 'make check', please read the accompanying FONTS file.
 
 Install DDD:
 
@@ -171,9 +174,7 @@ To run DDD, you need:
 
    * An X server.  Without X, DDD does not run.
 
-     If you are running a UNIX system, you certainly have X.  
-     X servers are also available for other operating systems.  
-     See `http://www.rahul.net/kenton/xsites.html' for a list.
+     If you are running a UNIX-like system, you certainly have X.  
 
    * A command-line debugger (the so-called `inferior' debugger).
 
@@ -197,14 +198,6 @@ To run DDD, you need:
 
        Note: In DDD, GDB support is better than `ladebug' support.
        Try GDB first.
-
-     - As another alternative, DDD also supports the XDB debugger as
-       found on HP-UX systems.  XDB usage has been tested for C programs
-       only, but may work for other languages as well.
-
-       Note: In DDD, GDB support is much better than XDB support; in
-       fact, XDB support is no longer maintained.  Try WDB or GDB 4.18
-       or later; these support HP-UX compilers.
 
      - To debug Bash programs, you will need a version of Bash that
        has the debugger extensions compiled in and the bash debugger,
@@ -231,10 +224,17 @@ To run DDD, you need:
        of the stock Python debugger called PYDB. Get pydb from 
        the download link at http://bashdb.sourceforge.net/pydb/
 
-   **** PLEASE NOTE:
-   Other than GDB, no testing of the other debug engines has been 
-   done in many years.  How well DDD works with them, or if it works
-   at all, is uncertain.
+     **** PLEASE NOTE:
+     Other than GDB, no testing of the other debug engines has been 
+     done in many years.  How well DDD works with them, or if it works
+     at all, is uncertain.
+
+   * Fonts
+
+     DDD uses the Liberation Open Source fonts by default.  These are
+     available on many systems.  If you experience problems installing
+     or using these fonts, or wish to use other fonts, please read the 
+     FONTS file.
 
 
 The following recommended helper applications should be in the user path:
@@ -381,7 +381,7 @@ The option `--enable-rpath=PATH' sets the path of directories to be
 searched for dynamic libraries to PATH (a colon-separated list of
 directories).
 
-For instance, if you have a LessTif library `libXm.so' installed in
+For instance, if you have a Motif library `libXm.so' installed in
 `/you/cannot/find/me/' and a Readline library `libreadline.so'
 installed in `/nobody/knows/i/am/here/', you can specify
 
