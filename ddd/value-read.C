@@ -65,9 +65,12 @@ static regex rxdbx_baseclass("[ \t\n]*[a-zA-Z_$][^({\n=]*:[(]");
 #endif
 
 // Determine the type of VALUE.
-static DispValueType _determine_type (string& value)
+static DispValueType _determine_type (string& valuefull)
 {
-    strip_leading_space(value);
+    strip_leading_space(valuefull);
+
+    // create a copy of the first part of value to speedup evaluation of regular expressions
+    string value = valuefull.at(0, std::min((unsigned int)128, valuefull.length()));
 
     // DBX on DEC prepends `[N]' before array member N.
     if (value.matches(rxindex))
