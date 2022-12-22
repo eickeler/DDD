@@ -37,7 +37,10 @@ char PosBuffer_rcsid[] =
 
 // DDD includes
 #include "AppData.h"
+
+#define _DDD_PosBuffer_C
 #include "PosBuffer.h"
+
 #include "comm-manag.h"
 #include "string-fun.h"
 #include "ddd.h"
@@ -445,6 +448,9 @@ void PosBuffer::filter_bash(string& answer)
 void PosBuffer::filter_gdb(string& answer)
 {
     // Try to find out current PC even for non-existent source
+#if RUNTIME_REGEX
+	static regex rxframe_addr("#[0-9][0-9]*  *" RXADDRESS);
+#endif
 
     if (check_pc && pc_buffer.empty())
     {
@@ -495,10 +501,6 @@ void PosBuffer::filter_gdb(string& answer)
 	(check_func && func_buffer.empty()))
     {
 	// `#FRAME ADDRESS in FUNCTION (ARGS...)'
-#if RUNTIME_REGEX
-	static regex rxframe_addr("#[0-9][0-9]*  *" RXADDRESS);
-#endif
-		
 	int pc_index = index(answer, rxframe_addr, "#");
 	if (pc_index == 0 || (pc_index > 0 && answer[pc_index - 1] == '\n'))
 	{
@@ -1139,6 +1141,9 @@ void PosBuffer::filter_jdb(string& answer)
 		string class_name = line.from(class_index);
 		class_name = class_name.before('(');
 		strip_trailing_space(class_name);
+#if RUNTIME_REGEX
+                static regex rxchain("[-a-zA-Z0-9::_>.`]+");
+#endif
 		if (class_name.contains('.') && 
 		    class_name.matches(rxchain))
 		{

@@ -117,7 +117,7 @@ regex::regex(const char* t, int flags)
     : exprs(0), matcher(0), data(0)
 {
     const string rx = "^" + string(t);
-    int errcode = regcomp(&compiled, rx, flags);
+    int errcode = regcomp(&compiled, rx.chars(), flags);
     if (errcode)
 	fatal(errcode, rx.chars());
 

@@ -63,6 +63,12 @@ string deref(const string& expr, const string& sym)
 	const string print_command = "p " + expr;
 
 	string val = gdbValue(expr, print_command);
+#if RUNTIME_REGEX
+#define RXADDRESS "(0x[0-9a-fA-F]+|0[0-9a-fA-F]+[hH]|H'[0-9a-fA-F]+" \
+                  "|00+|[(]nil[)]|NIL|null|@[0-9a-fA-F]+|16_[0-9a-f]+)"
+#define STANDARD_IDENTFIER "([A-Za-z_$@%][A-Za-z0-9_$]*|[$]([^ \n\t\f]|[0-9]+))"
+        static regex rxperlref("((" STANDARD_IDENTFIER "::)*" STANDARD_IDENTFIER "=)?" STANDARD_IDENTFIER "[(]" RXADDRESS "[)]");
+#endif
 	if (val.matches(rxperlref))
 	    ref = val.at(rxidentifier, val.index("=") + 1);
     }

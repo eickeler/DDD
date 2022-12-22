@@ -3349,6 +3349,12 @@ void GDBAgent::munch_perl_scalar(string& value)
 	value = value.after("0");
 
     strip_leading_space(value);
+#if RUNTIME_REGEX
+#define RXADDRESS "(0x[0-9a-fA-F]+|0[0-9a-fA-F]+[hH]|H'[0-9a-fA-F]+" \
+                  "|00+|[(]nil[)]|NIL|null|@[0-9a-fA-F]+|16_[0-9a-f]+)"
+#define STANDARD_IDENTFIER "([A-Za-z_$@%][A-Za-z0-9_$]*|[$]([^ \n\t\f]|[0-9]+))"
+        static regex rxperlref("((" STANDARD_IDENTFIER "::)*" STANDARD_IDENTFIER "=)?" STANDARD_IDENTFIER "[(]" RXADDRESS "[)]");
+#endif
     if (value.contains(rxperlref, 0))
 	value = value.before('\n');
 }

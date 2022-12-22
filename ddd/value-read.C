@@ -263,6 +263,9 @@ static DispValueType _determine_type (string& value)
 	return Pointer;
     }
 
+#if RUNTIME_REGEX
+        static regex rxchain("[-a-zA-Z0-9::_>.`]+");
+#endif
     // In GDB and JDB, Java pointers may be printed as `[TYPE]@ADDR'
     int at_index = value.index('@');
     if (at_index >= 0)
@@ -602,6 +605,9 @@ string read_simple_value(string& value, int depth, bool ignore_repeats)
 	    while (index < int(value.length()) && isspace(value[index]))
 		index++;
 
+#if RUNTIME_REGEX
+            static regex rxrepeats("[<]repeats[ \f\t]+[1-9][0-9]*[ \f\t]+times[>]");
+#endif
 	    if (index < int(value.length()) && 
 		value.contains('<', index) && 
 		value.contains(rxrepeats, index))
@@ -773,6 +779,9 @@ int read_repeats(string& value)
     int repeats = 1;
 
     strip_leading_space(value);
+#if RUNTIME_REGEX
+    static regex rxrepeats("[<]repeats[ \f\t]+[1-9][0-9]*[ \f\t]+times[>]");
+#endif
     if (value.contains('<', 0) && value.contains(rxrepeats, 0))
     {
 	value = value.from(rxint);

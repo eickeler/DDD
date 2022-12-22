@@ -1002,6 +1002,9 @@ void send_gdb_command(string cmd, Widget origin,
 
     if (is_list_cmd(cmd))
     {
+#if RUNTIME_REGEX
+    static regex rxlist_range("[0-9]+[ \f\t]*,[ \f\t]*[0-9]+");
+#endif
 	string arg = cmd.after(rxwhite);
 	strip_space(arg);
 	if (arg.empty() || 

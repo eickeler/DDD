@@ -57,7 +57,7 @@ char BreakPoint_rcsid[] =
 #if RUNTIME_REGEX
 static regex rxnl_int ("\n[1-9]");
 static regex rxname_colon_int_nl ("[^ ]+:[0-9]+\n");
-static regex rxint_dot_int ("[0-9]+\.[0-9]+");
+static regex rxint_dot_int ("[0-9]+\\.[0-9]+");
 #endif
 
 // Create new breakpoint from INFO_OUTPUT
