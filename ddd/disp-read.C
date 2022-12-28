@@ -128,6 +128,7 @@ bool is_running_cmd (const string& cmd)
 	"|fin|fini|finis|finish"
         "|R|S|exec"
         "|rc|reverse-continue|reverse-step|reverse-stepi|reverse-next|reverse-nexti"
+        "|python"
 	")([ \t]+.*)?");
 #endif
 
