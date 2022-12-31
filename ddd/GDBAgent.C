@@ -827,19 +827,19 @@ bool GDBAgent::ends_with_prompt (const string& ans)
     }
     case MAKE:
     {
-	// Any line ending in `mdb<...> ' is a prompt.
+	// Any line ending in `remake<...> ' is a prompt.
 	// Since N does not make sense in DDD, we use `DB<> ' instead.
 
 #if RUNTIME_REGEX
-	static regex rxmakeprompt("mdb<+[(]*[0-9][)]*>+");
+	static regex rxmakeprompt("remake<+[(]*[.0-9][)]*>+[.]*");
 #endif
 
 	int i = answer.length() - 1;
-	if (i < 1 || answer[i] != ' ' || answer[i - 1] != '>')
+	if (i < 1 || answer[i] != ' ' || (answer[i - 1] != '>' && answer[i - 1] != '.'))
 	    return false;
 
 	while (i >= 0 && answer[i] != '\n' ) {
-	  if (answer.contains("mdb<", i)) {
+	  if (answer.contains("remake<", i)) {
 	    string possible_prompt = answer.from(i);
 	    if (possible_prompt.matches(rxmakeprompt)) {
 	      last_prompt = possible_prompt;
@@ -2675,7 +2675,7 @@ string GDBAgent::debug_command(const char *program, string args) const
 	return string("debug ") + program + args;
 
 	// restart/run is not the same a debug. But this is the closes
-	// mdb has for now.
+	// remake has for now.
     case MAKE:
 	return string("run ") + program + args;
     }

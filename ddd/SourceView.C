@@ -1576,7 +1576,7 @@ bool SourceView::file_matches(const string& file1, const string& file2)
     if (gdb->type() == JDB)
 	return file1 == file2;
 
-    if (gdb->type() == GDB || app_data.use_source_path)
+    if (gdb->type() == GDB || gdb->type() == MAKE || app_data.use_source_path)
 	return file1 == file2 || full_path(file1) == full_path(file2);
 
     return base_matches(file1, file2);
