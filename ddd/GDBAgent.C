@@ -351,7 +351,7 @@ X(tDBX,"DBX"),  \
 X(tGDB,"GDB"),  \
 X(tJDB,"JDB"),  \
 X(tLADEBUG,"Ladebug"),  \
-X(tMAKE,"GNU Make"),  \
+X(tMAKE,"remake"),  \
 X(tPERL,"Perl"),  \
 X(tPYDB,"PYDB"),  \
 X(tWBD,"WDB"),  \

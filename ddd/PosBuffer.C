@@ -1264,7 +1264,7 @@ void PosBuffer::filter_make(string& answer)
 	    strip_trailing_space(line);
 		    
 #if RUNTIME_REGEX
-	    static regex rxmakepos("(<-|->|\+\+|--)?[ ]?[(][^:]*:[0-9][0-9]*[)]");
+	    static regex rxmakepos("(<-|->|\+\+|--)?[ \t]*[(][^:]*:[0-9][0-9]*[)]");
 #endif
 	    if (line.matches(rxmakepos))
 	    {

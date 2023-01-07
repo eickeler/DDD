@@ -92,10 +92,11 @@ GDBAgent *new_gdb(DebuggerType type,
 	    break;
 
 	case MAKE:
-	    // For now we have debuggable make installed as "remake"
 	    // Be sure to invoke the debugger.
 	    // gdb_call += " --debugger";
-	    gdb_call = "remake --debugger -f";
+                gdb_call = "remake --debugger";
+            if (argc > 1)
+                gdb_call += " -f";
 	    break;
 
 	case PERL:
