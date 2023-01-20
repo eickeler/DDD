@@ -42,7 +42,7 @@ DDD_NAMES
 dnl
 dnl Revision Control.
 dnl
-AC_PREREQ(2.59)
+AC_PREREQ(2.71)
 AC_REVISION([$Id$])
 dnl
 dnl Initialization.
@@ -191,7 +191,7 @@ fi
 dnl
 dnl Lex.
 dnl
-AM_PROG_LEX
+AC_PROG_LEX(noyywrap)
 AC_MSG_CHECKING(for ${LEX} flags)
 LFLAGS=""
 if test "$LEX" = "flex"; then
@@ -217,8 +217,8 @@ dnl
 dnl
 dnl Find and check C/C++ compilers
 dnl
-ICE_PROG_CC
-ICE_PROG_CXX
+AC_PROG_CC
+AC_PROG_CXX
 dnl
 dnl
 dnl Find and check C/C++/F77 preprocessors
@@ -265,7 +265,7 @@ AC_LANG(C++)
 dnl
 dnl
 dnl Check for libtool.
-AC_PROG_LIBTOOL
+LT_INIT
 dnl
 dnl
 dnl Locate Libraries
@@ -761,10 +761,8 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_GETGROUPS
-AC_TYPE_SIGNAL
 AC_LANG_POP(C)
 dnl
-ICE_TYPE_SIG_HANDLER_ARGS
 dnl
 dnl
 dnl Find libraries and functions
@@ -780,16 +778,6 @@ AC_LANG_POP(C)
 dnl
 dnl
 dnl
-AC_HEADER_STDC
-AC_CHECK_HEADERS(alloca.h fcntl.h locale.h malloc.h netdb.h pwd.h)
-AC_CHECK_HEADERS(libelf.h stdlib.h)
-AC_CHECK_HEADERS(string.h stropts.h termio.h termios.h unistd.h)
-AC_CHECK_HEADERS(sys/ioctl.h sys/int_types.h sys/param.h sys/resource.h)
-AC_CHECK_HEADERS(sys/stat.h sys/stropts.h sys/vty.h sys/sysmacros.h)
-AC_CHECK_HEADERS(sys/socket.h sys/termios.h sys/time.h sys/timeb.h sys/types.h)
-AC_CHECK_HEADERS(sys/utsname.h sys/ptrace.h)
-AC_CHECK_HEADERS(exception stdexcept)
-AC_HEADER_TIME
 AC_HEADER_SYS_WAIT
 AC_HEADER_DIRENT
 AC_HEADER_STAT
@@ -802,6 +790,18 @@ ICE_CHECK_PTRACE_DUMPCORE
 dnl
 LIBS="$ice_save_LIBS"
 AC_CHECK_LIB(m, hypot)
+dnl
+dnl Check for headers
+dnl
+AC_CHECK_HEADERS(netdb.h termios.h)
+dnl
+dnl Check for headers
+dnl
+AC_CHECK_HEADERS(netdb.h termios.h)
+dnl
+dnl Check for headers
+dnl
+AC_CHECK_HEADERS(netdb.h termios.h)
 dnl
 ICE_CHECK_DECL(_getpty, unistd.h)
 AH_TEMPLATE([HAVE__GETPTY_DECL],[Define if _getpty is declared in unistd.h.])

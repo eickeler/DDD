@@ -45,7 +45,7 @@
 
 extern "C" {
 // Sun C++ wants `SignalProc' to be a C funtion
-typedef void (*SignalProc)(SIGHANDLERARGS);
+typedef void (*SignalProc)(int);
 }
 
 class Agent;

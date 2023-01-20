@@ -81,7 +81,7 @@ extern "C" {
 #endif
 
 extern "C" {
-typedef void (*SignalProc)(SIGHANDLERARGS);
+typedef void (*SignalProc)(int);
 }
 
 static jmp_buf main_loop_env;
