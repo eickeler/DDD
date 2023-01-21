@@ -205,8 +205,6 @@ MSTUFF_SRC = \
 	motif/LabelH.C     \
 	motif/LabelH.h     \
 	motif/LabelHP.h    \
-	motif/LessTifH.C   \
-	motif/LessTifH.h   \
 	motif/MakeMenu.C   \
 	motif/MakeMenu.h   \
 	motif/MString.C    \

@@ -78,7 +78,6 @@ char HelpCB_rcsid[] =
 #include <X11/Shell.h>
 
 // Misc DDD includes
-#include "motif/LessTifH.h"
 #include "base/strclass.h"
 #include "base/cook.h"
 #include "x11/events.h"
@@ -1145,8 +1144,6 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     Widget help_index = 
 	verify(XmCreateScrolledList(area, XMST("index"), args, arg));
     XtManageChild(help_index);
-    if (lesstif_version < 90)
-	set_scrolled_window_size(help_index);
 
     Widget view_index;
     MMDesc manual_menu[] = 
@@ -1185,8 +1182,6 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     Widget help_man = 
 	verify(XmCreateScrolledText(area, XMST("text"), args, arg));
     XtManageChild(help_man);
-    if (lesstif_version < 90)
-	set_scrolled_window_size(help_man);
     fi->text = help_man;
 
     XtWidgetGeometry size;
@@ -1490,8 +1485,6 @@ void TextHelpCB(Widget widget, XtPointer client_data, XtPointer)
     Widget help_text = verify(
 	XmCreateScrolledText(area, XMST("text"), args, arg));
     XtManageChild(help_text);
-    if (lesstif_version < 90)
-	set_scrolled_window_size(help_text);
     fi->text = help_text;
 
     XtWidgetGeometry size;
@@ -1526,103 +1519,6 @@ void TextHelpCB(Widget widget, XtPointer client_data, XtPointer)
 // Context-sensitive help
 //-----------------------------------------------------------------------------
 
-// Return the widget related to the mouse event EV
-static Widget EventToWidget(Widget widget, XEvent *ev)
-{
-    // If the button was clicked outside of this programs windows, the
-    // widget that grabbed the pointer will get the event.  So, we
-    // check the bounds of the widget against the coordinates of the
-    // event.  If they're outside, we return 0.  Otherwise we
-    // return the widget in which the event occured.
-
-    switch (ev->type)
-    {
-    case KeyPress:
-    case KeyRelease:
-    case ButtonPress:
-    case ButtonRelease:
-	break;
-
-    default:
-	return 0;		// No window
-    }
-
-    Position x, y;
-    Dimension width, height;
-    XtVaGetValues(widget, XmNx, &x, XmNy, &y,
-		  XmNwidth, &width, XmNheight, &height,
-		  XtPointer(0));
-
-    if (ev->xbutton.window == XtWindow(widget) &&
-	(ev->xbutton.x < x ||
-	 ev->xbutton.y < y ||
-	 ev->xbutton.x > x + width ||
-	 ev->xbutton.y > y + height))
-    {
-	return 0;
-    }
-    else
-    {
-	return XtWindowToWidget(XtDisplay(widget),
-				ev->xbutton.window);
-    }
-}
-
-
-// In LessTif, XmTrackingEvent() is somewhat broken - it returns on
-// KeyRelease events, and it does not return the event.  Here's an
-// improved implementation.
-static Widget
-TrackingEvent(Widget widget, Cursor cursor,
-	      Boolean confine_to, XEvent *event_return)
-{
-    Window confine_to_this;
-    XEvent ev;
-    Boolean key_pressed = False;
-    Time time;
-
-    if (confine_to)
-    {
-	confine_to_this = XtWindow(widget);
-    }
-    else
-    {
-	confine_to_this = None;
-    }
-
-    time = XtLastTimestampProcessed(XtDisplay(widget));
-    if (XtGrabPointer(widget, True,
-		      ButtonReleaseMask | ButtonPressMask,
-		      GrabModeAsync, GrabModeAsync,
-		      confine_to_this, cursor, time) != GrabSuccess)
-    {
-	std::cerr << "TrackingEvent: Could not grab pointer\n";
-	return 0;
-    }
-
-    while (True)
-    {
-	XtAppNextEvent(XtWidgetToApplicationContext(widget), &ev);
-	time = XtLastTimestampProcessed(XtDisplay(widget));
-
-	if (ev.type == KeyPress)
-	{
-	    // Avoid exiting upon releasing the key that caused
-	    // XmTrackingEvent() to be invoked
-	    key_pressed = True;
-	}
-	else if ((ev.type == KeyRelease && key_pressed) ||
-		 (ev.type == ButtonRelease && ev.xbutton.button == 1))
-	{
-	    if (event_return != 0)
-		*event_return = ev;
-
-	    XtUngrabPointer(widget, time);
-
-	    return EventToWidget(widget, &ev);
-	}
-    }
-}
 
 // Hook before help on context
 static void nop2(Widget, XtPointer, XtPointer) {}
@@ -1650,10 +1546,7 @@ void HelpOnContextCB(Widget widget, XtPointer client_data, XtPointer call_data)
     // No XmTrackingEvent() in Motif 1.1
     item = TrackingEvent(toplevel, cursor, False, &ev);
 #else
-    if (lesstif_version <= 84)
-	item = TrackingEvent(toplevel, cursor, False, &ev);
-    else
-	item = XmTrackingEvent(toplevel, cursor, False, &ev);
+    item = XmTrackingEvent(toplevel, cursor, False, &ev);
 #endif
 
     if (item != 0)
@@ -1888,21 +1781,6 @@ static void PopupTip(XtPointer client_data, XtIntervalId *timer)
 	// Simple hack to ensure shell is realized
 	XtPopup(tip_shell, XtGrabNone);
 	XtPopdown(tip_shell);
-    }
-
-    if (lesstif_version <= 87)
-    {
-	// LessTif 0.87 and earlier fails to resize the shell properly
-	// - the border width is zero.  Use this hack instead.
-	XmFontList font_list;
-	XtVaGetValues(tip_label, XmNfontList, &font_list, XtPointer(0));
-    
-	Dimension tip_width  = tip.width(font_list)  + 6;
-	Dimension tip_height = tip.height(font_list) + 6;
-
-	XtResizeWidget(tip_label, tip_width, tip_height, 0);
-	XtResizeWidget(tip_row,   tip_width, tip_height, 0);
-	XtResizeWidget(tip_shell, tip_width, tip_height, 1);
     }
 
     XtVaSetValues(tip_label, XmNlabelString, tip.xmstring(), XtPointer(0));

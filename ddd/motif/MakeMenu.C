@@ -56,7 +56,6 @@ char MakeMenu_rcsid[] =
 #include <Xm/MenuShell.h>
 #include <X11/Xutil.h>
 
-#include "LessTifH.h"
 #include "base/bool.h"
 #include "x11/verify.h"
 #include "x11/findParent.h"
@@ -87,10 +86,6 @@ static XtActionsRec actions [] = {
 
 static const char *pushMenuTranslations = 
     "<Expose>:          decorate-push-menu()\n"
-;
-
-static const char *lesstif_pushMenuTranslations = 
-    "None<Btn3Down>:	popup-push-menu()\n"
 ;
 
 struct PushMenuInfo {
@@ -334,36 +329,19 @@ void MMaddItems(Widget shell, MMDesc items[], bool ignore_seps)
 	    }
 
 	    PushMenuInfo *info = 0;
-	    if (lesstif_version <= 84)
-	    {
-		// LessTif 0.84 and earlier wants the PushButton as
-		// parent of the menu
-		widget = verify(XmCreatePushButton(shell, XMST(name), args, arg));
+            // Motif wants the shell as parent of the menu
+            if (subitems != 0)
+            {
+                subMenu = MMcreatePushMenu(shell, subMenuName.chars(), subitems);
+                info = new PushMenuInfo(0, subMenu, flat);
+                XtSetArg(args[arg], XmNuserData, XtPointer(info)); arg++;
+            }
 
-		if (subitems != 0)
-		{
-		    subMenu = MMcreatePushMenu(widget, subMenuName.chars(), subitems);
-		    info = new PushMenuInfo(widget, subMenu, flat);
-		    XtVaSetValues(widget,
-				  XmNuserData, XtPointer(info),
-				  XtPointer(0));
-		}
-	    }
-	    else
-	    {
-		// Motif wants the shell as parent of the menu
-		if (subitems != 0)
-		{
-		    subMenu = MMcreatePushMenu(shell, subMenuName.chars(), subitems);
-		    info = new PushMenuInfo(0, subMenu, flat);
-		    XtSetArg(args[arg], XmNuserData, XtPointer(info)); arg++;
-		}
+            widget = verify(XmCreatePushButton(shell, XMST(name), args, arg));
 
-		widget = verify(XmCreatePushButton(shell, XMST(name), args, arg));
-
-		if (info != 0)
-		    info->widget = widget;
-	    }
+            if (info != 0)
+                info->widget = widget;
+            
 	    break;
 	}
 
@@ -408,42 +386,6 @@ void MMaddItems(Widget shell, MMDesc items[], bool ignore_seps)
 	    XtSetArg(args[arg], XmNsubMenuId, subMenu); arg++;
 	    widget = verify(XmCreateCascadeButton(shell, XMST(name), args, arg));
 
-            if (lesstif_version <= 79)
-	    {
-		// LessTif 0.79 and earlier has a very tight packing
-		// of menu items; place a few spaces around the labels
-		// to increase item distance.
-		XmString old_label;
-		XtVaGetValues(widget, 
-			      XmNlabelString, &old_label,
-			      XtPointer(0));
-		MString new_label(old_label, true);
-		XmStringFree(old_label);
-
-		if (!new_label.isNull())
-		{
-		    new_label = MString("  ") + new_label + MString("  ");
-		    XtVaSetValues(widget, 
-				  XmNlabelString, new_label.xmstring(), 
-				  XtPointer(0));
-		}
-
-		// Same applies to accelerator texts.
-		XmString old_acc;
-		XtVaGetValues(widget,
-			      XmNacceleratorText, &old_acc,
-			      XtPointer(0));
-		MString new_acc(old_acc, true);
-		XmStringFree(old_acc);
-
-		if (!new_acc.isNull())
-		{
-		    new_acc = MString("  ") + new_acc;
-		    XtVaSetValues(widget, 
-				  XmNacceleratorText, new_acc.xmstring(), 
-				  XtPointer(0));
-		}
-	    }
 	    break;
 	}
 
@@ -844,15 +786,6 @@ static void addCallback(const MMDesc *item, XtPointer default_closure)
 	    static XtTranslations translations =
 		    XtParseTranslationTable(pushMenuTranslations);
 	    XtAugmentTranslations(widget, translations);
-
-	    if (lesstif_version <= 81)
-	    {
-		// In LessTif 0.81 and earlier, one must use button 3
-		// to pop up push menus
-		static XtTranslations lesstif_translations =
-		    XtParseTranslationTable(lesstif_pushMenuTranslations);
-		XtAugmentTranslations(widget, lesstif_translations);
-	    }
 	}
 
 	if (flat)
@@ -1013,7 +946,7 @@ Widget MMcreatePushMenu(Widget parent, const _XtString name, MMDesc items[],
     Cardinal arg = 0;
 
     // By default, PushButton menus are activated using Button 1.
-    if (XmVersion < 1002 || lesstif_version <= 84)
+    if (XmVersion < 1002)
     {
 	// Setting the menuPost resource is required by Motif 1.1 and
 	// LessTif 0.84 and earlier.  However, OSF/Motif 2.0 (and

@@ -420,8 +420,6 @@
 #define XtCDebugCoreDumps        "DebugCoreDumps"
 #define XtNmaintenance       	 "maintenance"
 #define XtCMaintenance       	 "Maintenance"
-#define XtNlessTifVersion        "lessTifVersion"
-#define XtCLessTifVersion        "LessTifVersion"
 #define XtNdddinitVersion        "dddinitVersion"
 #define XtNappDefaultsVersion    "appDefaultsVersion"
 #define XtCVersion               "Version"
@@ -645,7 +643,6 @@ struct AppData {
     Boolean   maintenance;
     Boolean   dump_core;
     Boolean   debug_core_dumps;
-    int       lesstif_version;
     const _XtString    dddinit_version;
     const _XtString    app_defaults_version;
 };

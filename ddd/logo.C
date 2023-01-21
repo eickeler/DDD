@@ -38,7 +38,6 @@ char logo_rcsid[] =
 #include "string-fun.h"
 #include "AppData.h"
 #include "base/cook.h"
-#include "motif/LessTifH.h"
 #include "x11/InitImage.h"
 
 // X bitmaps
@@ -745,11 +744,7 @@ void install_icons(Widget shell,
 		&foreground, &top_shadow, &bottom_shadow, &select);
 
     // LessTif 0.87 and earlier does not return a suitable select color
-    Pixel arm_background;
-    if (lesstif_version <= 87)
-	arm_background = background;
-    else
-	arm_background = select;
+    Pixel arm_background = select;
 
     // DDD icon (always in color)
     install_icon(shell, DDD_ICON, 

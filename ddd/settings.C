@@ -62,7 +62,6 @@ char settings_rcsid[] =
 #include "EntryType.h"
 #include "GDBAgent.h"
 #include "HelpCB.h"
-#include "motif/LessTifH.h"
 #include "motif/MakeMenu.h"
 #include "SmartC.h"
 #include "SourceView.h"

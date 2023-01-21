@@ -152,7 +152,6 @@ char SourceView_rcsid[] =
 
 // LessTif hacks
 #include <X11/IntrinsicP.h>
-#include "motif/LessTifH.h"
 
 // System stuff
 extern "C" {
@@ -1659,17 +1658,6 @@ void SourceView::set_source_argCB(Widget text_w,
     XmTextPosition startPos, endPos;
     Boolean have_selection = 
 	XmTextGetSelectionPosition(text_w, &startPos, &endPos);
-
-    if (have_selection && lesstif_version <= 89)
-    {
-	// In LessTif 0.89 and earlier, the unmanaged
-	// DataDisp::graph_selection_w text widget is not notified
-	// that it just has lost the selection.  The effect is that
-	// selecting an item from the source (or a selection in any
-	// other window) does *not* clear the selection in the data
-	// window, as it should.  As a workaround, notify explicitly.
-	data_disp->SelectionLostCB();
-    }
 
     if (!have_selection || (app_data.source_editing && startPos == endPos))
     {
@@ -3911,31 +3899,9 @@ void SourceView::create_text(Widget parent, const char *base, bool editable,
     XtSetArg(args[arg], XmNeditMode,          XmMULTI_LINE_EDIT); arg++;
     XtSetArg(args[arg], XmNcursorPositionVisible, True);          arg++;
 
-    if (lesstif_version <= 82)
-    {
-	// LessTif 0.81 has a bad implementation of auto-show
-	// position: rather than scrolling only when needed, the line
-	// containing the cursor is *always* scrolled such that it
-	// becomes the first line.  Hence, disable the LessTif
-	// auto-show mechanism and rely on the DDD ones.
-	XtSetArg(args[arg], XmNautoShowCursorPosition, False);    arg++;
-    }
-    else
-    {
-	XtSetArg(args[arg], XmNautoShowCursorPosition, True);     arg++;
-    }
+    XtSetArg(args[arg], XmNautoShowCursorPosition, True);     arg++;
 
-    if (lesstif_version <= 86)
-    {
-	// LessTif 0.86 and earlier has trouble with non-editable text
-	// windows: cursor movement is inhibited.  Rely on
-	// `CheckModificationCB' instead.
-	XtSetArg(args[arg], XmNeditable, True); arg++;
-    }
-    else
-    {
-	XtSetArg(args[arg], XmNeditable, editable); arg++;
-    }
+    XtSetArg(args[arg], XmNeditable, editable); arg++;
 
     const string text_name = string(base) + "_text_w";
     text = verify(XmCreateScrolledText(form, XMST(text_name.chars()), args, arg));
@@ -5324,22 +5290,6 @@ void SourceView::set_text_popup_label(int item, const string& arg, bool sens)
     set_sensitive(w, sens);
 }
 
-void SourceView::set_text_popup_resource(int item, const string& arg)
-{
-    if (lesstif_version <= 82)
-    {
-	// Set up resources for yet-to-be-created popup menu
-	string db = string(DDD_CLASS_NAME "*text_popup.") 
-	    + text_popup[item].name + "." + XmNlabelString + ": "
-	    + "@" + CHARSET_RM + " " + text_cmd_labels[item] 
-	    + " @" + CHARSET_TT + " " + arg;
-
-	XrmDatabase res = XrmGetStringDatabase(db.chars());
-	XrmDatabase target = XtDatabase(XtDisplay(source_text_w));
-	XrmMergeDatabases(res, &target);
-    }
-}
-
 // Get relative coordinates of GLYPH in TEXT
 void SourceView::translate_glyph_pos(Widget glyph, Widget text, int& x, int& y)
 {
@@ -5412,21 +5362,9 @@ void SourceView::srcpopupAct (Widget w, XEvent* e, String *, Cardinal *)
     {
 	// Clicked on breakpoint: create breakpoint menu
 	static Widget bp_popup_w      = 0;
-	static Widget bp_popup_parent = 0;
-
-	if (lesstif_version <= 84 && w != bp_popup_parent)
-	{
-	    // LessTif 0.84 and earlier wants this menu re-created
-	    // every time the parent has changed.  Otherwise, it gets
-	    // insensitive.
-	    if (bp_popup_w != 0)
-		XtDestroyWidget(bp_popup_w);
-	    bp_popup_w = 0;
-	}
 
 	if (bp_popup_w == 0)
 	{
-	    bp_popup_parent = w;
 	    bp_popup_w = MMcreatePopupMenu(w, "bp_popup", bp_popup);
 	    MMaddCallbacks (bp_popup, XtPointer(&bp_nr));
 	    MMaddHelpCallback(bp_popup, ImmediateHelpCB);
@@ -5489,20 +5427,6 @@ void SourceView::srcpopupAct (Widget w, XEvent* e, String *, Cardinal *)
 	string current_arg = word;
 	shorten(current_arg, max_popup_expr_length);
 	string current_ref_arg = deref(current_arg);
-
-	if (lesstif_version <= 82)
-	{
-	    set_text_popup_resource(TextItms::Print,    current_arg);
-	    set_text_popup_resource(TextItms::Disp,     current_arg);
-	    set_text_popup_resource(TextItms::Watch,    current_arg);
-	    set_text_popup_resource(TextItms::PrintRef, current_ref_arg);
-	    set_text_popup_resource(TextItms::DispRef,  current_ref_arg);
-	    set_text_popup_resource(TextItms::WatchRef, current_ref_arg);
-	    set_text_popup_resource(TextItms::Whatis,   current_arg);
-	    set_text_popup_resource(TextItms::Lookup,   current_arg);
-	    set_text_popup_resource(TextItms::Break,    current_arg);
-	    set_text_popup_resource(TextItms::Clear,    current_arg);
-	}
 
 	Widget text_popup_w = 
 	    MMcreatePopupMenu(text_w, "text_popup", text_popup);
@@ -5746,9 +5670,6 @@ void SourceView::NewBreakpointCB(Widget w, XtPointer, XtPointer)
 					     args, arg));
 	Delay::register_shell(dialog);
 
-	if (lesstif_version <= 79)
-	    XtUnmanageChild(XmSelectionBoxGetChild(dialog,
-						   XmDIALOG_APPLY_BUTTON));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, 
 					       XmDIALOG_SELECTION_LABEL));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_TEXT));
@@ -5835,9 +5756,6 @@ void SourceView::NewWatchpointCB(Widget w, XtPointer, XtPointer)
 					     args, arg));
 	Delay::register_shell(dialog);
 
-	if (lesstif_version <= 79)
-	    XtUnmanageChild(XmSelectionBoxGetChild(dialog,
-						   XmDIALOG_APPLY_BUTTON));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, 
 					       XmDIALOG_SELECTION_LABEL));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_TEXT));
@@ -8236,11 +8154,6 @@ void SourceView::unmap_glyph(Widget glyph)
 		      XmNuserData, XtPointer(0),
 		      XtPointer(0));
 
-	if (lesstif_version <= 85)
-	{
-	    // LessTif 0.84 and earlier wants it the hard way.
-	    XtMoveWidget(glyph, invisible_x, invisible_y);
-	}
 	log_glyph(glyph);
     }
 
@@ -8285,19 +8198,10 @@ void SourceView::map_glyph(Widget& glyph, Position x, Position y)
 
     y -= (line_height(text_w) + glyph_height) / 2 - 2;
 
-    if (lesstif_version <= 87)
-	x += 2;
-
     if (x != old_x || y != old_y)
     {
 	if (change_glyphs)
 	{
-	    if (lesstif_version <= 84)
-	    {
-		// LessTif 0.84 and earlier want it the hard way.
-		XtMoveWidget(glyph, x, y);
-	    }
-
 	    XtVaSetValues(glyph, XmNleftOffset, x, XmNtopOffset, y, 
 			  XtPointer(0));
 	    log_glyph(glyph);
@@ -8701,8 +8605,6 @@ bool SourceView::glyph_pos_to_xy(Widget glyph, XmTextPosition pos,
 
     Boolean pos_displayed = XmTextPosToXY(text_w, pos, &x, &y);
 
-    // In LessTif 0.87 and later, XmTextPosToXY() returns True even if
-    // the position is *below* the last displayed line.  Verify.
     Dimension width, height;
     XtVaGetValues(text_w, XmNwidth, &width, XmNheight, &height, XtPointer(0));
     
@@ -8894,9 +8796,6 @@ Widget SourceView::map_drag_stop_at(Widget glyph, XmTextPosition pos,
 
 	    Position origin_x = -1;
  	    XtVaGetValues(origin, XmNx, &origin_x, XtPointer(0));
-	    if (lesstif_version <= 87)
-		origin_x -= 2;
-
 	    if (origin_x >= 0)
 	    {
 		// Origin is mapped

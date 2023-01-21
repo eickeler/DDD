@@ -39,7 +39,6 @@ char buttons_rcsid[] =
 #include "x11/DestroyCB.h"
 #include "GDBAgent.h"
 #include "HelpCB.h"
-#include "motif/LessTifH.h"
 #include "motif/MakeMenu.h"
 #include "SourceView.h"
 #include "template/StringSA.h"

@@ -2209,20 +2209,6 @@ XtResource ddd_resources[] = {
     },
 
     {
-	XTRESSTR(XtNlessTifVersion),
-	XTRESSTR(XtCLessTifVersion),
-	XmRInt,
-	sizeof(int),
-	XtOffsetOf(AppData, lesstif_version),
-	XmRImmediate,
-#if !defined(LesstifVersion)
-	XtPointer(1000)		// Treat OSF/Motif like LessTif 1.0
-#else
-	XtPointer(LesstifVersion)
-#endif
-    },
-
-    {
 	XTRESSTR(XtNdddinitVersion),
 	XTRESSTR(XtCVersion),
 	XtRString,

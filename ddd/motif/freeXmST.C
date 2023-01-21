@@ -29,7 +29,6 @@ char freeXmStringTable_rcsid[] =
     "$Id$";
 
 #include "freeXmST.h"
-#include "LessTifH.h"
 #include "config.h"
 
 // Free the XmString table XMLIST of length LIST_LENGTH
@@ -43,13 +42,6 @@ void freeXmStringTable (XmStringTable xmlist, int list_length)
 #if MOTIF_DIALOGS_OWN_STRING_TABLE
     // do nothing - list is owned by widget
 #else
-    if (lesstif_version <= 89)
-    {
-	// do nothing - list is owned by widget
-    }
-    else
-    {
-	XtFree((char *)xmlist);
-    }
+    XtFree((char *)xmlist);
 #endif
 }

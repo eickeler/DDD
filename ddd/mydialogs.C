@@ -34,7 +34,6 @@ char mydialogs_rcsid[] =
 //-----------------------------------------------------------------------------
 
 #include "mydialogs.h"
-#include "motif/LessTifH.h"
 #include "config.h"
 
 

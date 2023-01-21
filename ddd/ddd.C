@@ -172,7 +172,6 @@ char ddd_rcsid[] =
 
 #include <X11/IntrinsicP.h>	// LessTif hacks
 #include "x11/Sash.h"
-#include "motif/LessTifH.h"
 
 // ANSI C++ doesn't like the XtIsRealized() macro
 #ifdef XtIsRealized
@@ -431,7 +430,7 @@ static void check_log(const string& logname, DebuggerType& type);
 static void add_arg_from_selection(Widget toplevel, 
 				   int& argc, const char **&argv);
 
-#if XmVersion < 2000 || defined(LESSTIF_VERSION)
+#if XmVersion < 2000
 static void toggleOverstrikeAct (Widget, XEvent*, String*, Cardinal*)
 {
     // Do nothing.  (Just a dummy.)
@@ -827,21 +826,6 @@ we prevent its use in jdb.
 { XRMOPTSTR("-check-configuration"),   XRMOPTSTR(XtNcheckConfiguration),   
                                         XrmoptionNoArg, XPointer(ON) },
 
-{ XRMOPTSTR("--lesstif-hacks"),        XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionNoArg, XPointer("999") },
-{ XRMOPTSTR("-lesstif-hacks"),         XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionNoArg, XPointer("999") },
-
-{ XRMOPTSTR("--no-lesstif-hacks"),     XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionNoArg, XPointer("1000") },
-{ XRMOPTSTR("-no-lesstif-hacks"),      XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionNoArg, XPointer("1000") },
-
-{ XRMOPTSTR("--lesstif-version"),      XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionSepArg, XPointer(0) },
-{ XRMOPTSTR("-lesstif-version"),       XRMOPTSTR(XtNlessTifVersion),       
-                                        XrmoptionSepArg, XPointer(0) },
-
 { XRMOPTSTR("--help"),                 XRMOPTSTR(XtNshowInvocation),       
                                         XrmoptionNoArg, XPointer(ON) },
 { XRMOPTSTR("-help"),                  XRMOPTSTR(XtNshowInvocation),       
@@ -884,7 +868,7 @@ static XtActionsRec actions [] = {
     {XTARECSTR("ddd-previous-tab-group"), prev_tab_groupAct},
     {XTARECSTR("ddd-get-focus"),          get_focusAct},
     {XTARECSTR("ddd-select-all"),         select_allAct},
-#if XmVersion < 2000 || defined(LESSTIF_VERSION)
+#if XmVersion < 2000
     {XTARECSTR("toggle-overstrike"),      toggleOverstrikeAct},
 #endif
 };
@@ -2482,9 +2466,6 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     // Warn for incompatible `Ddd' and `~/.ddd/init' files
     setup_ddd_version_warnings();
 
-    // Global variables: Set LessTif version
-    lesstif_version = app_data.lesstif_version;
-
     // Global variables: Set maximum lengths
     max_value_tip_length              = app_data.max_value_tip_length;
     max_value_doc_length              = app_data.max_value_doc_length;
@@ -3632,128 +3613,6 @@ static void fix_status_size()
 		  XmNheight, pane_maximum,
 		  XmNallowResize, False,
 		  XtPointer(0));
-
-    if (lesstif_version <= 79)
-    {
-	// For LessTif 0.79 and earlier, simulate a drag of the lowest
-	// sash to the bottom.  Ugly LessTif hack.
-
-	// Find the children of the paned window
-	Widget paned = XtParent(status_form);
-	WidgetList children;
-	Cardinal num_children = 0;
-    
-	XtVaGetValues(paned, 
-		      XmNchildren, &children,
-		      XmNnumChildren, &num_children,
-		      XtPointer(0));
-
-	// The sash controlling the status line is the lowest of all
-	Widget sash = 0;
-	for (Cardinal i = 0; i < num_children; i++)
-	{
-	    Widget child = children[i];
-
-	    if (XmIsSash(child) && XtIsRealized(child) && XtIsManaged(child))
-	    {
-		Position sash_y  = 0;
-		Position child_y = 1;
-
-		if (sash != 0)
-		{
-		    XtVaGetValues(sash,  XmNy, &sash_y, XtPointer(0));
-		    XtVaGetValues(child, XmNy, &child_y, XtPointer(0));
-		}
-
-		if (child_y > sash_y)
-		    sash = child;
-	    }
-	}
-
-	if (sash != 0 && XtIsRealized(sash))
-	{
-	    // Simulate a vertical drag of MOVEMENT pixels
-	    const Dimension movement = 
-		max(height, HeightOfScreen(XtScreen(sash)));
-
-	    // Press button 1 ...
-	    XEvent event;
-	    event.type                = ButtonPress;
-	    event.xbutton.serial      = 0;
-	    event.xbutton.display     = XtDisplay(sash);
-	    event.xbutton.window      = XtWindow(sash);
-	    event.xbutton.root        = RootWindowOfScreen(XtScreen(sash));
-	    event.xbutton.subwindow   = None;
-	    event.xbutton.time        = 
-		XtLastTimestampProcessed(XtDisplay(sash));
-	    event.xbutton.x           = 0;
-	    event.xbutton.y           = 0;
-	    event.xbutton.x_root      = 0;
-	    event.xbutton.y_root      = 0;
-	    event.xbutton.state       = Button1Mask;
-	    event.xbutton.button      = Button1;
-	    event.xbutton.same_screen = True;
-	    XtDispatchEvent(&event);
-
-	    // ... move down ...
-	    for (Dimension y = 0; y < movement; y += 5)
-	    {
-		event.type                = MotionNotify;
-		event.xmotion.serial      = 0;
-		event.xmotion.display     = XtDisplay(sash);
-		event.xmotion.window      = XtWindow(sash);
-		event.xmotion.root        = 
-		    RootWindowOfScreen(XtScreen(sash));
-		event.xmotion.subwindow   = None;
-		event.xmotion.time        = 
-		    XtLastTimestampProcessed(XtDisplay(sash));
-		event.xmotion.x           = 0;
-		event.xmotion.y           = y;
-		event.xmotion.x_root      = 0;
-		event.xmotion.y_root      = y;
-		event.xmotion.state       = Button1Mask;
-		event.xmotion.is_hint     = NotifyNormal;
-		event.xmotion.same_screen = True;
-		XtDispatchEvent(&event);
-	    }
-
-	    // ... until target position is reached ...
-	    event.type                = MotionNotify;
-	    event.xmotion.serial      = 0;
-	    event.xmotion.display     = XtDisplay(sash);
-	    event.xmotion.window      = XtWindow(sash);
-	    event.xmotion.root        = RootWindowOfScreen(XtScreen(sash));
-	    event.xmotion.subwindow   = None;
-	    event.xmotion.time        = 
-		XtLastTimestampProcessed(XtDisplay(sash));
-	    event.xmotion.x           = 0;
-	    event.xmotion.y           = movement;
-	    event.xmotion.x_root      = 0;
-	    event.xmotion.y_root      = movement;
-	    event.xmotion.state       = Button1Mask;
-	    event.xmotion.is_hint     = NotifyNormal;
-	    event.xmotion.same_screen = True;
-	    XtDispatchEvent(&event);
-
-	    // ... and release button1 again.
-	    event.type                = ButtonRelease;
-	    event.xbutton.serial      = 0;
-	    event.xbutton.display     = XtDisplay(sash);
-	    event.xbutton.window      = XtWindow(sash);
-	    event.xbutton.root        = RootWindowOfScreen(XtScreen(sash));
-	    event.xbutton.subwindow   = None;
-	    event.xbutton.time        = 
-		XtLastTimestampProcessed(XtDisplay(sash));
-	    event.xbutton.x           = 0;
-	    event.xbutton.y           = movement;
-	    event.xbutton.x_root      = 0;
-	    event.xbutton.y_root      = movement;
-	    event.xbutton.state       = Button1Mask;
-	    event.xbutton.button      = Button1;
-	    event.xbutton.same_screen = True;
-	    XtDispatchEvent(&event);
-	}
-    }
 }
 
 
@@ -4083,8 +3942,6 @@ static void set_string(Widget w, const _XtString value)
     if (w == 0)
 	return;
 
-    // Note: XtVaSetValues(w, XmNvalue, value, ...) 
-    // doesn't work properly with LessTif 0.89.9
     XmTextFieldSetString(w, XMST(value));
     XtVaSetValues(w, XmNcursorPosition, 0, XtPointer(0));
 }
@@ -5240,10 +5097,6 @@ static void make_preferences(Widget parent)
     XtAddCallback(preferences_dialog, XmNunmapCallback, OfferRestartCB,
 		  XtPointer(0));
 
-    if (lesstif_version <= 79)
-	XtUnmanageChild(XmSelectionBoxGetChild(preferences_dialog,
-					       XmDIALOG_APPLY_BUTTON));
-
     // Remove old prompt
     Widget text = XmSelectionBoxGetChild(preferences_dialog, XmDIALOG_TEXT);
     XtUnmanageChild(text);
@@ -5340,11 +5193,6 @@ static void create_status(Widget parent)
     XtSetArg(args[arg], XmNset,                True); arg++;
 
     MString spaces("   ");
-    if (lesstif_version <= 87)
-    {
-	XtSetArg(args[arg], XmNlabelString, spaces.xmstring()); arg++;
-    }
-
     led_w = verify(XmCreateToggleButton(status_form, 
 					XMST("led"), args, arg));
     XtManageChild(led_w);
@@ -5420,10 +5268,7 @@ static void create_status(Widget parent)
     size.request_mode = CWHeight;
     XtQueryGeometry(status_w, (XtWidgetGeometry *)0, &size);
 
-    if (lesstif_version <= 87)
-	XtVaSetValues(led_w, XmNindicatorSize, size.height - 4, XtPointer(0));
-    else
-	XtVaSetValues(led_w, XmNindicatorSize, size.height - 1, XtPointer(0));
+    XtVaSetValues(led_w, XmNindicatorSize, size.height - 1, XtPointer(0));
 
     XtVaSetValues(arrow_w,
 		  XmNheight, size.height - 2,
@@ -6659,14 +6504,6 @@ static int _mapped_menus = 0;
 
 static int mapped_menus()
 {
-    if (lesstif_version <= 87)
-    {
-	// LessTif 0.87 and earlier does not issue a XmCR_MAP callback
-	// when mapping RowColumn menus.  Hence, we always assume we
-	// have some mapped menu.
-	return 1;
-    }
-
     return _mapped_menus;
 }
 

@@ -55,8 +55,6 @@ char print_rcsid[] =
 #include "x11/charsets.h"
 #include "motif/MakeMenu.h"
 
-#include "motif/LessTifH.h"
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -819,10 +817,6 @@ static void PrintCB(Widget parent, bool displays)
 				    args, arg));
     Delay::register_shell(print_dialog);
 
-    if (lesstif_version <= 79)
-	XtUnmanageChild(XmSelectionBoxGetChild(print_dialog,
-					       XmDIALOG_APPLY_BUTTON));
-
     XtAddCallback(print_dialog, XmNokCallback,
  		  PrintAgainCB, XtPointer(1));
     XtAddCallback(print_dialog, XmNapplyCallback,
@@ -993,10 +987,6 @@ static void PrintCB(Widget parent, bool displays)
 				    XMST("paper_size_dialog"), 
 				    args, arg));
     Delay::register_shell(paper_size_dialog);
-
-    if (lesstif_version <= 79)
-	XtUnmanageChild(XmSelectionBoxGetChild(paper_size_dialog,
-					       XmDIALOG_APPLY_BUTTON));
 
     XtAddCallback(paper_size_dialog, XmNokCallback,
 		  SetPaperSizeCB, XtPointer(0));

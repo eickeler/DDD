@@ -73,7 +73,6 @@ char DataDisp_rcsid[] =
 #include "graph/Graph.h"
 #include "HistoryD.h"
 #include "template/IntIntAA.h"
-#include "motif/LessTifH.h"
 #include "motif/MString.h"
 #include "motif/MakeMenu.h"
 #include "Map.h"
@@ -1817,8 +1816,6 @@ Widget DataDisp::create_display_dialog(Widget parent, const _XtString name,
 						XMST(name), args, arg));
     Delay::register_shell(dialog);
 
-    if (lesstif_version <= 79)
-	XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_APPLY_BUTTON));
     XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_TEXT));
     XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_SELECTION_LABEL));
 
@@ -5981,9 +5978,6 @@ void DataDisp::setCB(Widget w, XtPointer, XtPointer)
 
     XtAddCallback(info->dialog, XmNdestroyCallback, DeleteSetInfoCB, XtPointer(info));
 
-    if (lesstif_version <= 79)
-	XtUnmanageChild(XmSelectionBoxGetChild(info->dialog,
-					       XmDIALOG_APPLY_BUTTON));
     XtUnmanageChild(XmSelectionBoxGetChild(info->dialog, 
 					   XmDIALOG_TEXT));
     XtUnmanageChild(XmSelectionBoxGetChild(info->dialog, 

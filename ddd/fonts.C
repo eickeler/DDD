@@ -34,7 +34,6 @@ char fonts_rcsid[] =
 
 #include "AppData.h"
 #include "x11/DestroyCB.h"
-#include "motif/LessTifH.h"
 #include "agent/LiterateA.h"
 #include "template/StringSA.h"
 #include "motif/TextSetS.h"

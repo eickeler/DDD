@@ -54,7 +54,6 @@ char status_rcsid[] =
 #include <Xm/MenuShell.h>
 
 #include <X11/IntrinsicP.h>	// LessTif hacks
-#include "motif/LessTifH.h"
 
 //-----------------------------------------------------------------------------
 // Data
@@ -258,22 +257,6 @@ Widget status_history(Widget parent)
 	    }
 	    i = (i + 1) % status_history_size;
 	} while (i != current_history);
-    }
-
-    if (lesstif_version <= 87)
-    {
-	// LessTif 0.87 and earlier fails to resize the shell properly
-	// - the border width is zero.  Use this hack instead.
-	XmFontList font_list;
-	XtVaGetValues(history_label, XmNfontList, &font_list, XtPointer(0));
-    
-	Dimension history_width  = history_msg.width(font_list)  + 6;
-	Dimension history_height = history_msg.height(font_list) + 6;
-
-	XtResizeWidget(history_label, history_width, history_height, 0);
-	XtResizeWidget(history_row,   history_width, history_height, 0);
-
-	XtResizeWidget(history_shell, history_width, history_height, 1);
     }
 
     XtVaSetValues(history_label, XmNlabelString, history_msg.xmstring(), 

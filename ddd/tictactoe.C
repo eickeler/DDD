@@ -50,7 +50,6 @@ char tictactoe_rcsid[] =
 #include "x11/DestroyCB.h"
 #include "HelpCB.h"
 #include "x11/InitImage.h"
-#include "motif/LessTifH.h"
 #include "agent/TimeOut.h"
 #include "base/assert.h"
 #include "base/bool.h"
@@ -532,9 +531,6 @@ void TicTacToeCB(Widget, XtPointer, XtPointer)
 					     XMST("tictactoe"), args, arg));
 	Delay::register_shell(dialog);
 
-	if (lesstif_version <= 79)
-	    XtUnmanageChild(XmSelectionBoxGetChild(dialog, 
-						   XmDIALOG_APPLY_BUTTON));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, 
 					       XmDIALOG_HELP_BUTTON));
 	XtUnmanageChild(XmSelectionBoxGetChild(dialog, 
