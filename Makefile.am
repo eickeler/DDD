@@ -69,11 +69,6 @@ SED  = sed
 # The build number.  (This must be set from outside)
 REL = 1
 
-# Build a DDD distribution from archive.
-.PHONY: dist
-dist: diststuff disttouch \
-	snapshot htmldist picsdist
-
 # RPM spec
 .PHONY:	spec
 spec: $(top_builddir)/$(ddd)-$(VERSION)-$(REL).spec
@@ -81,31 +76,6 @@ $(ddd)-$(VERSION)-$(REL).spec: $(srcdir)/ddd.spec.in $(top_builddir)/config.stat
 	CONFIG_FILES=$(srcdir)/ddd.spec CONFIG_HEADERS= $(SHELL) $(top_builddir)/config.status
 	$(SED) 's/@REL@/$(REL)/g' $(top_builddir)/ddd.spec > $@
 	$(RM) $(top_builddir)/ddd.spec
-
-
-# Create architecture-independent files in DDD subdirectory.
-.PHONY: diststuff progstuff
-diststuff progstuff:
-	@cd $(srcdir); \
-	target=$@; \
-	rootme=`pwd`; export rootme; \
-	srcroot=`cd $(srcdir); pwd`; export srcroot; \
-	echo "==> Making $@ in ddd..."; \
-	( cd ./ddd; $(MAKE) $@ )
-
-# Touch `configure' files such that they don't get re-created.
-.PHONY: disttouch
-disttouch:
-	@cd $(srcdir); \
-	for i in $(SUBDIRS); do \
-	  if test -f ./$$i/Makefile && test -f ./$$i/configure; then \
-	    echo "==> Making configure in $$i..."; \
-	    if (cd ./$$i; $(MAKE) configure); then true; \
-	    else exit 1; fi; \
-	    if (cd ./$$i; touch configure); then true; \
-	    else exit 1; fi; \
-          else true; fi; \
-        done
 
 # Create a snapshot distribution from the current DDD development tree.
 .PHONY: snapshot
@@ -215,6 +185,7 @@ picsdist:
 # -----------------------------------------------------------------------------
 
 EXTRA_DIST = \
+	$(srcdir)/etc \
 	ddd.spec.in \
 	$(TEXINFO_DISTFILES) \
 	$(ddd)-$(VERSION)-$(REL).spec \

@@ -46,7 +46,7 @@ RM   = rm -f
 
 # Suffixes used in this file.
 SUFFIXES = .C .c .Y .L .txt .xbm .xbmxx .xpm .xpmxx \
-	   .xface .fig .eps .jpg .png .gif .pdf $(IMGEXT) $(IMGEXT2)
+	   .xface .fig .eps .jpg .png .gif .pdf $(IMGEXT)
 
 # Shared data installation
 dddrootdir    = $(pkgdatadir)-$(VERSION)
@@ -187,7 +187,7 @@ XSTUFF_SRC = \
 	x11/ExitCB.C     \
 	x11/ExitCB.h     \
 	x11/InitImage.C  \
-	x11/x11/InitImage.h  \
+	x11/InitImage.h  \
 	x11/OnOff.h      \
 	x11/Sash.h       \
 	x11/Swallower.C  \
@@ -1317,25 +1317,20 @@ htmldir = $(builddocdir)/html
 html: $(htmldir)/ddd.html $(htmldir)/ddd-themes.html
 
 $(htmldir)/ddd.html $(htmldir)/ddd-themes.html: \
-	$(srcdir)/ddd.texi $(srcdir)/ddd-themes.texi $(HTML_IMAGES) \
+	$(srcdir)/ddd.texi $(srcdir)/ddd-themes.texi \
 	style.css $(srcdir)/fix-html.sed
-	@-test -d $(htmldir) || mkdir $(htmldir)
-	@-test -d $(htmldir)/PICS || mkdir $(htmldir)/PICS
-	@-test -d PICS || mkdir PICS
+	@-test -d $(htmldir) || mkdir -p $(htmldir)
+	@-test -d $(htmldir)/PICS || mkdir -p $(htmldir)/PICS
+	@-test -d PICS || mkdir -p PICS
 	$(RM) ddd*.html
 	$(MAKEINFOHTML) -I $(srcdir) -I $(texidir) $(srcdir)/ddd-themes.texi --no-split
 	$(MAKEINFOHTML) -I $(srcdir) -I $(texidir) $(srcdir)/ddd.texi --no-split
-	for file in ddd*.html; do \
-		$(SED) -f $(srcdir)/fix-html.sed $$file | \
-		$(SED) 's/$(IMGEXT)/\$(IMGEXT2)/g' > $$file~ && \
-		$(MV) $$file~ $$file; \
-	done
 	cd $(htmldir) && $(RM) ddd*.html style.css PICS/*
 	$(INSTALL_DATA) ddd*.html $(srcdir)/style.css $(htmldir)
 	($(ECHO) 'index.html:'; $(ECHO) '	$(LN_S) ddd.html index.html') \
 	 > $(htmldir)/Makefile
 	@$(ECHO) Installing images...
-	@$(INSTALL_DATA) $(HTML_IMAGES) $(htmldir)/PICS
+	@$(INSTALL_DATA) $(picdir)/*$(IMGEXT) $(htmldir)/PICS
 	@$(ECHO) Installing images...done.
 
 # Manual page
@@ -1354,7 +1349,6 @@ ddd.1:   ddd.man $(srcdir)/unumlaut.sed
 
 # The image extension (.jpg, .png, or .gif)
 IMGEXT     = .png
-IMGEXT2    = .jpg
 
 # Width of image in HTML manual (pixels)
 IMAGE_WIDTH = 800
@@ -1396,13 +1390,6 @@ GSOPT = -q -sDEVICE=pdfwrite -dCompatibilityLevel=1.4
 .eps.gif:
 	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
 	$(CONVERT) -geometry $(IMAGE_WIDTH) $< $@
-
-.pdf.jpg:
-	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
-	$(CONVERT) -geometry $(IMAGE_WIDTH) -quality 100 $< $@
-
-##.eps.png:
-##	$(CONVERT) -geometry $(IMAGE_WIDTH) -quality 100 $< $@
 
 .eps.pdf:
 	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
@@ -1506,9 +1493,6 @@ PS_IMAGES = \
 
 PDF_IMAGES = \
 	$(buildpicdir)/disclaimer.pdf           \
-	$(buildpicdir)/dddback.pdf		\
-	$(buildpicdir)/dddlogo.pdf              \
-	$(buildpicdir)/dddsplash.pdf            \
 	$(buildpicdir)/ddd-aliases.pdf          \
 	$(buildpicdir)/ddd-all.pdf              \
 	$(buildpicdir)/ddd-arguments.pdf        \
@@ -1572,76 +1556,8 @@ PDF_IMAGES = \
 	$(buildpicdir)/tut-set.pdf              \
 	$(buildpicdir)/tut-value.pdf
 
-HTML_IMAGES = \
-	$(buildpicdir)/disclaimer$(IMGEXT2)           \
-	$(buildpicdir)/dddback$(IMGEXT2)	      \
-	$(buildpicdir)/dddlogo34$(IMGEXT2)            \
-	$(buildpicdir)/dddsplash$(IMGEXT2)            \
-	$(buildpicdir)/ddd-aliases$(IMGEXT2)          \
-	$(buildpicdir)/ddd-all$(IMGEXT2)              \
-	$(buildpicdir)/ddd-arguments$(IMGEXT2)        \
-	$(buildpicdir)/ddd-attach$(IMGEXT2)           \
-	$(buildpicdir)/ddd-backtrace$(IMGEXT2)	      \
-	$(buildpicdir)/ddd-bp-popup$(IMGEXT2)         \
-	$(buildpicdir)/ddd-bp-properties$(IMGEXT2)    \
-	$(buildpicdir)/ddd-button-editor$(IMGEXT2)    \
-	$(buildpicdir)/ddd-clusters$(IMGEXT2)         \
-	$(buildpicdir)/ddd-code$(IMGEXT2)             \
-	$(buildpicdir)/ddd-console$(IMGEXT2)          \
-	$(buildpicdir)/ddd-data-prefs$(IMGEXT2)       \
-	$(buildpicdir)/ddd-define-command$(IMGEXT2)   \
-	$(buildpicdir)/ddd-display$(IMGEXT2)          \
-	$(buildpicdir)/ddd-drag$(IMGEXT2)             \
-	$(buildpicdir)/ddd-edit-breakpoints$(IMGEXT2) \
-	$(buildpicdir)/ddd-edit-displays$(IMGEXT2)    \
-	$(buildpicdir)/ddd-examine$(IMGEXT2)          \
-	$(buildpicdir)/ddd-font-prefs$(IMGEXT2)       \
-	$(buildpicdir)/ddd-general-prefs$(IMGEXT2)    \
-	$(buildpicdir)/ddd-helpers$(IMGEXT2)  	     \
-	$(buildpicdir)/ddd-hide-display$(IMGEXT2)     \
-	$(buildpicdir)/ddd-history$(IMGEXT2)          \
-	$(buildpicdir)/ddd-layout$(IMGEXT2)           \
-	$(buildpicdir)/ddd-line-popup$(IMGEXT2)       \
-	$(buildpicdir)/ddd-locals$(IMGEXT2)	     \
-	$(buildpicdir)/ddd-open$(IMGEXT2)             \
-	$(buildpicdir)/ddd-open-session$(IMGEXT2)     \
-	$(buildpicdir)/ddd-plots$(IMGEXT2)            \
-	$(buildpicdir)/ddd-print-graph$(IMGEXT2)      \
-	$(buildpicdir)/ddd-print-output$(IMGEXT2)     \
-	$(buildpicdir)/ddd-print-popup$(IMGEXT2)      \
-	$(buildpicdir)/ddd-registers$(IMGEXT2)        \
-	$(buildpicdir)/ddd-repeats$(IMGEXT2)          \
-	$(buildpicdir)/ddd-rotate-display$(IMGEXT2)   \
-	$(buildpicdir)/ddd-save-session$(IMGEXT2)     \
-	$(buildpicdir)/ddd-select-display$(IMGEXT2)   \
-	$(buildpicdir)/ddd-separate$(IMGEXT2)         \
-	$(buildpicdir)/ddd-set$(IMGEXT2)	             \
-	$(buildpicdir)/ddd-settings$(IMGEXT2)         \
-	$(buildpicdir)/ddd-shortcuts$(IMGEXT2)        \
-	$(buildpicdir)/ddd-shortcut-editor$(IMGEXT2)  \
-	$(buildpicdir)/ddd-signals$(IMGEXT2)          \
-	$(buildpicdir)/ddd-source-popup$(IMGEXT2)     \
-	$(buildpicdir)/ddd-source-prefs$(IMGEXT2)     \
-	$(buildpicdir)/ddd-source$(IMGEXT2)           \
-	$(buildpicdir)/ddd-startup-prefs$(IMGEXT2)    \
-	$(buildpicdir)/ddd-status-displays$(IMGEXT2)  \
-	$(buildpicdir)/ddd-suppress$(IMGEXT2)         \
-	$(buildpicdir)/ddd-tool$(IMGEXT2)             \
-	$(buildpicdir)/ddd-toolbar$(IMGEXT2)          \
-	$(buildpicdir)/ddd-toolbars$(IMGEXT2)         \
-	$(buildpicdir)/ddd-themes$(IMGEXT2)           \
-	$(buildpicdir)/ddd-threads$(IMGEXT2)          \
-	$(buildpicdir)/ddd-value-tip$(IMGEXT2)        \
-	$(buildpicdir)/tut-backtrace$(IMGEXT2)        \
-	$(buildpicdir)/tut-display$(IMGEXT2)          \
-	$(buildpicdir)/tut-finish$(IMGEXT2)           \
-	$(buildpicdir)/tut-invoke$(IMGEXT2)           \
-	$(buildpicdir)/tut-run$(IMGEXT2)              \
-	$(buildpicdir)/tut-set$(IMGEXT2)              \
-	$(buildpicdir)/tut-value$(IMGEXT2)
-
 # All derived pictures
-IMAGES = $(PS_IMAGES) $(PDF_IMAGES) $(HTML_IMAGES)
+IMAGES = $(PS_IMAGES) $(PDF_IMAGES)
 
 # Included pictures
 
@@ -1790,74 +1706,6 @@ $(buildpicdir)/tut-set.eps: \
 $(buildpicdir)/tut-value.eps: \
 	$(picdir)/tut-value.fig $(picdir)/tut-value.png
 
-
-# JPEGs are derived from EPS files
-
-$(buildpicdir)/ddd-all$(IMGEXT2):             $(buildpicdir)/ddd-all.eps
-$(buildpicdir)/ddd-console$(IMGEXT2):         $(buildpicdir)/ddd-console.eps
-$(buildpicdir)/ddd-history$(IMGEXT2):         $(buildpicdir)/ddd-history.eps
-$(buildpicdir)/ddd-open$(IMGEXT2):            $(buildpicdir)/ddd-open.eps
-$(buildpicdir)/ddd-source$(IMGEXT2):          $(buildpicdir)/ddd-source.eps
-$(buildpicdir)/ddd-line-popup$(IMGEXT2):      $(buildpicdir)/ddd-line-popup.eps
-$(buildpicdir)/ddd-bp-popup$(IMGEXT2):        $(buildpicdir)/ddd-bp-popup.eps
-$(buildpicdir)/ddd-source-popup$(IMGEXT2):    $(buildpicdir)/ddd-source-popup.eps
-$(buildpicdir)/ddd-arguments$(IMGEXT2):       $(buildpicdir)/ddd-arguments.eps
-$(buildpicdir)/ddd-tool$(IMGEXT2):            $(buildpicdir)/ddd-tool.eps
-$(buildpicdir)/ddd-backtrace$(IMGEXT2):       $(buildpicdir)/ddd-backtrace.eps
-$(buildpicdir)/ddd-value-tip$(IMGEXT2):       $(buildpicdir)/ddd-value-tip.eps
-$(buildpicdir)/ddd-print-popup$(IMGEXT2):     $(buildpicdir)/ddd-print-popup.eps
-$(buildpicdir)/ddd-select-display$(IMGEXT2):  $(buildpicdir)/ddd-select-display.eps
-$(buildpicdir)/ddd-hide-display$(IMGEXT2):    $(buildpicdir)/ddd-hide-display.eps
-$(buildpicdir)/ddd-rotate-display$(IMGEXT2):  $(buildpicdir)/ddd-rotate-display.eps
-$(buildpicdir)/ddd-locals$(IMGEXT2):          $(buildpicdir)/ddd-locals.eps
-$(buildpicdir)/ddd-status-displays$(IMGEXT2): $(buildpicdir)/ddd-status-displays.eps
-$(buildpicdir)/ddd-set$(IMGEXT2):             $(buildpicdir)/ddd-set.eps
-$(buildpicdir)/ddd-layout$(IMGEXT2):          $(buildpicdir)/ddd-layout.eps
-$(buildpicdir)/ddd-print-graph$(IMGEXT2):     $(buildpicdir)/ddd-print-graph.eps
-$(buildpicdir)/ddd-print-output$(IMGEXT2):    $(buildpicdir)/ddd-print-output.eps
-$(buildpicdir)/ddd-code$(IMGEXT2):            $(buildpicdir)/ddd-code.eps
-$(buildpicdir)/ddd-registers$(IMGEXT2):       $(buildpicdir)/ddd-registers.eps
-$(buildpicdir)/ddd-general-prefs$(IMGEXT2):   $(buildpicdir)/ddd-general-prefs.eps
-$(buildpicdir)/ddd-helpers$(IMGEXT2):         $(buildpicdir)/ddd-helpers.eps
-$(buildpicdir)/ddd-source-prefs$(IMGEXT2):    $(buildpicdir)/ddd-source-prefs.eps
-$(buildpicdir)/ddd-data-prefs$(IMGEXT2):      $(buildpicdir)/ddd-data-prefs.eps
-$(buildpicdir)/ddd-startup-prefs$(IMGEXT2):   $(buildpicdir)/ddd-startup-prefs.eps
-$(buildpicdir)/ddd-settings$(IMGEXT2):        $(buildpicdir)/ddd-settings.eps
-$(buildpicdir)/ddd-threads$(IMGEXT2):         $(buildpicdir)/ddd-threads.eps
-$(buildpicdir)/ddd-aliases$(IMGEXT2):         $(buildpicdir)/ddd-aliases.eps
-$(buildpicdir)/ddd-edit-displays$(IMGEXT2):   $(buildpicdir)/ddd-edit-displays.eps
-$(buildpicdir)/ddd-attach$(IMGEXT2):          $(buildpicdir)/ddd-attach.eps
-$(buildpicdir)/ddd-save-session$(IMGEXT2):    $(buildpicdir)/ddd-save-session.eps
-$(buildpicdir)/ddd-open-session$(IMGEXT2):    $(buildpicdir)/ddd-open-session.eps
-$(buildpicdir)/ddd-button-editor$(IMGEXT2):   $(buildpicdir)/ddd-button-editor.eps
-$(buildpicdir)/ddd-shortcuts$(IMGEXT2):       $(buildpicdir)/ddd-shortcuts.eps
-$(buildpicdir)/ddd-shortcut-editor$(IMGEXT2): $(buildpicdir)/ddd-shortcut-editor.eps
-$(buildpicdir)/ddd-drag$(IMGEXT2):            $(buildpicdir)/ddd-drag.eps
-$(buildpicdir)/disclaimer$(IMGEXT2):          $(buildpicdir)/disclaimer.eps
-$(buildpicdir)/ddd-separate$(IMGEXT2):        $(buildpicdir)/ddd-separate.eps
-$(buildpicdir)/ddd-bp-properties$(IMGEXT2):   $(buildpicdir)/ddd-bp-properties.eps
-$(buildpicdir)/ddd-edit-breakpoints$(IMGEXT2): $(buildpicdir)/ddd-edit-breakpoints.eps
-$(buildpicdir)/ddd-display$(IMGEXT2):         $(buildpicdir)/ddd-display.eps
-$(buildpicdir)/ddd-repeats$(IMGEXT2):         $(buildpicdir)/ddd-repeats.eps
-$(buildpicdir)/ddd-toolbar$(IMGEXT2):         $(buildpicdir)/ddd-toolbar.eps
-$(buildpicdir)/ddd-font-prefs$(IMGEXT2):      $(buildpicdir)/ddd-font-prefs.eps
-$(buildpicdir)/ddd-define-command$(IMGEXT2):  $(buildpicdir)/ddd-define-command.eps
-$(buildpicdir)/ddd-signals$(IMGEXT2):         $(buildpicdir)/ddd-signals.eps
-$(buildpicdir)/ddd-examine$(IMGEXT2):         $(buildpicdir)/ddd-examine.eps
-$(buildpicdir)/ddd-clusters$(IMGEXT2):        $(buildpicdir)/ddd-clusters.eps
-$(buildpicdir)/ddd-plots$(IMGEXT2):           $(buildpicdir)/ddd-plots.eps
-$(buildpicdir)/ddd-suppress$(IMGEXT2):        $(buildpicdir)/ddd-suppress.eps
-$(buildpicdir)/ddd-toolbars$(IMGEXT2):        $(buildpicdir)/ddd-toolbars.eps
-$(buildpicdir)/ddd-themes$(IMGEXT2):          $(buildpicdir)/ddd-themes.eps
-$(buildpicdir)/tut-backtrace$(IMGEXT2):	      $(buildpicdir)/tut-backtrace.eps
-$(buildpicdir)/tut-display$(IMGEXT2):	      $(buildpicdir)/tut-display.eps
-$(buildpicdir)/tut-finish$(IMGEXT2):	      $(buildpicdir)/tut-finish.eps
-$(buildpicdir)/tut-invoke$(IMGEXT2):	      $(buildpicdir)/tut-invoke.eps
-$(buildpicdir)/tut-run$(IMGEXT2):	      $(buildpicdir)/tut-run.eps
-$(buildpicdir)/tut-set$(IMGEXT2):	      $(buildpicdir)/tut-set.eps
-$(buildpicdir)/tut-value$(IMGEXT2):	      $(buildpicdir)/tut-value.eps
-
-
 # PDFs are also derived from EPS files.
 # (We could also generate them directly from FIG files, but this
 # would mean to duplicate all dependencies as above.)
@@ -1926,11 +1774,6 @@ $(buildpicdir)/tut-run.pdf:	         $(buildpicdir)/tut-run.eps
 $(buildpicdir)/tut-set.pdf:	         $(buildpicdir)/tut-set.eps
 $(buildpicdir)/tut-value.pdf:            $(buildpicdir)/tut-value.eps
 
-
-# The logo comes in XPM source
-$(buildpicdir)/dddsplash.pdf: $(icondir)/dddsplash.xpm
-	$(CONVERT) $(icondir)/dddsplash.xpm $@
-
 $(buildpicdir)/dddsplash.gif: $(icondir)/dddsplash.xpm
 	$(CONVERT) $(icondir)/dddsplash.xpm $@
 
@@ -1940,20 +1783,11 @@ $(buildpicdir)/dddsplash.jpg: $(icondir)/dddsplash.xpm
 $(buildpicdir)/dddsplash.png: $(icondir)/dddsplash.xpm
 	$(CONVERT) -quality 100 $(icondir)/dddsplash.xpm $@
 
-$(buildpicdir)/dddlogo.pdf: $(buildicondir)/dddlogo.xpm
-	$(CONVERT) $(buildicondir)/dddlogo.xpm $@
-
 $(buildpicdir)/dddlogo.gif: $(buildicondir)/dddlogo.xpm
 	$(CONVERT) $(buildicondir)/dddlogo.xpm $@
 
-$(buildpicdir)/dddlogo.jpg: $(buildicondir)/dddlogo.xpm
-	$(CONVERT) -quality 100 $(buildicondir)/dddlogo.xpm $@
-
-$(buildpicdir)/dddlogo.png: $(buildicondir)/dddlogo.xpm
-	$(CONVERT) -quality 100 $(buildicondir)/dddlogo.xpm $@
-
-$(buildpicdir)/dddback.pdf: $(icondir)/dddback.xpm
-	$(CONVERT) $(icondir)/dddback.xpm $@
+$(buildpicdir)/dddlogo.png: $(icondir)/dddlogo.xpm
+	$(CONVERT) -quality 100 $(icondir)/dddlogo.xpm $@
 
 $(buildpicdir)/dddback.gif: $(icondir)/dddback.xpm
 	$(CONVERT) $(icondir)/dddback.xpm $@
@@ -2042,9 +1876,9 @@ PROG_STUFF = $(LEXTOCXX).flex $(LEXTOCXX).sun \
 
 # Additional files to be included in the distribution.
 DIST_STUFF = $(srcdir)/header.ps $(srcdir)/trailer.ps \
-	     $(docdir)/ddd.pdf \
-	     $(docdir)/ddd-themes.pdf \
-	     $(docdir)/ddd-paper.ps \
+	     $(builddocdir)/ddd.pdf \
+	     $(builddocdir)/ddd-themes.pdf \
+	     $(builddocdir)/ddd-paper.ps \
 	     $(htmldir)/ddd.html $(srcdir)/ad2c.sed \
 	     style.css $(srcdir)/fix-html.sed \
 	     $(srcdir)/unumlaut.sed ddd.desktop
