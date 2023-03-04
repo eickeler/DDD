@@ -193,19 +193,14 @@ EXTRA_DIST = \
         CREDITS
 
 dist-hook:
-	rm -rf `find $(distdir)/ddd/PICS -name CVS -o -name .cvsignore -o -name \*.jpg -o -name \*.pdf -o -name \*.eps -o -name .svn`
+	rm -rf `find $(distdir)/ddd/PICS -name CVS -o -name .cvsignore -o -name \*.jpg -o -name \*.pdf -o -name .svn`
 
 # -----------------------------------------------------------------------------
 # Documentation targets
 # -----------------------------------------------------------------------------
-.PHONY: html pdf ps
+.PHONY: html pdf 
 html:
 	cd ddd && $(MAKE) html
 
 pdf:
 	cd ddd && $(MAKE) pdf
-
-ps:
-	cd ddd && $(MAKE) ps
-
-
