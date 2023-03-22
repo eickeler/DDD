@@ -1479,9 +1479,6 @@ PNG_IMAGES := $(addprefix $(picdir)/,$(addsuffix .png,$(DOC_IMAGES))) \
 	$(picdir)/ddd-toolbar-3.png		\
 	$(picdir)/ddd-toolbar-4.png
 
-
-# $(buildpicdir)/%.jpg: $(picdir)/%.fig $(picdir)/%.png
-
 # All derived pictures
 IMAGES = $(PDF_IMAGES)
 
