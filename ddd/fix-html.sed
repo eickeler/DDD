@@ -17,5 +17,5 @@ s!^Up:<a rel=up href="#(dir)">(dir)</a>!Up:<a rel=up href="http://www.gnu.org/so
 </small>\
 
 # Add a logo before first header
-\!<h1>Debugging with DDD</h1>!i\
+\!Debugging with DDD</h1>!i\
 <img alt="DDD - The Data Display Debugger" width=410 height=140 src="PICS/dddlogo.jpg">
