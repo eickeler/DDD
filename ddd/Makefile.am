@@ -714,6 +714,9 @@ vsl_SOURCES       = vsl.C \
 	$(BOX_SRC) \
 	$(VSL_SRC)
 
+vsl_CFLAGS = @CFLAGS@
+vsl_CFLAGS += @MINIMAL_TOC@
+
 cxxtest_LDADD = $(LIBM)
 ddd_LDADD = $(RPATH) $(ALL_X_LIBS) $(ALL_LIBS)
 vsl_LDADD = $(RPATH) $(ALL_X_LIBS) $(ALL_LIBS)
