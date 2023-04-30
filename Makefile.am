@@ -69,126 +69,13 @@ SED  = sed
 # The build number.  (This must be set from outside)
 REL = 1
 
-# RPM spec
-.PHONY:	spec
-spec: $(top_builddir)/$(ddd)-$(VERSION)-$(REL).spec
-$(ddd)-$(VERSION)-$(REL).spec: $(srcdir)/ddd.spec.in $(top_builddir)/config.status
-	CONFIG_FILES=$(srcdir)/ddd.spec CONFIG_HEADERS= $(SHELL) $(top_builddir)/config.status
-	$(SED) 's/@REL@/$(REL)/g' $(top_builddir)/ddd.spec > $@
-	$(RM) $(top_builddir)/ddd.spec
-
-# Create a snapshot distribution from the current DDD development tree.
-.PHONY: snapshot
-snapshot:
-	rm -fr proto-toplev; mkdir proto-toplev
-	( \
-	    srcroot=`cd $(srcdir); pwd`; export srcroot; \
-	    ddd=$(PACKAGE_TARNAME); \
-	    VER=$(PACKAGE_VERSION); \
-	    echo "==> Making $$ddd-$$VER.tar.gz"; \
-	    rm -f $$ddd-$$VER.tar.gz; \
-	    ln -s $$srcroot proto-toplev/$$ddd-$$VER; \
-	    find $(srcdir) -name RCS -prune \
-		-o -name CVS -prune \
-		-o -name PICS -prune \
-		-o -name html -prune \
-		-o -name 'autom4te.*'-prune \
-		-o -name proto-toplev -prune \
-		-o -name etc -prune \
-		-o -name tests -prune \
-		-o -name '.gdbinit.in' -print \
-		-o -name '.[a-zA-Z0-9]*' -prune \
-		-o -name '*.o' -prune \
-		-o -name '*.a' -prune \
-		-o -name '*.log' -prune \
-		-o -name '*~' -prune \
-		-o -name '*#' -prune \
-		-o \( -name "$$ddd" -type l \) -prune \
-		-o -name "$$ddd-$$VER-*" -prune \
-		-o -name "userinfo" -prune \
-		-o -name "huffencode" -prune \
-		-o -name "ctest" -prune \
-		-o -name "cxxtest" -prune \
-		-o -name "stringify" -prune \
-		-o -name "sun" -prune \
-		-o -name "linux" -prune \
-		-o -name "config.cache" -prune \
-		-o -type f -print -o -type l -print | \
-	        $(SED) "s,^$(srcdir)/,$$ddd-$$VER/," | sort \
-		> proto-toplev/FILES; \
-	    ( cd proto-toplev; $(TAR) --create --dereference \
-		--verbose --files-from FILES \
-		--file - ) | $(GZIP) -v -9 > $$ddd-$$VER.tar.gz; \
-	)
-	rm -fr proto-toplev
-
-
-# Create a HTML manual distribution.
-.PHONY: htmldist
-htmldist:
-	rm -fr proto-toplev; mkdir proto-toplev
-	( \
-	    srcroot=`cd $(srcdir); pwd`; export srcroot; \
-	    ddd=$(PACKAGE_TARNAME); \
-	    VER=$(PACKAGE_VERSION); \
-	    echo "==> Making $$ddd-$$VER-html-manual.tar.gz"; \
-	    rm -f $$ddd-$$VER-pics.tar.gz; \
-	    ln -s $$srcroot proto-toplev/$$ddd-$$VER; \
-	    find $(srcdir)/doc/html -name RCS -prune \
-		-o -name CVS -prune \
-		-o -name proto-toplev -prune \
-		-o -name '.[a-zA-Z0-9]*' -prune \
-		-o -name '*.o' -prune \
-		-o -name '*.a' -prune \
-		-o -name '*~' -prune \
-		-o -name '*#' -prune \
-		-o -type f -print -o -type l -print | \
-	        $(SED) "s,^$(srcdir)/,$$ddd-$$VER/," | sort \
-		> proto-toplev/FILES; \
-	    ( cd proto-toplev; $(TAR) --create --dereference \
-		--verbose --files-from FILES \
-		--file - ) | $(GZIP) -v -9 > $$ddd-$$VER-html-manual.tar.gz; \
-	)
-	rm -fr proto-toplev
-
-
-# Create a picture distribution.
-.PHONY: picsdist
-picsdist:
-	rm -fr proto-toplev; mkdir proto-toplev
-	( \
-	    srcroot=`cd $(srcdir); pwd`; export srcroot; \
-	    ddd=$(PACKAGE_TARNAME); \
-	    VER=$(PACKAGE_VERSION); \
-	    echo "==> Making $$ddd-$$VER-pics.tar.gz"; \
-	    rm -f $$ddd-$$VER-pics.tar.gz; \
-	    ln -s $$srcroot proto-toplev/$$ddd-$$VER; \
-	    find $(srcdir)/ddd/PICS -name RCS -prune \
-		-o -name CVS -prune \
-		-o -name proto-toplev -prune \
-		-o -name '.[a-zA-Z0-9]*' -prune \
-		-o -name '*.o' -prune \
-		-o -name '*.a' -prune \
-		-o -name '*~' -prune \
-		-o -name '*#' -prune \
-		-o -type f -print -o -type l -print | \
-	        $(SED) "s,^$(srcdir)/,$$ddd-$$VER/," | sort \
-		> proto-toplev/FILES; \
-	    ( cd proto-toplev; $(TAR) --create --dereference \
-		--verbose --files-from FILES \
-		--file - ) | $(GZIP) -v -9 > $$ddd-$$VER-pics.tar.gz; \
-	)
-	rm -fr proto-toplev
-
 # -----------------------------------------------------------------------------
 # Autoconf.
 # -----------------------------------------------------------------------------
 
 EXTRA_DIST = \
 	$(srcdir)/etc \
-	ddd.spec.in \
 	$(TEXINFO_DISTFILES) \
-	$(ddd)-$(VERSION)-$(REL).spec \
         PROBLEMS \
         CREDITS
 

@@ -30,9 +30,6 @@ dnl
 dnl
 dnl
 dnl The product version, in the form `MAJOR-NUMBER.MINOR-NUMBER[.PATCHLEVEL]'
-dnl A version in the form `YYYY-MM-DD' is a release-of-the-day, i.e. a
-dnl snapshot of the current development tree.
-dnl
 AC_INIT([ddd],[3.4.0],[ddd@gnu.org])
 NICKNAME="Plitvice Lakes"
 AC_SUBST(NICKNAME)
@@ -1096,7 +1093,7 @@ dnl
 dnl That's all, folks!
 dnl
 AC_CONFIG_FILES([Makefile ddd/Makefile ddd/vr.h ddd/bld.h
-		 ddd/Ddd ddd/ddd.man ddd/cfg.texi ddd/.gdbinit ddd.spec
+		 ddd/Ddd ddd/ddd.man ddd/cfg.texi ddd/.gdbinit 
 		 themes/Makefile vsllib/Makefile])
 AC_CONFIG_COMMANDS([ddd/stamp-h], [date > ddd/stamp-h])
 AC_OUTPUT
