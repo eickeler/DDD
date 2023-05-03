@@ -755,7 +755,7 @@ dnl The getgroups() check fails with SGI CC.  Use the C compiler instead.
 AC_LANG_PUSH(C)
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
-AC_TYPE_PID_T
+dnl AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_GETGROUPS
