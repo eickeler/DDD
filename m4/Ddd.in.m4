@@ -590,7 +590,8 @@ set prompt (gdb) \n\
 set height 0\n\
 set width 0\n\
 set annotate 1\n\
- set verbose off\n
+set print repeats unlimited\n\
+set verbose off\n
 
 ! The GDB settings.  Usually overridden in `~/.ddd/init'.
 Ddd*gdbSettings: \
