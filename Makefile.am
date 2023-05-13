@@ -76,7 +76,6 @@ REL = 1
 EXTRA_DIST = \
 	$(srcdir)/etc \
 	$(TEXINFO_DISTFILES) \
-        PROBLEMS \
         CREDITS
 
 dist-hook:
