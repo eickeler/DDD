@@ -1,5 +1,5 @@
 /* XPM */
-static char * ddd_xpm[] = {
+static const char * ddd_xpm[] = {
 /* $Id$
  * DDD Logo.  Copyright (C) 1997 TU Braunschweig, Germany.
  * For details on DDD, see `http://www.gnu.org/software/ddd/'.

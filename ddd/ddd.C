@@ -6824,6 +6824,7 @@ static void popup_splash_screen(Widget parent, const string& color_key)
     splash_delay = new _Delay(splash_shell);
 
     popup_shell(splash_shell);
+    sleep(1);
     wait_until_mapped(splash, splash_shell);
 }
 

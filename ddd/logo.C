@@ -48,15 +48,8 @@ char logo_rcsid[] =
 // X pixmaps
 #ifdef XpmVersion
 
-// To avoid compilation warnings, make all char *'s constant
-// We cannot do this in the XPM file since this violates XPM format specs
-typedef char oRiGiNaL_char;
-#define char const oRiGiNaL_char
-
 #include "icons/ddd.xpm"
 #include "icons/dddsplash.xpm"
-
-#undef char
 
 #else
 static const char **ddd_xpm = 0;
