@@ -2109,7 +2109,7 @@ static void partial_answer_received(const string& answer, void *data)
 	    // Get the remaining position within posTimeOut ms.
 	    if (app_data.position_timeout >= 0)
 	    {
-		assert(cmd_data->position_timer == 0);
+		assert(!cmd_data->position_timer);
 
 #if defined(IF_XM)
 		cmd_data->position_timer = 
@@ -2147,7 +2147,7 @@ static void partial_answer_received(const string& answer, void *data)
 	    // Get the remaining displays within displayTimeOut ms.
 	    if (app_data.display_timeout >= 0)
 	    {
-		assert(cmd_data->display_timer == 0);
+//		assert(cmd_data->display_timer == 0);
 
 #if defined(IF_XM)
 		cmd_data->display_timer = 

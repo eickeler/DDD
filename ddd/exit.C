@@ -1184,7 +1184,7 @@ void gdb_exceptionHP(Agent *agent, void *, void *call_data)
     if (exception_state)
     {
 	// Entered exception state
-	assert (post_exception_timer == 0);
+	assert (!post_exception_timer);
 
 	// Try sending a simple nop command
 #if 1

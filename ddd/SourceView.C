@@ -9849,7 +9849,7 @@ void SourceView::SetBreakpointIgnoreCountCB(GUI::Widget *w,
 
     int delay = 500;		// Wait until the SpinBox stops spinning
 
-    if (info->timer != 0)
+    if (info->timer)
     {
 	info->timer.disconnect();
     }

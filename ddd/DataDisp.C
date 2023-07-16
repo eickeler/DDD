@@ -3164,7 +3164,7 @@ void DataDisp::refresh_graph_edit(bool silent)
     state.snapToGrid = graph_edit->get_snap_to_grid();
 #endif
 
-    if (refresh_graph_edit_timer == 0)
+    if (!refresh_graph_edit_timer)
     {
 #if defined(IF_XM)
 	refresh_graph_edit_timer = 
