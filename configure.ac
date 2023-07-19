@@ -509,7 +509,7 @@ dnl
 dnl Autoconf bug fix: GCC 2.95 and later want -isystem for including X files
 X_CFLAGS=`echo $X_CFLAGS | $SED "s,-I,$ISYSTEM,g"`
 dnl
-dnl ICE_FIND_MOTIF
+ICE_FIND_MOTIF
 dnl ICE_FIND_XPM
 dnl ICE_FIND_ATHENA
 ICE_X_PERMISSIVE

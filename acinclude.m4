@@ -1824,56 +1824,56 @@ dnl put Motif library directory in motif_libraries,
 dnl and add appropriate flags to X_CFLAGS and X_LIBS.
 dnl
 dnl
-dnl AC_DEFUN([ICE_FIND_MOTIF],
-dnl [
-dnl AC_REQUIRE([AC_PATH_XTRA])
-dnl AC_REQUIRE([ICE_FIND_XEXT])
-dnl AC_REQUIRE([ICE_FIND_XP])
-dnl AC_REQUIRE([ICE_FIND_XMU])
-dnl AC_REQUIRE([ICE_CXX_ISYSTEM])
-dnl motif_includes=
-dnl motif_libraries=
-dnl AC_ARG_WITH(motif,
-dnl AS_HELP_STRING([--without-motif],[do not use Motif widgets]))
+AC_DEFUN([ICE_FIND_MOTIF],
+[
+AC_REQUIRE([AC_PATH_XTRA])
+AC_REQUIRE([ICE_FIND_XEXT])
+AC_REQUIRE([ICE_FIND_XP])
+AC_REQUIRE([ICE_FIND_XMU])
+AC_REQUIRE([ICE_CXX_ISYSTEM])
+motif_includes=
+motif_libraries=
+AC_ARG_WITH(motif,
+AS_HELP_STRING([--without-motif],[do not use Motif widgets]))
 dnl Treat --without-motif like
 dnl --without-motif-includes --without-motif-libraries.
-dnl if test "$with_motif" = "no"
-dnl then
-dnl motif_includes=no
-dnl motif_libraries=no
-dnl fi
-dnl AC_ARG_WITH(motif-includes,
-dnl AS_HELP_STRING([--with-motif-includes=DIR],
-dnl               [Motif include files are in DIR]),
-dnl motif_includes="$withval")
-dnl AC_ARG_WITH(motif-libraries,
-dnl AS_HELP_STRING([--with-motif-libraries=DIR],
-dnl               [Motif libraries are in DIR]),
-dnl motif_libraries="$withval")
-dnl AC_MSG_CHECKING([for Motif])
+if test "$with_motif" = "no"
+then
+motif_includes=no
+motif_libraries=no
+fi
+AC_ARG_WITH(motif-includes,
+AS_HELP_STRING([--with-motif-includes=DIR],
+               [Motif include files are in DIR]),
+motif_includes="$withval")
+AC_ARG_WITH(motif-libraries,
+AS_HELP_STRING([--with-motif-libraries=DIR],
+               [Motif libraries are in DIR]),
+motif_libraries="$withval")
+AC_MSG_CHECKING([for Motif])
 #
 #
 # Search the include files.
 #
-dnl if test "$motif_includes" = ""; then
-dnl AC_CACHE_VAL([ice_cv_motif_includes],
-dnl [
-dnl ice_motif_save_LIBS="$LIBS"
-dnl ice_motif_save_CFLAGS="$CFLAGS"
-dnl ice_motif_save_CPPFLAGS="$CPPFLAGS"
-dnl ice_motif_save_LDFLAGS="$LDFLAGS"
+if test "$motif_includes" = ""; then
+AC_CACHE_VAL([ice_cv_motif_includes],
+[
+ice_motif_save_LIBS="$LIBS"
+ice_motif_save_CFLAGS="$CFLAGS"
+ice_motif_save_CPPFLAGS="$CPPFLAGS"
+ice_motif_save_LDFLAGS="$LDFLAGS"
 #
-dnl LIBS="-lXm $ice_xextra_libxmu -lXt $ice_xextra_libxp $ice_xextra_libxext $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
-dnl CFLAGS="$X_CFLAGS $CFLAGS"
-dnl CPPFLAGS="$X_CFLAGS $CPPFLAGS"
-dnl LDFLAGS="$X_LIBS $LDFLAGS"
+LIBS="-lXm $ice_xextra_libxmu -lXt $ice_xextra_libxp $ice_xextra_libxext $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
+CFLAGS="$X_CFLAGS $CFLAGS"
+CPPFLAGS="$X_CFLAGS $CPPFLAGS"
+LDFLAGS="$X_LIBS $LDFLAGS"
 #
-dnl AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <Xm/Xm.h>]],[[int a;]])],
-dnl [
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <Xm/Xm.h>]],[[int a;]])],
+[
 # Xm/Xm.h is in the standard search path.
-dnl ice_cv_motif_includes=
-dnl ],
-dnl [
+ice_cv_motif_includes=
+],
+[
 # Xm/Xm.h is not in the standard search path.
 # Locate it and put its directory in `motif_includes'
 #
@@ -1882,61 +1882,62 @@ dnl [
 # /usr/contrib/X11* are used on HP-UX (Athena).
 # /usr/dt is used on Solaris (Motif).
 # /usr/openwin is used on Solaris (X and Athena).
+# /opt/homebrew/include is used on macOS.
 # Other directories are just guesses.
-dnl ice_cv_motif_includes=no
-dnl for dir in "$x_includes" "${prefix}/include" /usr/include /usr/local/include \
-dnl           /usr/include/Motif2.0 /usr/include/Motif1.2 /usr/include/Motif1.1 \
-dnl           /usr/include/X11R6 /usr/include/X11R5 /usr/include/X11R4 \
-dnl           /usr/dt/include /usr/openwin/include \
-dnl           /usr/dt/*/include /opt/*/include /usr/include/Motif* \
-dnl           /usr/*/include/X11R6 /usr/*/include/X11R5 /usr/*/include/X11R4 \
-dnl	   "${prefix}"/*/include /usr/*/include /usr/local/*/include \
-dnl	   "${prefix}"/include/* /usr/include/* /usr/local/include/*; do
-dnl if test -f "$dir/Xm/Xm.h"; then
-dnl ice_cv_motif_includes="$dir"
-dnl break
-dnl fi
-dnl done
-dnl if test "$ice_cv_motif_includes" = "/usr/include"; then
-dnl ice_cv_motif_includes=
-dnl fi
-dnl dnl ])
+ice_cv_motif_includes=no
+for dir in "$x_includes" "${prefix}/include" /usr/include /usr/local/include \
+           /usr/include/Motif2.0 /usr/include/Motif1.2 /usr/include/Motif1.1 \
+           /usr/include/X11R6 /usr/include/X11R5 /usr/include/X11R4 \
+           /usr/dt/include /usr/openwin/include /opt/homebrew/include \
+           /usr/dt/*/include /opt/*/include /usr/include/Motif* \
+           /usr/*/include/X11R6 /usr/*/include/X11R5 /usr/*/include/X11R4 \
+	   "${prefix}"/*/include /usr/*/include /usr/local/*/include \
+	   "${prefix}"/include/* /usr/include/* /usr/local/include/*; do
+if test -f "$dir/Xm/Xm.h"; then
+ice_cv_motif_includes="$dir"
+break
+fi
+done
+if test "$ice_cv_motif_includes" = "/usr/include"; then
+ice_cv_motif_includes=
+fi
+])
 #
-dnl LIBS="$ice_motif_save_LIBS"
-dnl CFLAGS="$ice_motif_save_CFLAGS"
-dnl CPPFLAGS="$ice_motif_save_CPPFLAGS"
-dnl LDFLAGS="$ice_motif_save_LDFLAGS"
-dnl ])
-dnl motif_includes="$ice_cv_motif_includes"
-dnl fi
+LIBS="$ice_motif_save_LIBS"
+CFLAGS="$ice_motif_save_CFLAGS"
+CPPFLAGS="$ice_motif_save_CPPFLAGS"
+LDFLAGS="$ice_motif_save_LDFLAGS"
+])
+motif_includes="$ice_cv_motif_includes"
+fi
 #
 #
 # Now for the libraries.
 #
-dnl if test "$motif_libraries" = ""; then
-dnl AC_CACHE_VAL([ice_cv_motif_libraries],
-dnl [
-dnl ice_motif_save_LIBS="$LIBS"
-dnl ice_motif_save_CFLAGS="$CFLAGS"
-dnl ice_motif_save_CPPFLAGS="$CPPFLAGS"
-dnl ice_motif_save_LDFLAGS="$LDFLAGS"
+if test "$motif_libraries" = ""; then
+AC_CACHE_VAL([ice_cv_motif_libraries],
+[
+ice_motif_save_LIBS="$LIBS"
+ice_motif_save_CFLAGS="$CFLAGS"
+ice_motif_save_CPPFLAGS="$CPPFLAGS"
+ice_motif_save_LDFLAGS="$LDFLAGS"
 #
-dnl LIBS="-lXm $ice_xextra_libxmu -lXt $ice_xextra_libxp $ice_xextra_libxext $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
-dnl CFLAGS="$X_CFLAGS $CFLAGS"
-dnl CPPFLAGS="$X_CFLAGS $CPPFLAGS"
-dnl LDFLAGS="$X_LIBS $LDFLAGS"
-dnl #
-dnl # We use XtToolkitInitialize() here since it takes no arguments
-dnl # and thus also works with a C++ compiler.
-dnl AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-dnl #include <X11/Intrinsic.h>
-dnl #include <Xm/Xm.h>
-dnl ]],[[XtToolkitInitialize();]])],
-dnl [
-dnl # libXm.a is in the standard search path.
-dnl ice_cv_motif_libraries=
-dnl ],
-dnl [
+LIBS="-lXm $ice_xextra_libxmu -lXt $ice_xextra_libxp $ice_xextra_libxext $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
+CFLAGS="$X_CFLAGS $CFLAGS"
+CPPFLAGS="$X_CFLAGS $CPPFLAGS"
+LDFLAGS="$X_LIBS $LDFLAGS"
+#
+# We use XtToolkitInitialize() here since it takes no arguments
+# and thus also works with a C++ compiler.
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <X11/Intrinsic.h>
+#include <Xm/Xm.h>
+]],[[XtToolkitInitialize();]])],
+[
+# libXm.a is in the standard search path.
+ice_cv_motif_libraries=
+],
+[
 # libXm.a is not in the standard search path.
 # Locate it and put its directory in `motif_libraries'
 #
@@ -1946,63 +1947,64 @@ dnl [
 # /usr/dt is used on Solaris (Motif).
 # /usr/lesstif is used on Linux (Lesstif).
 # /usr/openwin is used on Solaris (X and Athena).
+# /opt/homebrew/lib is used on macOS.
 # Other directories are just guesses.
-dnl for dir in "$x_libraries" "${prefix}/lib" /usr/lib /usr/local/lib \
-dnl 	   /usr/lib/Motif2.0 /usr/lib/Motif1.2 /usr/lib/Motif1.1 \
-dnl 	   /usr/lib/X11R6 /usr/lib/X11R5 /usr/lib/X11R4 /usr/lib/X11 \
-dnl        /usr/dt/lib /usr/openwin/lib \
-dnl	   /usr/dt/*/lib /opt/*/lib /usr/lib/Motif* \
-dnl        /usr/lesstif*/lib /usr/lib/Lesstif* \
-dnl	   /usr/*/lib/X11R6 /usr/*/lib/X11R5 /usr/*/lib/X11R4 /usr/*/lib/X11 \
-dnl	   "${prefix}"/*/lib /usr/*/lib /usr/local/*/lib \
-dnl	   "${prefix}"/lib/* /usr/lib/* /usr/local/lib/*; do
-dnl if test -d "$dir" && test "`ls $dir/libXm.* 2> /dev/null`" != ""; then
-dnl ice_cv_motif_libraries="$dir"
-dnl break
-dnl fi
-dnl done
-dnl if test "$ice_cv_motif_libraries" = ""; then
-dnl ice_cv_motif_libraries=no
-dnl fi
-dnl ])
+for dir in "$x_libraries" "${prefix}/lib" /usr/lib /usr/local/lib \
+ 	   /usr/lib/Motif2.0 /usr/lib/Motif1.2 /usr/lib/Motif1.1 \
+ 	   /usr/lib/X11R6 /usr/lib/X11R5 /usr/lib/X11R4 /usr/lib/X11 \
+	   /usr/dt/lib /usr/openwin/lib /opt/homebrew/lib \
+	   /usr/dt/*/lib /opt/*/lib /usr/lib/Motif* \
+	   /usr/lesstif*/lib /usr/lib/Lesstif* \
+	   /usr/*/lib/X11R6 /usr/*/lib/X11R5 /usr/*/lib/X11R4 /usr/*/lib/X11 \
+	   "${prefix}"/*/lib /usr/*/lib /usr/local/*/lib \
+	   "${prefix}"/lib/* /usr/lib/* /usr/local/lib/*; do
+if test -d "$dir" && test "`ls $dir/libXm.* 2> /dev/null`" != ""; then
+ice_cv_motif_libraries="$dir"
+break
+fi
+done
+if test "$ice_cv_motif_libraries" = ""; then
+ice_cv_motif_libraries=no
+fi
+])
 #
-dnl LIBS="$ice_motif_save_LIBS"
-dnl CFLAGS="$ice_motif_save_CFLAGS"
-dnl CPPFLAGS="$ice_motif_save_CPPFLAGS"
-dnl LDFLAGS="$ice_motif_save_LDFLAGS"
-dnl ])
+LIBS="$ice_motif_save_LIBS"
+CFLAGS="$ice_motif_save_CFLAGS"
+CPPFLAGS="$ice_motif_save_CPPFLAGS"
+LDFLAGS="$ice_motif_save_LDFLAGS"
+])
 #
-dnl motif_libraries="$ice_cv_motif_libraries"
+motif_libraries="$ice_cv_motif_libraries"
 fi
 # Add Motif definitions to X flags
 #
-dnl if test "$motif_includes" != "" && test "$motif_includes" != "$x_includes" && test "$motif_includes" != "no"
-dnl then
-dnl X_CFLAGS="$ISYSTEM$motif_includes $X_CFLAGS"
-dnl fi
-dnl if test "$motif_libraries" != "" && test "$motif_libraries" != "$x_libraries" && test "$motif_libraries" != "no"
-dnl then
-dnl case "$X_LIBS" in
-dnl *-R\ *) X_LIBS="-L$motif_libraries -R $motif_libraries $X_LIBS";;
-dnl  *-R*)   X_LIBS="-L$motif_libraries -R$motif_libraries $X_LIBS";;
-dnl  *)      X_LIBS="-L$motif_libraries $X_LIBS";;
-dnl esac
-dnl fi
+if test "$motif_includes" != "" && test "$motif_includes" != "$x_includes" && test "$motif_includes" != "no"
+then
+X_CFLAGS="$ISYSTEM$motif_includes $X_CFLAGS"
+fi
+if test "$motif_libraries" != "" && test "$motif_libraries" != "$x_libraries" && test "$motif_libraries" != "no"
+then
+case "$X_LIBS" in
+  *-R\ *) X_LIBS="-L$motif_libraries -R $motif_libraries $X_LIBS";;
+  *-R*)   X_LIBS="-L$motif_libraries -R$motif_libraries $X_LIBS";;
+  *)      X_LIBS="-L$motif_libraries $X_LIBS";;
+esac
+fi
 #
 #
-dnl motif_libraries_result="$motif_libraries"
-dnl motif_includes_result="$motif_includes"
-dnl test "$motif_libraries_result" = "" && 
-dnl   motif_libraries_result="in default path"
-dnl test "$motif_includes_result" = "" && 
-dnl   motif_includes_result="in default path"
-dnl test "$motif_libraries_result" = "no" && 
-dnl   motif_libraries_result="(none)"
-dnl test "$motif_includes_result" = "no" && 
-dnl   motif_includes_result="(none)"
-dnl AC_MSG_RESULT(
-dnl   [libraries $motif_libraries_result, headers $motif_includes_result])
-dnl ])dnl
+motif_libraries_result="$motif_libraries"
+motif_includes_result="$motif_includes"
+test "$motif_libraries_result" = "" && 
+  motif_libraries_result="in default path"
+test "$motif_includes_result" = "" && 
+  motif_includes_result="in default path"
+test "$motif_libraries_result" = "no" && 
+  motif_libraries_result="(none)"
+test "$motif_includes_result" = "no" && 
+  motif_includes_result="(none)"
+AC_MSG_RESULT(
+  [libraries $motif_libraries_result, headers $motif_includes_result])
+])dnl
 dnl
 dnl
 dnl ICE_FIND_ATHENA
