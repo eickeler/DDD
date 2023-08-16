@@ -852,35 +852,36 @@ regexps.$(OBJEXT): rxscan.C
 # Reference.
 # ddd.info.txt does NOT depend on ddd.info since we don't want it to get
 # re-created after each configuration.
-$(srcdir)/ddd.info.txt: $(srcdir)/ddd.texi $(srcdir)/../configure.ac
+$(builddocdir)/ddd.info.txt: $(srcdir)/ddd.texi
 	$(MAKE) ddd.info
+	@-test -d $(builddocdir) || mkdir $(builddocdir)
 	info --subnodes -o - -f $(srcdir)/ddd.info | $(DELETE_CR) > $@~ \
 	    && $(MV) $@~ $@
 
-$(srcdir)/ddd.info.txt.gz: $(srcdir)/ddd.info.txt
+$(builddocdir)/ddd.info.txt.gz: $(builddocdir)/ddd.info.txt
 	$(COMPRESS) $? > $@~ && $(MV) $@~ $@
 
-$(srcdir)/ddd.info.txt.gz.C: $(srcdir)/ddd.info.txt.gz
+$(builddocdir)/ddd.info.txt.gz.C: $(builddocdir)/ddd.info.txt.gz
 	$(MAKE) stringify$(EXEEXT)
 	-./stringify$(EXEEXT) < $? > $@~ && $(MV) $@~ $@
 
 # License.
-$(srcdir)/COPYING.gz: $(srcdir)/../COPYING
+$(top_builddir)/COPYING.gz: $(srcdir)/../COPYING
 	$(COMPRESS) $? > $@
 
-$(srcdir)/COPYING.gz.C: $(srcdir)/COPYING.gz
+$(top_builddir)/COPYING.gz.C: $(top_builddir)/COPYING.gz
 	$(MAKE) stringify$(EXEEXT)
 	-./stringify$(EXEEXT) < $? > $@~ && $(MV) $@~ $@
 
 # News.
-$(srcdir)/NEWS.gz: $(srcdir)/../NEWS
+$(top_builddir)/NEWS.gz: $(srcdir)/../NEWS
 	$(COMPRESS) $? > $@~ && $(MV) $@~ $@
 
-$(srcdir)/NEWS.gz.C: $(srcdir)/NEWS.gz
+$(top_builddir)/NEWS.gz.C: $(top_builddir)/NEWS.gz
 	$(MAKE) stringify$(EXEEXT)
 	-./stringify$(EXEEXT) < $? > $@~ && $(MV) $@~ $@
 
-show.$(OBJEXT): COPYING.gz.C NEWS.gz.C ddd.info.txt.gz.C
+show.$(OBJEXT): $(top_builddir)/COPYING.gz.C $(top_builddir)/NEWS.gz.C $(builddocdir)/ddd.info.txt.gz.C
 
 
 # EPS code stuff.
@@ -1581,9 +1582,8 @@ PROG_STUFF = $(LEXTOCXX).flex $(LEXTOCXX).sun \
              $(srcdir)/../m4/Ddd.in.m4 $(srcdir)/Ddd.in \
 	     host.h.in $(srcdir)/vsl2c.sed \
              $(srcdir)/../m4/ddd.vsl.m4 $(vsldir)/ddd.vsl $(srcdir)/ddd.vsl.h \
-             root.h.in $(srcdir)/COPYING.gz $(srcdir)/NEWS.gz \
-             $(srcdir)/COPYING.gz.C $(srcdir)/NEWS.gz.C \
-	     $(srcdir)/ddd.info.txt.gz.C $(srcdir)/ddd.info \
+             root.h.in $(top_builddir)/COPYING.gz $(top_builddir)/NEWS.gz \
+	     $(srcdir)/ddd.info \
              xlibdir.txt xlibdir.C $(srcdir)/header.str \
 	     $(srcdir)/trailer.str $(srcdir)/eps-code.x eps-code.h \
 	     .gdbinit $(ICONS)
