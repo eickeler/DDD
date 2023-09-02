@@ -209,7 +209,7 @@ void translate_command(string& command)
 }
 
 #if LOG_COMMAND_QUEUE
-static ostream& operator<<(ostream& os, const Command& c)
+static std::ostream& operator<<(std::ostream& os, const Command& c)
 {
     os << quote(c.command) << "<" << c.priority << ">";
     if (!c.start_undo)
@@ -560,7 +560,7 @@ typedef QueueIter<Command> CommandQueueIter;
 static CommandQueue commandQueue;
 
 #if LOG_COMMAND_QUEUE
-static ostream& operator<<(ostream& os, const CommandQueue& queue)
+static std::ostream& operator<<(std::ostream& os, const CommandQueue& queue)
 {
     os << "[";
     bool first = true;
