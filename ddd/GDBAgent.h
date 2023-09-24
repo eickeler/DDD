@@ -156,7 +156,6 @@ protected:
     };
     State state;		// Current state
 
-private:
     DebuggerType    _type;	// Debugger type
     void*           _user_data;	// used in callbacks etc.
 
@@ -164,9 +163,9 @@ private:
     bool _has_func_command;	
     bool _has_file_command;
     bool _has_run_io_command;
-    bool _has_print_r_option;
+    bool _has_print_r_option;	// FIXME:  Is this used?
     bool _has_output_command;
-    bool _has_where_h_option;
+    bool _has_where_h_option;	// FIXME:  Is this used?
     bool _has_display_command;
     bool _has_clear_command;
     bool _has_handler_command;
@@ -202,6 +201,7 @@ private:
 
     string last_prompt;		// Last prompt received
     string last_written;	// Last command sent
+    string _title;		// Name of debugger
     int echoed_characters;      // # of echoed characters so far (-1: no echo)
 
     bool exception_state;	// True if exception encountered
@@ -236,6 +236,11 @@ public:
     virtual Agent *dup() const { return new GDBAgent(*this); }
 
     ~GDBAgent ();
+
+    static
+    GDBAgent* Create (XtAppContext app_context,
+	      const string& gdb_call,
+	      DebuggerType type);
 
     // Start new process
     void do_start (OAProc  on_answer,
@@ -294,7 +299,7 @@ public:
                                       return false;
 #endif
     }
-    const string& title()     const;
+    const string title()      const { return _title; }
     bool isReadyWithPrompt()  const { return state == ReadyWithPrompt; }
     const string& prompt()    const { return last_prompt; }
 
@@ -675,7 +680,10 @@ public:
     }
 
     // True if Ladebug
-    bool is_ladebug() const;
+    bool is_ladebug() const
+    {
+	return false;
+    }
 
     // True if a minimum indent is required.  This is true for
     // scripting languages.
@@ -711,63 +719,72 @@ public:
     // Several commands
 				                    // GDB command
 						    // -----------------------
-    string print_command(const char *expr = "",     // print|output EXP
-			 bool internal = true) const;
-    string print_command(const string& expr,
+    virtual string print_command(const char *expr = "",     // print|output EXP
+			 bool internal = true) const
+    {
+	/* UNUSED */ (void (expr));
+	/* UNUSED */ (void (internal));
+	assert (0);	/* Should never be called. */
+    }
+    virtual string print_command(const string& expr,
 			 bool internal = true) const {
       return print_command(expr.chars(), internal);
     }
-    string assign_command(const string& var,        // set variable VAR = EXPR
-			  const string& expr) const;
+    virtual string assign_command(const string& var,        // set variable VAR = EXPR
+			  const string& expr) const
+	{ /*UNUSED*/ (void (var)); (void (expr)); return ""; }
     string display_command(const char *expr = "") const; // display EXPR
     string display_command(const string& expr) const {
       return display_command(expr.chars());
     }
-    string where_command(int count = 0) const;	    // where COUNT
-    string pwd_command() const;	                    // pwd
-    string frame_command(int number) const;         // frame NUMBER
-    string relative_frame_command(int offset) const;// up|down OFFSET
-    string frame_command() const;                   // frame
-    string func_command() const;                    // func
-    string echo_command(const string& text) const;         // echo TEXT
-    string whatis_command(const string& expr) const;       // whatis EXPR
+    virtual string where_command(int count = 0) const;
+    virtual string pwd_command() const;	                    // pwd
+    virtual string frame_command(int num) const;
+    virtual string relative_frame_command(int offset) const;// up|down OFFSET
+    virtual string frame_command() const;	    // frame
+    virtual string func_command() const { return frame_command(); }
+    virtual string echo_command(const string& text) const;
+    virtual string whatis_command(const string& expr) const
+	{ /*UNUSED*/ (void (expr)); return ""; }
     string dereferenced_expr(const string& expr) const;    // *EXPR
     string address_expr(string expr) const;         // &EXPR
     string index_expr(const string& expr, const string& index) const; // EXPR[INDEX]
     int default_index_base() const;                 // 0 in C, else 1
     string member_separator() const;                // " = " in C
 
-    string info_locals_command() const;	            // info locals
-    string info_args_command() const;	            // info args
-    string info_display_command() const;	    // info display
+    virtual string info_locals_command() const { return "info locals"; }
+    virtual string info_args_command() const { return "info args"; }
+    virtual string info_display_command() const { return display_command(); }
     string disassemble_command(string start, const char *end = "") const;
                                                     // disassemble START END
     string disassemble_command(const string &start, const string& end ) const {
       return disassemble_command(start, end.chars() );
     }
-    string make_command(const string& target) const;       // make TARGET
-    string jump_command(const string& pc) const;    // jump PC
-    string regs_command(bool all = true) const;	    // info registers
-    string watch_command(const string& expr, WatchMode w = WATCH_CHANGE) const;
-				                    // watch EXPR
-    string kill_command() const;                    // kill
-    string enable_command(string bp = "") const;    // enable BP
-    string disable_command(string bp = "") const;   // disable BP
-    string delete_command(string bp = "") const;    // delete BP
-    string ignore_command(const string& bp, int count) const; 
-                                                    // ignore BP COUNT
-    string condition_command(const string& bp, const string& expr) const {
-      return condition_command(bp, expr.chars() );
-    }
-    string condition_command(const string& bp, const char *expr) const;
-				                    // cond BP EXPR
-    string shell_command(const string& cmd) const;	    // shell CMD
-    string debug_command(const char *file = "",          // file FILE
-			 string args = "") const;
-    string debug_command(const string& file, string args = "") const {
+    virtual string make_command(const string& args) const { /*UNUSED*/ (void (args)); return ""; }
+    virtual string jump_command(const string& pc) const { /*UNUSED*/ (void (pc)); return ""; }
+    virtual string regs_command(bool all = true) const { /*UNUSED*/ (void (all)); return ""; }
+    virtual string watch_command(const string& expr, WatchMode w = WATCH_CHANGE) const {
+	/*UNUSED*/ (void (expr)); (void (w)); return "";
+    } // watch EXPR
+    virtual string kill_command() const { return "kill"; }                    // kill
+    virtual string enable_command(string bp = "") const { /*UNUSED*/ (void (bp)); return ""; }
+    virtual string disable_command(string bp = "") const { /*UNUSED*/ (void (bp)); return ""; }
+    virtual string delete_command(string bp = "") const { /*UNUSED*/ (void (bp)); return ""; }
+    virtual string ignore_command(const string& bp, int count) const
+	{ /*UNUSED*/ (void (bp)); (void (count)); return ""; }
+    virtual string condition_command(const string& bp, const string& expr) const
+	{ return condition_command(bp, expr.chars() ); }
+    virtual string condition_command(const string& bp, const char *expr) const
+	{ /*UNUSED*/ (void (bp)); (void (expr)); return ""; }
+    virtual string shell_command(const string& cmd) const
+	{ return "shell " + cmd; }
+    virtual string debug_command(const char *file = "",          // file FILE
+			 string args = "") const
+	{ /*UNUSED*/ (void (file)); (void (args)); return ""; }
+    virtual string debug_command(const string& file, string args = "") const {
       return debug_command( file.chars(), args );
     }
-    string signal_command(int sig) const;           // signal SIG
+    virtual string signal_command(int sig) const { /*UNUSED*/ (void (sig)); return ""; }
     string nop_command(const char *comment = "") const;  // # comment
     string nop_command(const string& comment) const {
       return nop_command(comment.chars());
@@ -781,17 +798,20 @@ public:
 			       string& prefix, string& package, string& name);
 
     // Run program with given arguments
-    string run_command(string args) const;	    // set args ARGS\nrun
+    virtual string run_command(string args) const 
+	{ return "run" + args; }
 
     // Run program, re-using current arguments
-    string rerun_command() const;                   // run
+    virtual string rerun_command() const { return "run"; }
 
     // Attach to process id PID
-    string attach_command(int pid, const string& file) const;  // attach PID
-    string detach_command(int pid) const;                      // detach
+    virtual string attach_command(int pid, const string& file) const
+	{ /*UNUSED*/ (void (pid)); (void (file)); return ""; }
+    virtual string detach_command(int pid) const                
+	{ /*UNUSED*/ (void (pid)); return ""; }
 
     // Default history file
-    string history_file() const;                    // GDB: ~/.gdb_history
+    virtual string history_file() const { return ""; }
 
     // Send DATA to process
     virtual int write(const char *data, int length);
@@ -803,15 +823,27 @@ public:
     }
 
     // Write a command (not debuggee interaction or control characters)
-    int write_cmd(const string& cmd);
+    virtual int write_cmd(const string& cmd) { return write(cmd); }
 
     // True if ANSWER ends in a prompt
-    bool ends_with_prompt(const string& answer);
-    bool ends_with_secondary_prompt(const string& answer) const;
+    virtual bool ends_with_prompt(const string& answer);
+    virtual bool ends_with_secondary_prompt(const string& answer) const
+    { 
+	/* Unused */ (void (answer));
+	return false;
+    }
+    virtual void cut_off_prompt(string& answer) const
+    { 
+	/* Unused */ (void (answer));
+    }
     bool ends_with_yn(const string& answer) const;
 
     // True if exception error message
-    bool is_exception_answer(const string& answer) const;
+    virtual bool is_exception_answer(const string& answer) const
+    { 
+	/* Unused */ (void (answer));
+	return false;
+    }
     void set_exception_state(bool state);
 
     // Helpers
@@ -844,9 +876,7 @@ private:
 
     string requires_reply(const string& answer);
 
-    void cut_off_prompt(string& answer) const;
     void strip_dbx_comments(string& answer) const;
-    void strip_control(string& answer) const;
 
     void normalize_answer(string& answer) const;
     void normalize_address(string& addr) const;
@@ -859,6 +889,7 @@ private:
 
 protected:
     string complete_answer;
+    void strip_control(string& answer) const;
 
     static void InputHP  (Agent *, void *, void *);
     static void PanicHP  (Agent *, void *, void *);
@@ -872,6 +903,248 @@ protected:
 public:    
     // Terminator
     virtual void abort();
+};
+
+// Derived GDBAgent Classes
+class GDBAgent_BASH: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_BASH (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string info_locals_command() const override;
+    string info_display_command() const override { return "info display"; }
+    string pwd_command() const override;
+    string make_command(const string& target) const override;
+    string watch_command(const string&, WatchMode) const override;
+    string kill_command() const override { return "quit"; }
+    string echo_command(const string& text) const override;
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ return "condition " + bp + " " + expr; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_DBG: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_DBG (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string info_locals_command() const override;
+    string echo_command(const string& text) const override
+	{ /*UNUSED*/ (void (text)); return " "; }
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ return "condition " + bp + " " + expr; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_DBX: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_DBX (XtAppContext app_context,
+	      const string& gdb_call);
+    bool is_ladebug() const;
+    bool ends_with_prompt (const string& ans) override;
+    bool ends_with_secondary_prompt(const string& answer) const override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string print_command(const string& expr, bool internal = true) const {
+      return print_command(expr.chars(), internal);
+    }
+    string info_locals_command() const override;
+    string info_args_command() const override { return info_locals_command(); }
+    string make_command(const string& target) const override;
+    string jump_command(const string& pc) const override { return "cont at " + pc; }
+    string regs_command(bool all = true) const override;
+    string watch_command(const string&, WatchMode) const override;
+    string func_command() const override { return "func"; }
+    string echo_command(const string& text) const override;
+    string whatis_command(const string& expr) const override;
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string ignore_command(const string& bp, int count) const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ /*UNUSED*/ (void (bp)); (void (expr)); return ""; }
+    string shell_command(const string& cmd) const override
+	{ return "sh " + cmd; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string signal_command(int sig) const override;
+    string run_command(string args) const override;
+    string rerun_command() const override;
+    string attach_command(int pid, const string& file) const override;
+    string detach_command(int pid) const override;
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_GDB: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_GDB (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    bool ends_with_secondary_prompt(const string& answer) const override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string history_file() const override;
+    string info_display_command() const override { return "info display"; }
+    string make_command(const string& target) const override;
+    string jump_command(const string& pc) const override { return "jump " + pc; }
+    string regs_command(bool all = true) const override;
+    string watch_command(const string&, WatchMode) const override;
+    string whatis_command(const string& expr) const override
+	{ return "ptype " + expr; }
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string ignore_command(const string& bp, int count) const override;
+    string debug_command(const char *file = "", string args = "") const override;
+    string signal_command(int sig) const override;
+    string run_command(string args) const override;
+    string attach_command(int pid, const string& file) const override;
+    string detach_command(int pid) const override
+	{ /*UNUSED*/ (void (pid)); return "detach"; }
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_JDB: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_JDB (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    bool is_exception_answer(const string& answer) const override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string info_locals_command() const override;
+    string info_args_command() const override { return info_locals_command(); }
+    string pwd_command() const override;
+    string watch_command(const string&, WatchMode) const override;
+    string frame_command() const override { return ""; }
+    string echo_command(const string& text) const override
+	{ /*UNUSED*/ (void (text)); return ""; }
+    string whatis_command(const string& expr) const override
+	{ return "class " + expr; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_PERL: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_PERL (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    int write_cmd(const string& cmd) override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string where_command(int count = 0) const override;
+    string info_locals_command() const override;
+    string info_args_command() const override { return info_locals_command(); }
+    string pwd_command() const override;
+    string make_command(const string& target) const override;
+    string kill_command() const override { return "quit"; }
+    string frame_command() const override { return ""; }
+    string echo_command(const string& text) const override;
+    string relative_frame_command(int offset) const override 
+	{ /*UNUSED*/ (void (offset)); return ""; }
+    string shell_command(const string& cmd) const override;
+    string debug_command(const char *file = "", string args = "") const override;
+    string run_command(string args) const override;
+    string rerun_command() const override { return "R"; }
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_PYDB: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_PYDB (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string make_command(const string& target) const override;
+    string kill_command() const override { return "quit"; }
+    string echo_command(const string& text) const override;
+    string whatis_command(const string& expr) const override;
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string ignore_command(const string& bp, int count) const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ return "condition " + bp + " " + expr; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_XDB: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_XDB (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal=true) const override;
+    string history_file() const override;
+    string where_command(int count = 0) const override;
+    string info_locals_command() const override;
+    string info_args_command() const override { return info_locals_command(); }
+    string pwd_command() const override;
+    string make_command(const string& target) const override;
+    string jump_command(const string& pc) const override;
+    string kill_command() const override { return "k"; }
+    string frame_command() const override;
+    string frame_command(int num) const override;
+    string echo_command(const string& text) const override;
+    string whatis_command(const string& expr) const override
+	{ return "p " + expr + "\\T"; }
+    string enable_command(string bp = "") const override;
+    string disable_command(string bp = "") const override;
+    string delete_command(string bp = "") const override;
+    string ignore_command(const string& bp, int count) const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ /*UNUSED*/ (void (bp)); (void (expr)); return ""; }
+    string shell_command(const string& cmd) const override
+	{ return "! " + cmd; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string signal_command(int sig) const override;
+    string run_command(string args) const override;
+    string rerun_command() const override { return "r"; }
+    string assign_command(const string& var, const string& expr) const override;
+};
+
+class GDBAgent_MAKE: public GDBAgent {
+public:
+    // Constructor
+    GDBAgent_MAKE (XtAppContext app_context,
+	      const string& gdb_call);
+    bool ends_with_prompt (const string& ans) override;
+    void cut_off_prompt(string& answer) const override;
+    string print_command(const char *expr, bool internal) const override;
+    string print_command(const string& expr, bool internal = true) const {
+      return print_command(expr.chars(), internal);
+    }
+    string info_args_command() const override { return info_locals_command(); }
+    string pwd_command() const override;
+    string make_command(const string& target) const override;
+    string kill_command() const override { return "quit"; }
+    string echo_command(const string& text) const override;
+    string condition_command(const string& bp, const char *expr) const override
+	{ /*UNUSED*/ (void (bp)); (void (expr)); return ""; }
+    string debug_command(const char *file = "", string args = "") const override;
+    string assign_command(const string& var, const string& expr) const override;
 };
 
 #endif // _DDD_GDBAgent_h

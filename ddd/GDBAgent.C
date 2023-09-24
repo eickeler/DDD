@@ -179,6 +179,7 @@ DEFINE_TYPE_INFO_1(GDBAgent, TTYAgent);
 //-----------------------------------------------------------------------------
 
 // Constructor
+// Default values match GDB characteristics
 GDBAgent::GDBAgent (XtAppContext app_context,
 		    const string& gdb_call,
 		    DebuggerType tp,
@@ -187,49 +188,38 @@ GDBAgent::GDBAgent (XtAppContext app_context,
       state(BusyOnInitialCmds),
       _type(tp),
       _user_data(0),
-      _has_frame_command(tp == BASH || tp == DBG || tp == GDB 
-			 || tp == MAKE || tp == PYDB || tp == XDB ),
-      _has_func_command(tp == DBX),
-      _has_file_command(tp == DBX),
+      _has_frame_command(true),
+      _has_func_command(false),
+      _has_file_command(false),
       _has_run_io_command(false),
       _has_print_r_option(false),
       _has_output_command(false),
       _has_where_h_option(false),
-      _has_display_command(tp == BASH || tp == DBG || tp == DBX || tp == GDB 
-			   || tp == PYDB),
-      _has_clear_command(tp == BASH || tp == DBG || tp == DBX || tp == GDB 
-			 || tp == JDB || tp == PERL),
+      _has_display_command(true),
+      _has_clear_command(true),
       _has_handler_command(false),
-      _has_pwd_command(tp == BASH || tp == DBG || tp == DBX || tp == GDB ||
-		       tp == MAKE || tp == PYDB || tp == PERL),
-      _has_setenv_command(tp == DBX),
-      _has_edit_command(tp == DBX),
-      _has_make_command(tp == BASH || tp == DBX || tp == GDB || 
-			tp == MAKE || tp == PYDB || tp == PERL),
-      _has_jump_command(tp == GDB || tp == DBX || tp == PYDB || tp == XDB),
-      _has_regs_command(tp == GDB),
-      _has_watch_command(0),	// see below
-      _has_named_values(tp == DBG || tp == DBX || tp == GDB || tp == JDB),
-      _has_when_command(tp == DBX),
-      _has_when_semicolon(tp == DBX),
+      _has_pwd_command(true),
+      _has_setenv_command(false),
+      _has_edit_command(false),
+      _has_make_command(true),
+      _has_jump_command(true),
+      _has_regs_command(true),
+      _has_watch_command(0),
+      _has_named_values(true),
+      _has_when_command(false),
+      _has_when_semicolon(false),
       _wants_delete_comma(false),
-      _has_err_redirection(tp == DBG || tp == DBX || tp == GDB ||  tp == XDB),
+      _has_err_redirection(true),
       _has_givenfile_command(false),
       _has_cont_sig_command(false),
-      _has_examine_command(tp == GDB || tp == DBX),
-      _has_rerun_command(tp == DBX),
+      _has_examine_command(true),
+      _has_rerun_command(false),
       _rerun_clears_args(false),
-      _has_attach_command(tp == GDB || tp == DBX),
+      _has_attach_command(true),
       _has_addproc_command(false),
       _has_debug_command(true),
       _is_windriver_gdb(false),
-      _program_language((tp == BASH) ? LANGUAGE_BASH : 
-			(tp == DBG)  ? LANGUAGE_PHP  :
-			(tp == JDB)  ? LANGUAGE_JAVA :
-			(tp == MAKE) ? LANGUAGE_MAKE :
-			(tp == PERL) ? LANGUAGE_PERL : 
-			(tp == PYDB) ? LANGUAGE_PYTHON : 
-			LANGUAGE_C),
+      _program_language(LANGUAGE_C),
       _verbatim(false),
       _recording(false),
       _detect_echos(true),
@@ -237,6 +227,7 @@ GDBAgent::GDBAgent (XtAppContext app_context,
       _flush_next_output(false),
       last_prompt(""),
       last_written(""),
+      _title("DEBUGGER"),
       echoed_characters(-1),
       exception_state(false),
       questions_waiting(false),
@@ -268,14 +259,6 @@ GDBAgent::GDBAgent (XtAppContext app_context,
     addHandler(Output, traceOutputHP);    // DDD => GDB
     addHandler(Error,  traceErrorHP);     // GDB Errors => DDD
 
-    // Setup watch mode
-    if (type() == GDB)
-	_has_watch_command = WATCH_CHANGE | WATCH_READ | WATCH_WRITE;
-    else if (type() == DBX || type() == BASH)
-	_has_watch_command = WATCH_CHANGE;
-    else
-	_has_watch_command = 0;
-    
     cpu = cpu_unknown;
 }
 
@@ -325,6 +308,7 @@ GDBAgent::GDBAgent(const GDBAgent& gdb)
       _flush_next_output(gdb.flush_next_output()),
       last_prompt(""),
       last_written(""),
+      _title(""),
       echoed_characters(-1),
       exception_state(false),
       questions_waiting(false),
@@ -341,80 +325,35 @@ GDBAgent::GDBAgent(const GDBAgent& gdb)
       complete_answer("")
 {}
 
-// Return default title
-const string& GDBAgent::title() const
+// Create GDBAgent matching type (Factory pattern)
+GDBAgent*
+GDBAgent::Create (XtAppContext app_context,
+	      const string& gdb_call,
+	      DebuggerType type)
 {
-#define TITLES \
-X(tBASH,"Bash"),  \
-X(tDBG,"DBG"),  \
-X(tDBX,"DBX"),  \
-X(tGDB,"GDB"),  \
-X(tJDB,"JDB"),  \
-X(tLADEBUG,"Ladebug"),  \
-X(tMAKE,"remake"),  \
-X(tPERL,"Perl"),  \
-X(tPYDB,"PYDB"),  \
-X(tWBD,"WDB"),  \
-X(tXDB,"XDB"),  \
-X(tDEBUGGER,"debugger")
-    enum{
-#define X(a,b) a
-        TITLES
-#undef X
-    };
-
-    static
-    string const titles[] =
-      {
-#define X(a,b) b
-        TITLES
-#undef X
-      };
-#undef TITLES
-
-    switch (type())
+    switch (type)
     {
-    case BASH:
-        return titles[tBASH];
-
-    case DBG:
-        return titles[tDBG];
-
-    case DBX:
-	if (is_ladebug())
-	    return titles[tLADEBUG];
-	else
-	    return titles[tDBX];
-
-    case GDB:
-	if (path().contains("wdb"))
-	    return titles[tWBD];
-	else
-	    return titles[tGDB];
-
-    case JDB:
-	return titles[tJDB];
-
-    case MAKE:
-        return titles[tMAKE];
-
-    case PERL:
-	return titles[tPERL];
-
-    case PYDB:
-	return titles[tPYDB];
-
-    case XDB:
-	return titles[tXDB];
+	case BASH:
+	    return (GDBAgent *) new GDBAgent_BASH (app_context, gdb_call); break;
+	case DBG:
+	    return (GDBAgent *) new GDBAgent_DBG (app_context, gdb_call); break;
+	case DBX:
+	    return (GDBAgent *) new GDBAgent_DBX (app_context, gdb_call); break;
+	case GDB:
+	    return (GDBAgent *) new GDBAgent_GDB (app_context, gdb_call); break;
+	case JDB:
+	    return (GDBAgent *) new GDBAgent_JDB (app_context, gdb_call); break;
+	case PERL:
+	    return (GDBAgent *) new GDBAgent_PERL (app_context, gdb_call); break;
+	case PYDB:
+	    return (GDBAgent *) new GDBAgent_PYDB (app_context, gdb_call); break;
+	case XDB:
+	    return (GDBAgent *) new GDBAgent_XDB (app_context, gdb_call); break;
+	case MAKE:
+	    return (GDBAgent *) new GDBAgent_MAKE (app_context, gdb_call); break;
+	default:
+	    assert (0);
     }
-
-    return titles[tDEBUGGER];
-}
-
-bool GDBAgent::is_ladebug() const
-{
-    return type() == DBX &&
-	(path().contains("ladebug") || prompt().contains("ladebug"));
 }
 
 // Trace communication
@@ -674,267 +613,13 @@ void GDBAgent::init_qu_array (const StringArray& cmds,
 // Return true iff ANSWER ends with primary prompt.
 bool GDBAgent::ends_with_prompt (const string& ans)
 {
-    string answer = ans;
-    strip_control(answer);
-
-    switch (type()) {
-    case BASH:
-    {
-	// Any line ending in `bashdb<...> ' is a prompt.
-	// Since N does not make sense in DDD, we use `DB<> ' instead.
-
-#if RUNTIME_REGEX
-	static regex rxbashprompt("bashdb<+[(]*[0-9][)]*>+");
-#endif
-
-	int i = answer.length() - 1;
-	if (i < 1 || answer[i] != ' ' || answer[i - 1] != '>')
-	    return false;
-
-	while (i >= 0 && answer[i] != '\n' ) {
-	  if (answer.contains("bashdb<", i)) {
-	    string possible_prompt = answer.from(i);
-	    if (possible_prompt.matches(rxbashprompt)) {
-	      last_prompt = possible_prompt;
-	      return true;
-	    }
-	  }
-	  i--;
-	}
-	return false;
-    }
-    case GDB:
-	// GDB reads in breakpoint commands using a `>' prompt
-	if (recording() && answer.contains('>', -1))
-	{
-	    last_prompt = ">";
-	    return true;
-	}
-
-	// In annotation level 1, GDB `annotates' its prompt.
-	if (answer.contains("\032\032prompt\n", -1))
-	    return true;
-
-	// FALL THROUGH
-    case DBX:
-    {
-	// Any line ending in `(gdb) ' or `(dbx) ' is a prompt.
-	int i = answer.length() - 1;
-	if (i < 0 || answer[i] != ' ')
-	    return false;
-
-	while (i >= 0 && answer[i] != '\n' && answer[i] != '(')
-	    i--;
-	if (i < 0 || answer[i] != '(')
-	    return false;
-
-	string possible_prompt = answer.from(i);
-#if RUNTIME_REGEX
-	// Marc Lepage <mlepage@kingston.hummingbird.com> says that
-	// DBX on Solaris 2.5 has a prompt like `(dbx N) '.  We're
-	// liberal here and allow anything in the form `(NAME) ',
-	// where the first word in NAME must contain a `db' or `deb'.
-	// (`deb' is there to support DEC's `ladebug')
-	static regex rxprompt("[(][^ )]*de?b[^)]*[)] ");
-#endif
-	if (possible_prompt.matches(rxprompt))
-	{
-	    last_prompt = possible_prompt;
-	    recording(false);
-	    return true;
-	}
-	return false;
-    }
-
-    case DBG:
-    {
-	unsigned beginning_of_line = answer.index('\n', -1) + 1;
-	if ( beginning_of_line < answer.length()
-	    && answer.length() > 0
-	    && answer.matches(DBG_PROMPT,beginning_of_line)) 
-	{
-	    recording(false);
-	    last_prompt = DBG_PROMPT;
-	    return true;
-	}
-	return false;
-    }
-    case JDB:
-    {
-	// JDB prompts using "> " or "THREAD[DEPTH] ".  All these
-	// prompts may also occur asynchronously.
-
-#if RUNTIME_REGEX
-	// Standard prompt: "THREAD[DEPTH] " or "> "
-	static regex rxjdbprompt        
-	    ("([a-zA-Z][a-zA-Z0-9 ]*[a-zA-Z0-9][[][1-9][0-9]*[]]|>) ");
-	// Same, but in reverse
-	static regex rxjdbprompt_reverse
-	    (" (>|[]][0-9]*[1-9][[][a-zA-Z0-9][a-zA-Z0-9 ]*[a-zA-Z])");
-	// Non-threaded prompt: "[DEPTH] " or "> "
-	static regex rxjdbprompt_nothread
-	    ("(>|[[][1-9][0-9]*[]]) ");
-#endif
-
-	// Check for threaded prompt at the end of the last line
-	string reverse_answer = reverse(answer);
-	int match_len = rxjdbprompt_reverse.match(reverse_answer.chars(), 
-						  reverse_answer.length(), 0);
-	if (match_len > 0)
-	{
-	    last_prompt = reverse(reverse_answer.at(0, match_len));
-	    return true;
-	}
-
-	// Check for non-threaded prompt as the last line
-	const int beginning_of_line = answer.index('\n', -1) + 1;
-	const string possible_prompt = answer.from(beginning_of_line);
-	if (possible_prompt.matches(rxjdbprompt_nothread))
-	{
-	    last_prompt = possible_prompt;
-	    return true;
-	}
-
-	// Check for threaded prompt at the beginning of each line
-	int last_nl = answer.length() - 1;
-	while (last_nl >= 0)
-	{
-	    last_nl = answer.index('\n', last_nl - answer.length());
-	    const int beginning_of_line = last_nl + 1;
-
-	    match_len = rxjdbprompt.match(answer.chars(), answer.length(), 
-					  beginning_of_line);
-	    if (match_len > 0)
-	    {
-		int i = beginning_of_line + match_len;
-		while (i < int(answer.length()) && isspace(answer[i]))
-		    i++;
-		if (i < int(answer.length()) && answer[i] == '=')
-		{
-		    // This is no prompt, but something like `dates[1] = 33'.
-		}
-		else
-		{
-		    last_prompt = answer.at(beginning_of_line, match_len);
-		    return true;
-		}
-	    }
-
-	    last_nl--;
-	}
-
-	return false;
-    }
-    case MAKE:
-    {
-	// Any line ending in `remake<...> ' is a prompt.
-	// Since N does not make sense in DDD, we use `DB<> ' instead.
-
-#if RUNTIME_REGEX
-	static regex rxmakeprompt("remake<+[(]*[.0-9][)]*>+[.]*");
-#endif
-
-	int i = answer.length() - 1;
-	if (i < 1 || answer[i] != ' ' || (answer[i - 1] != '>' && answer[i - 1] != '.'))
-	    return false;
-
-	while (i >= 0 && answer[i] != '\n' ) {
-	  if (answer.contains("remake<", i)) {
-	    string possible_prompt = answer.from(i);
-	    if (possible_prompt.matches(rxmakeprompt)) {
-	      last_prompt = possible_prompt;
-	      return true;
-	    }
-	  }
-	  i--;
-	}
-	return false;
-    }
-    case PERL:
-    {
-	// Any line ending in `DB<N> ' is a prompt.
-	// Since N does not make sense in DDD, we use `DB<> ' instead.
-	//
-	// "T. Pospisek's MailLists" <tpo2@sourcepole.ch> reports that
-	// under Debian, Perl issues a prompt with control characters:
-	// <- "\001\002  DB<1> \001\002"
-
-#if RUNTIME_REGEX
-	static regex rxperlprompt("[ \t\001\002]*DB<+[0-9]*>+[ \t\001\002]*");
-#endif
-
-	int i = answer.length() - 1;
-	if (i < 1 || answer[i] != ' ' || answer[i - 1] != '>')
-	    return false;
-
-	while (i > 0 && answer[i - 1] != '\n' && !answer.contains("DB", i))
-	    i--;
-
-	string possible_prompt = answer.from(i);
-	if (possible_prompt.matches(rxperlprompt))
-	{
-	    last_prompt = "DB<> ";
-	    return true;
-	}
-	return false;
-    }
-    case PYDB:
-    {
-	// Any line ending in `(Pydb) ' is a prompt.
-
-#if RUNTIME_REGEX
-	static regex rxpyprompt("[(]+Pydb[)]+");
-#endif
-
-	int i = answer.length() - 1;
-	if (i < 1 || answer[i] != ' ' || answer[i - 1] != ')')
-	    return false;
-
-	while (i >= 0 && answer[i] != '\n' ) {
-	  if (answer.contains("(Pydb)", i)) {
-	    string possible_prompt = answer.from(i);
-	    if (possible_prompt.matches(rxpyprompt)) {
-	      last_prompt = possible_prompt;
-	      return true;
-	    }
-	  }
-	  i--;
-	}
-	return false;
-    }
-    case XDB:
-    {
-	// Any line equal to `>' is a prompt.
-	const unsigned beginning_of_line = answer.index('\n', -1) + 1;
-	if (beginning_of_line < answer.length()
-	    && answer.length() > 0
-	    && answer[beginning_of_line] == '>')
-	{
-	    last_prompt = ">";
-	    return true;
-	}
-	return false;
-    }
-
-
-    }
-
-    return false;		// Never reached
+    /* UNUSED */ (void (ans));
+    assert(0);
 }
 
 static bool ends_in(const string& answer, const char *prompt)
 {
     return answer.contains(prompt, answer.length() - strlen(prompt));
-}
-
-// JDB should be applied on itself.
-bool GDBAgent::is_exception_answer(const string& answer) const
-{
-    // Any JDB backtrace contains these lines.
-    return type() == JDB && 
-	(answer.contains("com.sun.tools.example.debug") ||
-	 answer.contains("sun.tools.debug") ||
-	 answer.contains("Internal exception:"));
 }
 
 void GDBAgent::set_exception_state(bool new_state)
@@ -950,64 +635,6 @@ void GDBAgent::set_exception_state(bool new_state)
 	    callHandlers(AsyncAnswer, (void *)&complete_answer);
 	}
     }
-}
-
-
-// Return true iff ANSWER ends with secondary prompt.
-bool GDBAgent::ends_with_secondary_prompt (const string& ans) const
-{
-    string answer = ans;
-    strip_control(answer);
-
-    switch (type())
-    {
-    case DBX:
-	if (ends_in(answer, "]: "))
-	{
-	    // AIX DBX issues `Select one of [FROM - TO]: ' in the last line
-	    // Reported by Jonathan Edwards <edwards@intranet.com>
-#if RUNTIME_REGEX
-	    static regex rxselect("Select one of \\[[0-9]+ - [0-9]+\\]: ");
-#endif
-	    int idx = index(answer, rxselect, "Select one of ", -1);
-	    if (idx >= 0 && answer.index('\n', idx) < 0)
-		return true;
-	}
-	if (ends_in(answer, "): "))
-	{
-	    // DEC DBX wants a file name when being invoked without one:
-	    // `enter object file name (default is `a.out'): '
-	    // Reported by Matthew Johnson <matthew.johnson@speechworks.com>
-#if RUNTIME_REGEX
-	    static regex rxenter_file_name("enter .*file name");
-#endif
-
-	    int idx = index(answer, rxenter_file_name, "enter ", -1);
-	    if (idx >= 0 && answer.index('\n', idx) < 0)
-		return true;
-	}
-
-	// Prompt is `> ' at beginning of line
-	return answer == "> " || ends_in(answer, "\n> ");
-
-    case GDB:
-	// Prompt is `> ' at beginning of line
-	return answer == "> " || ends_in(answer, "\n> ");
-	
-    case BASH:
-    case MAKE:
-        return false; // No secondary prompt
-
-    case DBG:
-    case JDB:
-    case PERL:
-    case PYDB:
-    case XDB:
-	// Is there any secondary prompt in these debuggers? (FIXME)
-	return false;
-    }
-
-    return false;		// Never reached
 }
 
 // Return true iff ANSWER ends with (yes or no)
@@ -1105,61 +732,6 @@ void GDBAgent::normalize_answer(string& answer) const
     strip_control(answer);
     strip_dbx_comments(answer);
     cut_off_prompt(answer);
-}
-
-// Remove GDB prompt
-void GDBAgent::cut_off_prompt(string& answer) const
-{
-    switch (type())
-    {
-    case GDB:
-	if (recording() && answer.contains('>', -1))
-	{
-	    answer = answer.before('>', -1);
-	    break;
-	}
-
-	// FALL THROUGH
-    case DBX:
-	answer = answer.before('(', -1);
-	break;
-
-    case DBG:
-    {
-	int i = answer.index(DBG_PROMPT, -1);
-	while (i > 0 && answer[i - 1] == ' ')
-	    i--;
-	answer = answer.before(i);
-	break;
-    }
-    
-    case BASH:
-    case JDB:
-    case MAKE:
-    case PYDB:
-    {
-	// Check for prompt at the end of the last line
-	if (answer.contains(last_prompt, -1))
-	{
-	    answer = answer.before(int(answer.length()) - 
-				   int(last_prompt.length()));
-	}
-	break;
-    }
-
-    case PERL:
-    {
-	int i = answer.index("DB<", -1);
-	while (i > 0 && answer[i - 1] == ' ')
-	    i--;
-	answer.from(i) = "";
-	break;
-    }
-
-    case XDB:
-	answer = answer.before('>', -1);
-	break;
-    }
 }
 
 // Strip annoying DBX comments
@@ -1759,24 +1331,6 @@ int GDBAgent::write(const char *data, int length)
     return TTYAgent::write(data, length);
 }
 
-// Write command
-int GDBAgent::write_cmd(const string& cmd)
-{
-    if (gdb->type() == PERL && cmd.contains("exec ", 0))
-    {
-	// Rename debugger
-	string p = cmd.before('\n');
-	p = p.after("exec ");
-	if (p.contains('\'', 0) || p.contains('\"', 0))
-	    p = unquote(p);
-	if (!p.empty())
-	    _path = p;
-    }
-
-    return write(cmd);
-}
-
-
 // GDB died
 void GDBAgent::DiedHP(Agent *agent, void *, void *)
 {
@@ -1819,55 +1373,6 @@ void GDBAgent::handle_died()
 // Configuration
 //-----------------------------------------------------------------------------
 
-// DBX 3.0 wants `print -r' instead of `print' for C++
-string GDBAgent::print_command(const char *expr, bool internal) const
-{
-    string cmd;
-
-    switch (type())
-    {
-    case GDB:
-    case DBX:
-    case DBG:
-	if (internal && has_output_command())
-	    cmd = "output";
-	else
-	    cmd = "print";
-
-	if (has_print_r_option())
-	    cmd += " -r";
-	break;
-
-    case XDB:
-	cmd = "p";
-	break;
-
-    case BASH:
-    case MAKE:
-    case PERL:
-	cmd = "x";
-	break;
-
-    case PYDB:
-	cmd = "print";
-	break;
-
-    case JDB:
-	if (internal)
-	    cmd = "dump";
-	else
-	    cmd = "print";
-	break;
-    }
-
-    if (strlen(expr) != 0) {
-	cmd += ' ';
-	cmd += expr;
-    }
-
-    return cmd;
-}
-
 // DBX 3.0 wants `display -r' instead of `display' for C++
 string GDBAgent::display_command(const char *expr) const
 {
@@ -1888,33 +1393,14 @@ string GDBAgent::display_command(const char *expr) const
     return cmd;
 }
 
-// DBX 3.0 wants `where -h' instead of `where'
 string GDBAgent::where_command(int count) const
 {
     string cmd;
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case DBX:
-    case GDB:
-    case JDB:
-    case MAKE:
-    case PYDB:
-	if (has_where_h_option())
-	    cmd = "where -h";
-	else
-	    cmd = "where";
-	break;
 
-    case PERL:
-	cmd = "T";
-	break;
-	
-    case XDB:
-	cmd = "t";
-	break;
-    }
+    if (has_where_h_option())
+	cmd = "where -h";
+    else
+	cmd = "where";
 
     if (count != 0)
 	cmd += " " + itostring(count);
@@ -1922,349 +1408,33 @@ string GDBAgent::where_command(int count) const
     return cmd;
 }
 
-string GDBAgent::info_locals_command() const
-{
-    switch (type())
-    {
-    case GDB:
-    case MAKE:
-    case PYDB:
-	return "info locals";
-
-    case DBX:
-	return "dump";
-
-    case XDB:
-	return "l";
-
-    case JDB:
-	return "locals";
-
-    case BASH:
-    case PERL:
-	return "V";
-
-    case DBG:
-      return "";
-
-    }
-
-    return "";			// Never reached
-}
-
-string GDBAgent::info_args_command() const
-{
-    switch (type())
-    {
-    case BASH:
-    case GDB:
-    case PYDB:
-	return "info args";
-
-    default:
-	break;
-    }
-
-    return info_locals_command();
-}
-
-string GDBAgent::info_display_command() const
-{
-    return
-      (type() == GDB || type() == BASH) ?
-      "info display":
-      display_command();
-}
-
-
 // Some DBXes want `sh pwd' instead of `pwd'
 string GDBAgent::pwd_command() const
 {
-    switch (type())
-    {
-    case GDB:
-    case DBX:
-    case PYDB:
-    case DBG:
-	if (has_pwd_command())
-	    return "pwd";
-	else
-	    return "sh pwd";
-
-    case XDB:
-	return "!pwd";
-
-    case BASH:
-        return "!! pwd";
-
-    case MAKE:
-	return "shell pwd";
-
-    case PERL:
-	return "p $ENV{'PWD'} || `pwd`";
-
-    case JDB:
-	return "";
-
-    }
-
-    return "";			// Never reached
-}
-
-// Some DBXes want `sh make' instead of `make'
-string GDBAgent::make_command(const string& args) const
-{
-    string cmd;
-    switch (type())
-    {
-    case GDB:
-    case DBX:
-	if (has_make_command())
-	    cmd = "make";
-	else
-	    cmd = "sh make";
-	break;
-
-    case XDB:
-	cmd = "!make";
-	break;
-
-    case PERL:
-	if (args.empty())
-	    return "system 'make'";
-	else
-	    return "system 'make " + args + "'";
-
-    case BASH:
-    case MAKE:
-    case PYDB:
-	cmd = "shell make " + args ;
-	break;
-
-    case JDB:
-    case DBG:
-	return "";		// Not available
-    }
-
-    if (args.empty())
-	return cmd;
+    if (has_pwd_command())
+	return "pwd";
     else
-	return cmd + " " + args;
-}
-
-// Move PC to POS
-string GDBAgent::jump_command(const string& pos) const
-{
-    if (!has_jump_command())
-	return "";
-
-    switch (type())
-    {
-    case GDB:
-	return "jump " + pos;
-   
-    case XDB:
-    {
-        string pos_ = pos;
-	if (pos_.contains('*', 0))
-	    pos_ = pos_.after('*');
-	return "g " + pos_;
-    }
-
-    case DBX:
-	return "cont at " + pos;
-
-    case BASH:
-    case DBG:  
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Show registers
-string GDBAgent::regs_command(bool all) const
-{
-    if (!has_regs_command())
-	return "";
-
-    switch (type())
-    {
-    case GDB:
-	if (all)
-	    return "info all-registers";
-	else
-	    return "info registers";
-   
-    case DBX:
-	if (all)
-	    return "regs -F";	// Sun DBX 4.0
-	else
-	    return "regs";	
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PYDB:
-    case PERL:
-    case XDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Watch expressions
-string GDBAgent::watch_command(const string& expr, WatchMode w) const
-{
-    if ((has_watch_command() & w) != w)
-	return "";
-
-    switch (type())
-    {
-    case GDB:
-	if ((w & WATCH_CHANGE) == WATCH_CHANGE)
-	    return "watch " + expr;
-	if ((w & WATCH_ACCESS) == WATCH_ACCESS)
-	    return "awatch " + expr;
-	if ((w & WATCH_READ) == WATCH_READ)
-	    return "rwatch " + expr;
-	return "";
-   
-    case DBX:
-	if ((w & WATCH_CHANGE) == WATCH_CHANGE)
-	{
-	    if (has_handler_command())
-	    {
-		// Solaris 2.6 DBX wants `stop change VARIABLE'
-		return "stop change " + expr;
-	    }
-	    else
-	    {
-		// `Traditional' DBX notation
-		return "stop " + expr;
-	    }
-	}
-	return "";
-
-    case BASH:
-	if ((w & WATCH_CHANGE) == WATCH_CHANGE)
-	    return "watch " + expr;
-	return "";
-   
-    case XDB:
-	// Not available.  (There is the `assertion' concept which is
-	// similar but won't fit into the DDD GUI.)
-	return "";
-
-    case JDB:
-	if ((w & WATCH_CHANGE) == WATCH_CHANGE)
-	    return "watch all " + expr;
-	if ((w & WATCH_READ) == WATCH_READ)
-	    return "watch access " + expr;
-	if ((w & WATCH_ACCESS) == WATCH_ACCESS)
-	    return "watch access " + expr;
-	return "";
-
-    case DBG:  // Is this right? 
-    case MAKE:
-    case PERL:
-    case PYDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
+	return "sh pwd";
 }
 
 
-string GDBAgent::kill_command() const
-{
-    switch (type())
-    {
-    case DBG:
-    case DBX:
-    case GDB:
-	return "kill";
-   
-    case XDB:
-	return "k";
-
-    case BASH:
-    case MAKE:
-    case PERL:
-    case PYDB:
-	return "quit";
-
-    case JDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
 
 string GDBAgent::frame_command() const
 {
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case DBX:
-    case GDB:
-    case MAKE:
-    case PYDB:
-	if (has_frame_command())
-	    return "frame";
-	else
-	    return where_command(1);
-
-    case XDB:
-	return print_command("$depth");
-
-    case JDB:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
+    if (has_frame_command())
+	return "frame";
+    else
+	return where_command(1);
 }
 
 string GDBAgent::frame_command(int num) const
 {
-    if (!has_frame_command())
-	return "";
-
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case DBX:
-    case GDB:
-    case MAKE:
-    case PYDB:
-	return frame_command() + " " + itostring(num);
-
-    case XDB:
-	return "V " + itostring(num);
-
-    case JDB:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
+    return frame_command() + " " + itostring(num);
 }
 
 // Add OFFSET to current frame (i.e. OFFSET > 0: up, OFFSET < 0: down)
 string GDBAgent::relative_frame_command(int offset) const
 {
-    if (gdb->type() == PERL)
-	return "";		// No such command in Perl
-
     if (offset == -1)
 	return "down";
     else if (offset < 0)
@@ -2277,269 +1447,10 @@ string GDBAgent::relative_frame_command(int offset) const
     return "";			// Offset == 0
 }
 
-string GDBAgent::func_command() const
-{
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case GDB:
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-    case XDB:
-	return frame_command();
-
-    case DBX:
-	return has_func_command() ? "func" : "";
-    }
-
-    return "";			// Never reached
-}
-
 // Each debugger has its own way of echoing (sigh)
 string GDBAgent::echo_command(const string& text) const
 {
-    switch (type())
-    {
-    case BASH:
-    case PYDB:
-	return "print " + quote(text);
-
-    case DBG:
-	return " ";
-	
-    case DBX:
-	return print_command(quote(text), false);
-
-    case GDB:
-	return "echo " + cook(text);
-
-    case MAKE:
-	return "examine " + quote(text);
-
-    case PERL:
-	// We use `print DB::OUT' instead of `p' since this also works
-	// in actions.
-	return "print DB::OUT " + quote(text, '\"');
-
-    case XDB:
-	return quote(text);
-
-    case JDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Prefer `ptype' on `whatis' in GDB
-string GDBAgent::whatis_command(const string& text) const
-{
-    switch (type())
-    {
-    case GDB:
-	return "ptype " + text;
-
-    case DBX:
-    case PYDB:
-	if (has_print_r_option())
-	    return "whatis -r " + text;
-	else
-	    return "whatis " + text;
-
-    case XDB:
-	return "p " + text + "\\T";
-
-    case JDB:
-	return "class " + text;  // JDB: as close as we can get
-
-    case DBG:
-    case PERL:
-	return "";		// Who knows?
-
-    case BASH:
-    case MAKE:
-	return "";		// Can't do yet.
-    }
-
-    return "";			// Never reached
-}
-
-// Enable breakpoint BP
-string GDBAgent::enable_command(string bp) const
-{
-    if (!bp.empty())
-	bp.prepend(' ');
-
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case GDB:
-    case PYDB:
-	return "enable" + bp;
-
-    case DBX:
-	if (is_ladebug())
-	    return "enable" + bp;
-	else if (has_handler_command())
-	    return "handler -enable" + bp;
-	else
-	    return "";
-
-    case XDB:
-	return "ab" + bp;
-
-    case JDB:
-    case MAKE:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Disable breakpoint BP
-string GDBAgent::disable_command(string bp) const
-{
-    if (!bp.empty())
-	bp.prepend(' ');
-
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case GDB:
-    case PYDB:
-	return "disable" + bp;
-
-    case DBX:
-	if (is_ladebug())
-	    return "disable" + bp;
-	else if (has_handler_command())
-	    return "handler -disable" + bp;
-	else
-	    return "";
-
-    case XDB:
-	return "sb" + bp;
-
-    case JDB:
-    case MAKE:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Delete breakpoint BP
-string GDBAgent::delete_command(string bp) const
-{
-    if (!bp.empty())
-	bp.prepend(' ');
-
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case DBX:
-    case GDB:
-    case MAKE:
-    case PYDB:
-	return "delete" + bp;
-
-    case XDB:
-	return "db" + bp;
-
-    case JDB:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Set ignore count of breakpoint BP to COUNT
-string GDBAgent::ignore_command(const string& bp, int count) const
-{
-    switch (type())
-    {
-    case GDB:
-    case PYDB:
-	return "ignore " + bp + " " + itostring(count);
-
-    case DBX:
-	if (has_handler_command())
-	    return "handler -count " + bp + " " + itostring(count);
-	else
-	    return "";
-
-    case XDB:
-	return "bc " + bp + " " + itostring(count);
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PERL:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-// Set condition of breakpoint BP to EXPR
-string GDBAgent::condition_command(const string& bp, const char *expr) const
-{
-    switch (type())
-    {
-    case GDB:
-    case DBG:
-    case PYDB:
-    case BASH:
-	return "condition " + bp + " " + expr;
-
-    case MAKE:
-	return "";		// Not available
-
-    case DBX:
-    case XDB:
-    case JDB:
-    case PERL:
-	return "";		// FIXME
-    }
-
-    return "";			// Never reached
-}
-
-// Return shell escape command
-string GDBAgent::shell_command(const string& cmd) const
-{
-    switch (type())
-    {
-    case BASH:
-    case GDB:
-    case MAKE:
-    case PYDB:
-	return "shell " + cmd;
-
-    case DBX:
-	return "sh " + cmd;
-
-    case XDB:
-	return "!" + cmd;
-
-    case PERL:
-	return "system " + quote(cmd, '\'');
-
-    case DBG:
-    case JDB:
-	return "";		// Not available
-    }
-    return "";			// Never reached
+    return "echo " + cook(text);
 }
 
 // Return actual debugger command, with args
@@ -2638,86 +1549,6 @@ string GDBAgent::quote_file(const string& file) const
     }
 }
 
-// Return command to debug PROGRAM
-string GDBAgent::debug_command(const char *program, string args) const
-{
-    if (!args.empty() && !args.contains(' ', 0))
-	args.prepend(' ');
-
-    switch (type())
-    {
-    case GDB:
-	if (is_windriver_gdb())
-	    return "load " + quote_file(program);
-	else
-	    return "file " + quote_file(program);
-
-    case DBG:
-	return string("file ") + program;
-
-    case DBX:
-	if (is_ladebug())
-	    return string("load ") + program;       // Compaq Ladebug
-	else if (has_givenfile_command())
-	    return string("givenfile ") + program; // SGI DBX
-	else
-	    return string("debug ") + program;     // SUN DBX
-
-    case XDB:
-	return string("#file ") + program; // just a dummy
-
-    case JDB:
-	return string("load ") + program;
-
-    case PERL:
-//	return "exec " + quote(debugger() + " -d " + program + args);
-	return "R";
-
-    case BASH:
-    case PYDB:
-	return string("debug ") + program + args;
-
-	// restart/run is not the same a debug. But this is the closes
-	// remake has for now.
-    case MAKE:
-	return string("run ") + program + args;
-    }
-
-    return "";			// Never reached
-}
-
-// Return command to send signal SIG
-string GDBAgent::signal_command(int sig) const
-{
-    string n = itostring(sig);
-
-    switch (type())
-    {
-    case GDB:
-	return "signal " + n;
-
-    case DBX:
-	if (has_cont_sig_command())
-	    return "cont sig " + n; // SUN DBX
-	else
-	    return "cont " + n;     // Other DBXes
-
-    case XDB:
-	return "p $signal = " + n + "; C";
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-	return "";		// Not available
-    }
-
-    return "";			// Never reached
-}
-
-
 // Return a command that does nothing.
 string GDBAgent::nop_command(const char *comment) const
 {
@@ -2726,138 +1557,6 @@ string GDBAgent::nop_command(const char *comment) const
 
     return string("# ") + comment;	// Works for all other inferior debuggers
 }
-
-// Run program with given ARGS
-string GDBAgent::run_command(string args) const
-{
-    if (!args.empty() && !args.contains(' ', 0))
-	args = " " + args;
-
-    switch (type())
-    {
-    case GDB:
-    {
-	string c;
-	if (args.empty())
-	    c = "set args\n";
-	return c + "run" + args;
-    }
-
-    case DBX:
-	if (args.empty() && has_rerun_command() && rerun_clears_args())
-	    return "rerun";
-	else
-	    return "run" + args;
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PYDB:
-	return "run" + args;
-
-    case XDB:
-	if (args.empty())
-	    return "R";
-	else
-	    return "r" + args;
-
-    case PERL:
-	return "exec " + quote(debugger() + " -d " + program() + args);
-    }
-
-    return "";			// Never reached
-}
-
-// Re-run program with previous arguments
-string GDBAgent::rerun_command() const
-{
-    switch (type())
-    {
-    case BASH:
-    case DBG:
-    case GDB:
-    case JDB:
-    case MAKE:
-    case PYDB:
-	return "run";
-
-    case DBX:
-	if (has_rerun_command() && !rerun_clears_args())
-	    return "rerun";
-	else
-	    return "run";
-
-    case XDB:
-	return "r";
-
-    case PERL:
-	return "R";
-    }
-
-    return "";			// Never reached
-}
-
-// Attach to process ID
-string GDBAgent::attach_command(int pid, const string& file) const
-{
-    switch (type())
-    {
-    case GDB:
-	return "attach " + itostring(pid);
-
-    case DBX:
-	if (has_handler_command())
-	    return "debug - " + itostring(pid);	           // Sun DBX
-	if (has_addproc_command())
-	    return "addproc " + itostring(pid);	           // SGI DBX
-	else if (is_ladebug() && has_attach_command())
-	    return string("set $stoponattach=1\n") +
-		"attach " + itostring(pid) + " " + file;   // DEC ladebug
-	else if (has_attach_command())
-	    return "attach " + itostring(pid);             // Others
-	else
-	    return "debug " + file + " " + itostring(pid); // Others
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-    case XDB:
-	break;
-    }
-
-    return "";			// Unsupported
-}
-
-string GDBAgent::detach_command(int pid) const
-{
-    switch (type())
-    {
-    case GDB:
-	return "detach";
-
-    case DBX:
-	if (has_addproc_command())
-	    return "delproc " + itostring(pid);	// SGI DBX
-	else
-	    return "detach";	// Others
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-    case XDB:
-	break;
-    }
-
-    return "";			// Unsupported
-}
-
 
 // Return PREFIX + EXPR, parenthesizing EXPR if needed
 string GDBAgent::prepend_prefix(const string& prefix, const string& expr)
@@ -3070,84 +1769,6 @@ string GDBAgent::member_separator() const
     return "";			// Never reached
 }
 
-// Return assignment command
-string GDBAgent::assign_command(const string& var, const string& expr) const
-{
-    string cmd;
-
-    switch (type())
-    {
-    case GDB:
-	cmd = "set variable";
-	break;
-
-    case DBX:
-	cmd = "assign";
-	break;
-
-    case XDB:
-	cmd = "pq";
-	break;
-
-    case DBG:
-    case PYDB:
-	cmd = "";		// No command needed
-	break;
-
-    case PERL:
-	if (!var.empty() && !is_perl_prefix(var[0]))
-	    return "";		// Cannot set this
-
-	cmd = "";		// No command needed
-	break;
-
-    case BASH:
-       if (!var.empty() && ! ('$' == var[0]))
-	    return "";		// Cannot set this
-
-	cmd = "eval ";
-	break;
-
-    case MAKE:
-        // Need to test var.empty()? 
-	cmd = "set variable";
-	break;
-
-    case JDB:
-	if (has_debug_command())
-	    return "";		// JDB 1.1: not available
-
-	cmd = "set";		// JDB 1.2
-	break;
-    }
-
-    cmd += " " + var + " ";
-
-    switch (program_language())
-    {
-    case LANGUAGE_BASH:
-    case LANGUAGE_C:
-    case LANGUAGE_FORTRAN:
-    case LANGUAGE_JAVA:
-    case LANGUAGE_MAKE:
-    case LANGUAGE_PERL:
-    case LANGUAGE_PHP:
-    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
-    case LANGUAGE_OTHER:
-	cmd += "=";
-	break;
-
-    case LANGUAGE_ADA:
-    case LANGUAGE_PASCAL:
-    case LANGUAGE_CHILL:
-	cmd += ":=";
-	break;
-    }
-
-    return cmd + " " + expr;
-}
-
-
 void GDBAgent::normalize_address(string& addr) const
 {
     // In C, hexadecimal integers are specified by a leading "0x".
@@ -3209,42 +1830,6 @@ string GDBAgent::disassemble_command(string start, const char *end) const
 	cmd += end_;
     }
     return cmd;
-}
-
-
-string GDBAgent::history_file() const
-{
-    switch (type())
-    {
-    case GDB:
-    {
-	const char *g = getenv("GDBHISTFILE");
-	if (g != 0)
-	    return g;
-	else
-	    return "./.gdb_history";
-    }
-
-    case BASH:
-    case DBG:
-    case DBX:
-    case JDB:
-    case MAKE:
-    case PERL:
-    case PYDB:
-	return "";		// Unknown
-
-    case XDB:
-    {
-	const char *g = getenv("XDBHIST");
-	if (g != 0)
-	    return g;
-	else
-	    return string(gethome()) + "/.xdbhist";
-    }
-    }
-
-    return "";			// Unknown
 }
 
 // Return true iff A contains the word S
@@ -3481,4 +2066,1693 @@ void GDBAgent::abort()
     complete_answer   = "";
 
     set_exception_state(false);
+}
+
+// Derived GDBAgent class constructors and overridding member functions
+
+/***************************** BASH ******************************/
+
+GDBAgent_BASH::GDBAgent_BASH (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, BASH)
+{
+    _title = "Bash";
+    _has_jump_command = false;
+    _has_regs_command = false;
+    _has_named_values = false;
+    _has_err_redirection = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_BASH;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_BASH::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line ending in `bashdb<...> ' is a prompt.
+    // Since N does not make sense in DDD, we use `DB<> ' instead.
+
+#if RUNTIME_REGEX
+    static regex rxbashprompt("bashdb<+[(]*[0-9][)]*>+");
+#endif
+
+    int i = answer.length() - 1;
+    if (i < 1 || answer[i] != ' ' || answer[i - 1] != '>')
+        return false;
+
+    while (i >= 0 && answer[i] != '\n' ) {
+      if (answer.contains("bashdb<", i)) {
+        string possible_prompt = answer.from(i);
+        if (possible_prompt.matches(rxbashprompt)) {
+          last_prompt = possible_prompt;
+          return true;
+        }
+      }
+      i--;
+    }
+    return false;
+}
+
+// Remove prompt
+void GDBAgent_BASH::cut_off_prompt(string& answer) const
+{
+    // Check for prompt at the end of the last line
+    if (answer.contains(last_prompt, -1))
+    {
+        answer = answer.before(int(answer.length()) - 
+    			       int(last_prompt.length()));
+    }
+}
+
+string GDBAgent_BASH::print_command(const char *expr, bool internal) const
+{
+    /* UNUSED */ (void (internal)); 
+    string cmd = "x";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_BASH::info_locals_command() const { return "V"; }
+
+string GDBAgent_BASH::pwd_command() const { return "!! pwd"; }
+
+string GDBAgent_BASH::make_command(const string& args) const
+{
+    string cmd = "shell make";
+
+    if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_BASH::watch_command(const string& expr, WatchMode w) const
+{
+    if ((has_watch_command() & w) != w)
+	return "";
+
+    if ((w & WATCH_CHANGE) == WATCH_CHANGE)
+	return "watch " + expr;
+    return "";
+}
+
+string GDBAgent_BASH::echo_command(const string& text) const 
+{
+  return "print " + quote(text);
+}
+
+string GDBAgent_BASH::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "enable" + bp;
+}
+
+string GDBAgent_BASH::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "disable" + bp;
+}
+
+string GDBAgent_BASH::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "delete" + bp;
+}
+
+string GDBAgent_BASH::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("debug ") + program + args;
+}
+
+string GDBAgent_BASH::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "eval";
+
+    if (!var.empty() && ! ('$' == var[0]))
+	return "";		// Cannot set this
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** DBG *******************************/
+
+GDBAgent_DBG::GDBAgent_DBG (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, DBG)
+{
+    _title = "DBG";
+    _has_make_command = false;
+    _has_jump_command = false;
+    _has_regs_command = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_PHP;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_DBG::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    unsigned beginning_of_line = answer.index('\n', -1) + 1;
+    if ( beginning_of_line < answer.length()
+        && answer.length() > 0
+        && answer.matches(DBG_PROMPT,beginning_of_line)) 
+    {
+        recording(false);
+        last_prompt = DBG_PROMPT;
+        return true;
+    }
+    return false;
+}
+
+// Remove DBG prompt
+void GDBAgent_DBG::cut_off_prompt(string& answer) const
+{
+    int i = answer.index(DBG_PROMPT, -1);
+    while (i > 0 && answer[i - 1] == ' ')
+        i--;
+    answer = answer.before(i);
+}
+
+string GDBAgent_DBG::print_command(const char *expr, bool internal) const
+{
+    string cmd;
+
+    if (internal && has_output_command())
+	cmd = "output";
+    else
+	cmd = "print";
+
+    if (has_print_r_option())
+	cmd += " -r";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_DBG::info_locals_command() const { return ""; }
+
+string GDBAgent_DBG::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "enable" + bp;
+}
+
+string GDBAgent_DBG::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "disable" + bp;
+}
+
+string GDBAgent_DBG::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "delete" + bp;
+}
+
+string GDBAgent_DBG::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("file ") + program;
+}
+
+string GDBAgent_DBG::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** DBX *******************************/
+
+GDBAgent_DBX::GDBAgent_DBX (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, DBX)
+{
+    if (is_ladebug())
+        _title = "Ladebug";
+    else
+        _title = "DBX";
+    _has_frame_command = false;
+    _has_func_command = true;
+    _has_file_command = true;
+    _has_setenv_command = true;
+    _has_edit_command = true;
+    _has_regs_command = false;
+    _has_when_command = true;
+    _has_when_semicolon = true;
+    _has_rerun_command = true;
+    _has_watch_command = WATCH_CHANGE;
+}
+
+bool GDBAgent_DBX::is_ladebug() const
+{
+    return (path().contains("ladebug") || prompt().contains("ladebug"));
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_DBX::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line ending in `(gdb) ' or `(dbx) ' is a prompt.
+    int i = answer.length() - 1;
+    if (i < 0 || answer[i] != ' ')
+        return false;
+
+    while (i >= 0 && answer[i] != '\n' && answer[i] != '(')
+        i--;
+    if (i < 0 || answer[i] != '(')
+        return false;
+
+    string possible_prompt = answer.from(i);
+#if RUNTIME_REGEX
+    // Marc Lepage <mlepage@kingston.hummingbird.com> says that
+    // DBX on Solaris 2.5 has a prompt like `(dbx N) '.  We're
+    // liberal here and allow anything in the form `(NAME) ',
+    // where the first word in NAME must contain a `db' or `deb'.
+    // (`deb' is there to support DEC's `ladebug')
+    static regex rxprompt("[(][^ )]*de?b[^)]*[)] ");
+#endif
+    if (possible_prompt.matches(rxprompt))
+    {
+        last_prompt = possible_prompt;
+        recording(false);
+        return true;
+    }
+    return false;
+}
+
+// Return true iff ANSWER ends with secondary prompt.
+bool GDBAgent_DBX::ends_with_secondary_prompt (const string& ans) const
+{
+    string answer = ans;
+    strip_control(answer);
+
+    if (ends_in(answer, "]: "))
+    {
+        // AIX DBX issues `Select one of [FROM - TO]: ' in the last line
+        // Reported by Jonathan Edwards <edwards@intranet.com>
+#if RUNTIME_REGEX
+        static regex rxselect("Select one of \\[[0-9]+ - [0-9]+\\]: ");
+#endif
+        int idx = index(answer, rxselect, "Select one of ", -1);
+        if (idx >= 0 && answer.index('\n', idx) < 0)
+    	    return true;
+    }
+    if (ends_in(answer, "): "))
+    {
+        // DEC DBX wants a file name when being invoked without one:
+        // `enter object file name (default is `a.out'): '
+        // Reported by Matthew Johnson <matthew.johnson@speechworks.com>
+#if RUNTIME_REGEX
+        static regex rxenter_file_name("enter .*file name");
+#endif
+
+        int idx = index(answer, rxenter_file_name, "enter ", -1);
+        if (idx >= 0 && answer.index('\n', idx) < 0)
+    	    return true;
+    }
+
+    // Prompt is `> ' at beginning of line
+    return answer == "> " || ends_in(answer, "\n> ");
+}
+
+// Remove DBX prompt
+void GDBAgent_DBX::cut_off_prompt(string& answer) const
+{
+    answer = answer.before('(', -1);
+}
+
+// DBX 3.0 wants `print -r' instead of `print' for C++
+string GDBAgent_DBX::print_command(const char *expr, bool internal) const
+{
+    string cmd;
+
+    if (internal && has_output_command())
+	cmd = "output";
+    else
+	cmd = "print";
+
+    if (has_print_r_option())
+	cmd += " -r";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_DBX::info_locals_command() const { return "dump"; }
+
+string GDBAgent_DBX::make_command(const string& args) const
+{
+    string cmd;
+
+    if (has_make_command())
+	cmd = "make";
+    else
+	cmd = "sh make";
+ 
+   if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_DBX::regs_command(bool all) const
+{
+    if (all)
+	return "regs -F";
+    else
+	return "regs";
+}
+
+string GDBAgent_DBX::watch_command(const string& expr, WatchMode w) const
+{
+    if ((has_watch_command() & w) != w)
+	return "";
+
+    if ((w & WATCH_CHANGE) == WATCH_CHANGE)
+    {
+        if (has_handler_command())
+        {
+    	    // Solaris 2.6 DBX wants `stop change VARIABLE'
+    	    return "stop change " + expr;
+        }
+        else
+        {
+	    // `Traditional' DBX notation
+	    return "stop " + expr;
+        }
+    }
+    return "";
+}
+
+string GDBAgent_DBX::echo_command(const string& text) const 
+{
+  return print_command(quote(text), false);
+}
+
+string GDBAgent_DBX::whatis_command(const string& text) const
+{
+    if (has_print_r_option())
+	return "whatis -r " + text;
+    else
+	return "whatis " + text;
+}
+
+string GDBAgent_DBX::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    if (is_ladebug())
+	return "enable" + bp;
+    else if (has_handler_command())
+	return "handler -enable" + bp;
+    else
+	return "";
+}
+
+string GDBAgent_DBX::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    if (is_ladebug())
+	return "disable" + bp;
+    else if (has_handler_command())
+	return "handler -disable" + bp;
+    else
+	return "";
+}
+
+string GDBAgent_DBX::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "delete" + bp;
+}
+
+string GDBAgent_DBX::ignore_command(const string& bp, int count) const
+{
+    if (has_handler_command())
+	return "handler -count " + bp + " " + itostring(count);
+    else
+	return "";
+}
+
+string GDBAgent_DBX::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    if (is_ladebug())
+	return string("load ") + program;       // Compaq Ladebug
+    else if (has_givenfile_command())
+	return string("givenfile ") + program; // SGI DBX
+    else
+	return string("debug ") + program;     // SUN DBX
+}
+
+string GDBAgent_DBX::signal_command(int sig) const
+{
+    string n = itostring(sig);
+
+    if (has_cont_sig_command())
+	return "cont sig " + n; // SUN DBX
+    else
+	return "cont " + n;     // Other DBXes
+}
+
+string GDBAgent_DBX::run_command(string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args = " " + args;
+
+    if (args.empty() && has_rerun_command() && rerun_clears_args())
+	return "rerun";
+    else
+	return "run" + args;
+}
+
+string GDBAgent_DBX::rerun_command() const
+{
+	if (has_rerun_command() && !rerun_clears_args())
+	    return "rerun";
+	else
+	    return "run";
+}
+
+string GDBAgent_DBX::attach_command(int pid, const string& file) const
+{
+    if (has_handler_command())
+	return "debug - " + itostring(pid);	           // Sun DBX
+    if (has_addproc_command())
+	return "addproc " + itostring(pid);	           // SGI DBX
+    else if (is_ladebug() && has_attach_command())
+	return string("set $stoponattach=1\n") +
+	    "attach " + itostring(pid) + " " + file;   // DEC ladebug
+    else if (has_attach_command())
+	return "attach " + itostring(pid);             // Others
+    else
+	return "debug " + file + " " + itostring(pid); // Others
+}
+
+string GDBAgent_DBX::detach_command(int pid) const
+{
+    if (has_addproc_command())
+	return "delproc " + itostring(pid);	// SGI DBX
+    else
+	return "detach";	// Others
+}
+
+string GDBAgent_DBX::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "assign";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** GDB *******************************/
+
+GDBAgent_GDB::GDBAgent_GDB (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, GDB)
+{
+    if (path().contains("wdb"))
+        _title = "WDB";
+    else
+        _title = "GDB";
+    
+    _has_watch_command = WATCH_CHANGE | WATCH_READ | WATCH_WRITE;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_GDB::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // GDB reads in breakpoint commands using a `>' prompt
+    if (recording() && answer.contains('>', -1))
+    {
+        last_prompt = ">";
+        return true;
+    }
+
+    // In annotation level 1, GDB `annotates' its prompt.
+    if (answer.contains("\032\032prompt\n", -1))
+        return true;
+
+    // DUPLICATED FROM GDBAgent_DBX::ends_with_prompt()
+    // Any line ending in `(gdb) ' or `(dbx) ' is a prompt.
+    int i = answer.length() - 1;
+    if (i < 0 || answer[i] != ' ')
+        return false;
+
+    while (i >= 0 && answer[i] != '\n' && answer[i] != '(')
+        i--;
+    if (i < 0 || answer[i] != '(')
+        return false;
+
+    string possible_prompt = answer.from(i);
+#if RUNTIME_REGEX
+    // Marc Lepage <mlepage@kingston.hummingbird.com> says that
+    // DBX on Solaris 2.5 has a prompt like `(dbx N) '.  We're
+    // liberal here and allow anything in the form `(NAME) ',
+    // where the first word in NAME must contain a `db' or `deb'.
+    // (`deb' is there to support DEC's `ladebug')
+    static regex rxprompt("[(][^ )]*de?b[^)]*[)] ");
+#endif
+    if (possible_prompt.matches(rxprompt))
+    {
+        last_prompt = possible_prompt;
+        recording(false);
+        return true;
+    }
+    return false;
+}
+
+// Return true iff ANSWER ends with secondary prompt.
+bool GDBAgent_GDB::ends_with_secondary_prompt (const string& ans) const
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Prompt is `> ' at beginning of line
+    return answer == "> " || ends_in(answer, "\n> ");
+}
+
+// Remove GDB prompt
+void GDBAgent_GDB::cut_off_prompt(string& answer) const
+{
+    if (recording() && answer.contains('>', -1))
+    {
+        answer = answer.before('>', -1);
+	return;
+    }
+
+    answer = answer.before('(', -1);
+}
+
+string GDBAgent_GDB::print_command(const char *expr, bool internal) const
+{
+    string cmd;
+
+    if (internal && has_output_command())
+	cmd = "output";
+    else
+	cmd = "print";
+
+    if (has_print_r_option())
+	cmd += " -r";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_GDB::history_file() const
+{
+    const char *g = getenv("GDBHISTFILE");
+    if (g != 0)
+        return g;
+    else
+        return "./.gdb_history";
+}
+
+string GDBAgent_GDB::make_command(const string& args) const
+{
+    string cmd;
+
+    if (has_make_command())
+	cmd = "make";
+    else
+	cmd = "sh make";
+ 
+   if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_GDB::regs_command(bool all) const
+{
+    if (all)
+	return "info all-registers";
+    else
+	return "info registers";
+}
+
+string GDBAgent_GDB::watch_command(const string& expr, WatchMode w) const
+{
+    if ((has_watch_command() & w) != w)
+	return "";
+    if ((w & WATCH_CHANGE) == WATCH_CHANGE)
+	return "watch " + expr;
+    if ((w & WATCH_ACCESS) == WATCH_ACCESS)
+	return "awatch " + expr;
+    if ((w & WATCH_READ) == WATCH_READ)
+	return "rwatch " + expr;
+    return "";
+}
+
+string GDBAgent_GDB::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "enable" + bp;
+}
+
+string GDBAgent_GDB::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "disable" + bp;
+}
+
+string GDBAgent_GDB::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "delete" + bp;
+}
+
+string GDBAgent_GDB::ignore_command(const string& bp, int count) const
+{
+    return "ignore " + bp + " " + itostring(count);
+}
+
+string GDBAgent_GDB::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    if (is_windriver_gdb())
+	return "load " + quote_file(program);
+    else
+	return "file " + quote_file(program);
+}
+
+string GDBAgent_GDB::signal_command(int sig) const
+{
+    string n = itostring(sig);
+
+    return "signal " + n;
+}
+
+string GDBAgent_GDB::run_command(string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args = " " + args;
+
+    string c;
+    if (args.empty())
+	c = "set args\n";
+    return c + "run" + args;
+}
+
+string GDBAgent_GDB::attach_command(int pid, const string& file) const
+{
+    return "attach " + itostring(pid);
+}
+
+string GDBAgent_GDB::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "set variable";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+
+/***************************** JDB *******************************/
+
+GDBAgent_JDB::GDBAgent_JDB (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, JDB)
+{
+    _title = "JDB";
+    _has_frame_command = false;
+    _has_display_command = false;
+    _has_pwd_command = false;
+    _has_make_command = false;
+    _has_jump_command = false;
+    _has_regs_command = false;
+    _has_err_redirection = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_JAVA;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_JDB::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // JDB prompts using "> " or "THREAD[DEPTH] ".  All these
+    // prompts may also occur asynchronously.
+
+#if RUNTIME_REGEX
+    // Standard prompt: "THREAD[DEPTH] " or "> "
+    static regex rxjdbprompt        
+        ("([a-zA-Z][a-zA-Z0-9 ]*[a-zA-Z0-9][[][1-9][0-9]*[]]|>) ");
+    // Same, but in reverse
+    static regex rxjdbprompt_reverse
+        (" (>|[]][0-9]*[1-9][[][a-zA-Z0-9][a-zA-Z0-9 ]*[a-zA-Z])");
+    // Non-threaded prompt: "[DEPTH] " or "> "
+    static regex rxjdbprompt_nothread
+        ("(>|[[][1-9][0-9]*[]]) ");
+#endif
+
+    // Check for threaded prompt at the end of the last line
+    string reverse_answer = reverse(answer);
+    int match_len = rxjdbprompt_reverse.match(reverse_answer.chars(), 
+    					      reverse_answer.length(), 0);
+    if (match_len > 0)
+    {
+        last_prompt = reverse(reverse_answer.at(0, match_len));
+        return true;
+    }
+
+    // Check for non-threaded prompt as the last line
+    const int beginning_of_line = answer.index('\n', -1) + 1;
+    const string possible_prompt = answer.from(beginning_of_line);
+    if (possible_prompt.matches(rxjdbprompt_nothread))
+    {
+        last_prompt = possible_prompt;
+        return true;
+    }
+
+    // Check for threaded prompt at the beginning of each line
+    int last_nl = answer.length() - 1;
+    while (last_nl >= 0)
+    {
+        last_nl = answer.index('\n', last_nl - answer.length());
+        const int beginning_of_line = last_nl + 1;
+
+        match_len = rxjdbprompt.match(answer.chars(), answer.length(), 
+				      beginning_of_line);
+        if (match_len > 0)
+        {
+	    int i = beginning_of_line + match_len;
+	    while (i < int(answer.length()) && isspace(answer[i]))
+		i++;
+	    if (i < int(answer.length()) && answer[i] == '=')
+	    {
+	        // This is no prompt, but something like `dates[1] = 33'.
+	    }
+	    else
+	    {
+	        last_prompt = answer.at(beginning_of_line, match_len);
+	        return true;
+	    }
+	}
+
+	last_nl--;
+    }
+
+	return false;
+}
+
+bool GDBAgent_JDB::is_exception_answer(const string& answer) const
+{
+    // Any JDB backtrace contains these lines.
+    return 
+	 answer.contains("com.sun.tools.example.debug") ||
+	 answer.contains("sun.tools.debug") ||
+	 answer.contains("Internal exception:");
+}
+
+// Remove prompt
+void GDBAgent_JDB::cut_off_prompt(string& answer) const
+{
+    // Check for prompt at the end of the last line
+    if (answer.contains(last_prompt, -1))
+    {
+        answer = answer.before(int(answer.length()) - 
+    			       int(last_prompt.length()));
+    }
+}
+
+string GDBAgent_JDB::print_command(const char *expr, bool internal) const
+{
+    string cmd = "print";
+
+    if (internal)
+	cmd = "dump";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_JDB::info_locals_command() const { return "locals"; }
+
+string GDBAgent_JDB::pwd_command() const { return ""; }
+
+string GDBAgent_JDB::watch_command(const string& expr, WatchMode w) const
+{
+    if ((has_watch_command() & w) != w)
+	return "";
+
+    if ((w & WATCH_CHANGE) == WATCH_CHANGE)
+	return "watch all " + expr;
+    if ((w & WATCH_READ) == WATCH_READ)
+	return "watch access " + expr;
+    if ((w & WATCH_ACCESS) == WATCH_ACCESS)
+	return "watch access " + expr;
+    return "";
+}
+
+string GDBAgent_JDB::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("load ") + program;
+}
+
+string GDBAgent_JDB::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "set";
+
+    if (has_debug_command())
+	return "";		// JDB 1.1: not available
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+/***************************** PERL ******************************/
+
+GDBAgent_PERL::GDBAgent_PERL (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, PERL)
+{
+    _title = "Perl";
+    _has_frame_command = false;
+    _has_display_command = false;
+    _has_jump_command = false;
+    _has_regs_command = false;
+    _has_named_values = false;
+    _has_err_redirection = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_PERL;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_PERL::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line ending in `DB<N> ' is a prompt.
+    // Since N does not make sense in DDD, we use `DB<> ' instead.
+    //
+    // "T. Pospisek's MailLists" <tpo2@sourcepole.ch> reports that
+    // under Debian, Perl issues a prompt with control characters:
+    // <- "\001\002  DB<1> \001\002"
+
+#if RUNTIME_REGEX
+    static regex rxperlprompt("[ \t\001\002]*DB<+[0-9]*>+[ \t\001\002]*");
+#endif
+
+    int i = answer.length() - 1;
+    if (i < 1 || answer[i] != ' ' || answer[i - 1] != '>')
+        return false;
+
+    while (i > 0 && answer[i - 1] != '\n' && !answer.contains("DB", i))
+        i--;
+
+    string possible_prompt = answer.from(i);
+    if (possible_prompt.matches(rxperlprompt))
+    {
+        last_prompt = "DB<> ";
+        return true;
+    }
+    return false;
+}
+
+// Remove prompt
+void GDBAgent_PERL::cut_off_prompt(string& answer) const
+{
+    int i = answer.index("DB<", -1);
+    while (i > 0 && answer[i - 1] == ' ')
+        i--;
+    answer.from(i) = "";
+}
+
+// Write command
+int GDBAgent_PERL::write_cmd(const string& cmd)
+{
+    if (cmd.contains("exec ", 0))
+    {
+	// Rename debugger
+	string p = cmd.before('\n');
+	p = p.after("exec ");
+	if (p.contains('\'', 0) || p.contains('\"', 0))
+	    p = unquote(p);
+	if (!p.empty())
+	    _path = p;
+    }
+
+    return write(cmd);
+}
+
+string GDBAgent_PERL::print_command(const char *expr, bool internal) const
+{
+    /* UNUSED */ (void (internal)); 
+    string cmd = "x";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_PERL::where_command(int count) const
+{
+    string cmd = "T";
+
+    if (count != 0)
+	cmd += " " + itostring(count);
+
+    return cmd;
+}
+
+string GDBAgent_PERL::info_locals_command() const { return "V"; }
+
+string GDBAgent_PERL::pwd_command() const { return "p $ENV{'PWD'} || `pwd`"; }
+
+string GDBAgent_PERL::make_command(const string& args) const
+{
+    if (args.empty())
+	return "system 'make'";
+    else
+	return "system 'make " + args + "'";
+}
+
+string GDBAgent_PERL::echo_command(const string& text) const 
+{
+    return "print DB::OUT " + quote(text, '\"');
+}
+
+string GDBAgent_PERL::shell_command(const string& cmd) const
+{
+    return "system " + quote(cmd, '\'');
+}
+
+string GDBAgent_PERL::debug_command(const char *program, string args) const
+{
+    /* UNUSED */ (void (program)); (void (args));
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return "R";
+}
+
+string GDBAgent_PERL::run_command(string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args = " " + args;
+
+    return "exec " + quote(debugger() + " -d " + program() + args);
+}
+
+string GDBAgent_PERL::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "";
+
+    if (!var.empty() && !is_perl_prefix(var[0]))
+	return "";		// Cannot set this
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** PYDB ******************************/
+
+GDBAgent_PYDB::GDBAgent_PYDB (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, PYDB)
+{
+    _title = "PYDB";
+    _has_clear_command = false;
+    _has_regs_command = false;
+    _has_named_values = false;
+    _has_err_redirection = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_PYTHON;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_PYDB::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line ending in `(Pydb) ' is a prompt.
+
+#if RUNTIME_REGEX
+    static regex rxpyprompt("[(]+Pydb[)]+");
+#endif
+
+    int i = answer.length() - 1;
+    if (i < 1 || answer[i] != ' ' || answer[i - 1] != ')')
+        return false;
+
+    while (i >= 0 && answer[i] != '\n' ) {
+      if (answer.contains("(Pydb)", i)) {
+        string possible_prompt = answer.from(i);
+        if (possible_prompt.matches(rxpyprompt)) {
+          last_prompt = possible_prompt;
+          return true;
+        }
+      }
+      i--;
+    }
+    return false;
+}
+
+// Remove prompt
+void GDBAgent_PYDB::cut_off_prompt(string& answer) const
+{
+    // Check for prompt at the end of the last line
+    if (answer.contains(last_prompt, -1))
+    {
+        answer = answer.before(int(answer.length()) - 
+    			       int(last_prompt.length()));
+    }
+}
+
+string GDBAgent_PYDB::print_command(const char *expr, bool internal) const
+{
+    /* UNUSED */ (void (internal)); 
+    string cmd = "print";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_PYDB::make_command(const string& args) const
+{
+    string cmd = "shell make";
+
+    if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_PYDB::echo_command(const string& text) const 
+{
+  return "print " + quote(text);
+}
+
+string GDBAgent_PYDB::whatis_command(const string& text) const
+{
+    if (has_print_r_option())
+	return "whatis -r " + text;
+    else
+	return "whatis " + text;
+}
+
+string GDBAgent_PYDB::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "enable" + bp;
+}
+
+string GDBAgent_PYDB::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "disable" + bp;
+}
+
+string GDBAgent_PYDB::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "delete" + bp;
+}
+
+string GDBAgent_PYDB::ignore_command(const string& bp, int count) const
+{
+    return "ignore " + bp + " " + itostring(count);
+}
+
+string GDBAgent_PYDB::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("debug ") + program + args;
+}
+
+string GDBAgent_PYDB::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** XDB *******************************/
+
+GDBAgent_XDB::GDBAgent_XDB (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, XDB)
+{
+    _title = "XDB";
+    _has_frame_command = true;
+    _has_display_command = false;
+    _has_clear_command = false;
+    _has_pwd_command = false;
+    _has_make_command = false;
+    _has_regs_command = false;
+    _has_named_values = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_XDB::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line equal to `>' is a prompt.
+    const unsigned beginning_of_line = answer.index('\n', -1) + 1;
+    if (beginning_of_line < answer.length()
+        && answer.length() > 0
+        && answer[beginning_of_line] == '>')
+    {
+        last_prompt = ">";
+        return true;
+    }
+    return false;
+}
+
+// Remove prompt
+void GDBAgent_XDB::cut_off_prompt(string& answer) const
+{
+    answer = answer.before('>', -1);
+}
+
+string GDBAgent_XDB::print_command(const char *expr, bool internal) const
+{
+    /* UNUSED */ (void (internal)); 
+    string cmd = "p";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_XDB::history_file() const
+{
+    const char *g = getenv("XDBHIST");
+    if (g != 0)
+        return g;
+    else
+	return string(gethome()) + "/.xdbhist";
+}
+
+string GDBAgent_XDB::where_command(int count) const
+{
+    string cmd = "t";
+
+    if (count != 0)
+	cmd += " " + itostring(count);
+
+    return cmd;
+}
+
+string GDBAgent_XDB::info_locals_command() const { return "l"; }
+
+string GDBAgent_XDB::pwd_command() const { return "!pwd"; }
+
+string GDBAgent_XDB::make_command(const string& args) const
+{
+    string cmd = "!make";
+
+   if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_XDB::jump_command(const string& pos) const
+{
+    string pos_ = pos;
+
+    if (pos_.contains('*', 0))
+	pos_ = pos_.after('*');
+    return "g " + pos_;
+}
+
+string GDBAgent_XDB::frame_command() const
+{
+    return print_command("$depth");
+}
+
+string GDBAgent_XDB::frame_command(int num) const
+{
+    return "V " + itostring(num);
+}
+
+string GDBAgent_XDB::echo_command(const string& text) const 
+{
+    return quote(text);
+}
+
+string GDBAgent_XDB::enable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "ab" + bp;
+}
+
+string GDBAgent_XDB::disable_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "sb" + bp;
+}
+
+string GDBAgent_XDB::delete_command(string bp) const
+{
+    if (!bp.empty())
+	bp.prepend(' ');
+
+    return "db" + bp;
+}
+
+string GDBAgent_XDB::ignore_command(const string& bp, int count) const
+{
+    return "bc " + bp + " " + itostring(count);
+}
+
+string GDBAgent_XDB::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("#file ") + program; // just a dummy
+}
+
+string GDBAgent_XDB::signal_command(int sig) const
+{
+    string n = itostring(sig);
+
+    return "p $signal = " + n + "; C";
+}
+
+string GDBAgent_XDB::run_command(string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args = " " + args;
+
+    if (args.empty())
+	return "R";
+    else
+	return "r" + args;
+}
+
+string GDBAgent_XDB::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "pq";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
+}
+
+/***************************** MAKE ******************************/
+
+GDBAgent_MAKE::GDBAgent_MAKE (XtAppContext app_context,
+	      const string& gdb_call):
+    GDBAgent (app_context, gdb_call, MAKE)
+{
+    _has_display_command = false;
+    _has_clear_command = false;
+    _has_jump_command = false;
+    _has_regs_command = false;
+    _has_named_values = false;
+    _has_err_redirection = false;
+    _has_examine_command = false;
+    _has_attach_command = false;
+    _program_language = LANGUAGE_MAKE;
+}
+
+// Return true iff ANSWER ends with primary prompt.
+bool GDBAgent_MAKE::ends_with_prompt (const string& ans)
+{
+    string answer = ans;
+    strip_control(answer);
+
+    // Any line ending in `remake<...> ' is a prompt.
+    // Since N does not make sense in DDD, we use `DB<> ' instead.
+
+#if RUNTIME_REGEX
+    static regex rxmakeprompt("remake<+[(]*[.0-9][)]*>+[.]*");
+#endif
+
+    int i = answer.length() - 1;
+    if (i < 1 || answer[i] != ' ' || (answer[i - 1] != '>' && answer[i - 1] != '.'))
+        return false;
+
+    while (i >= 0 && answer[i] != '\n' ) {
+      if (answer.contains("remake<", i)) {
+        string possible_prompt = answer.from(i);
+        if (possible_prompt.matches(rxmakeprompt)) {
+          last_prompt = possible_prompt;
+          return true;
+        }
+      }
+      i--;
+    }
+    return false;
+}
+
+// Remove prompt
+void GDBAgent_MAKE::cut_off_prompt(string& answer) const
+{
+    // Check for prompt at the end of the last line
+    if (answer.contains(last_prompt, -1))
+    {
+        answer = answer.before(int(answer.length()) - 
+    			       int(last_prompt.length()));
+    }
+}
+
+string GDBAgent_MAKE::print_command(const char *expr, bool internal) const
+{
+    /* UNUSED */ (void (internal)); 
+    string cmd = "x";
+
+    if (strlen(expr) != 0) {
+	cmd += ' ';
+	cmd += expr;
+    }
+
+    return cmd;
+}
+
+string GDBAgent_MAKE::pwd_command() const { return "shell pwd"; }
+
+string GDBAgent_MAKE::make_command(const string& args) const
+{
+    string cmd = "shell make";
+
+    if (args.empty())
+	return cmd;
+    else
+	return cmd + " " + args;
+}
+
+string GDBAgent_MAKE::echo_command(const string& text) const 
+{
+  return "examine " + quote(text);
+}
+
+string GDBAgent_MAKE::debug_command(const char *program, string args) const
+{
+    if (!args.empty() && !args.contains(' ', 0))
+	args.prepend(' ');
+
+    return string("run ") + program + args;
+}
+
+string GDBAgent_MAKE::assign_command(const string& var, const string& expr) const
+{
+    string cmd = "set variable";
+
+    cmd += " " + var + " ";
+
+    switch (program_language())
+    {
+    case LANGUAGE_BASH:
+    case LANGUAGE_C:
+    case LANGUAGE_FORTRAN:
+    case LANGUAGE_JAVA:
+    case LANGUAGE_MAKE:
+    case LANGUAGE_PERL:
+    case LANGUAGE_PHP:
+    case LANGUAGE_PYTHON:	// FIXME: vrbl names can conflict with commands
+    case LANGUAGE_OTHER:
+	cmd += "=";
+	break;
+
+    case LANGUAGE_ADA:
+    case LANGUAGE_PASCAL:
+    case LANGUAGE_CHILL:
+	cmd += ":=";
+	break;
+    }
+
+    return cmd + " " + expr;
 }

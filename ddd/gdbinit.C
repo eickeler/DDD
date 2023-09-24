@@ -140,12 +140,12 @@ GDBAgent *new_gdb(DebuggerType type,
     {
 	// Use direct invocation
 	gdb_call = sh_command("exec " + gdb_call);
-	gdb = new GDBAgent(app_context, gdb_call, type);
+	gdb = GDBAgent::Create (app_context, gdb_call, type);
     }
     else
     {
 	// Use interactive rsh
-	gdb = new GDBAgent(app_context, sh_command(), type);
+	gdb = GDBAgent::Create (app_context, sh_command(), type);
 	gdb_call = 
 	    "exec " + _sh_command("exec " + gdb_call, true, true) + "\n";
 	gdb->addHandler(Input, InvokeGDBFromShellHP, (void *)&gdb_call);
