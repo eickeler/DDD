@@ -527,6 +527,24 @@ DDD_SRC = \
 	EntryType.h  \
 	GDBAgent.C   \
 	GDBAgent.h   \
+	GDBAgent_BASH.C \
+	GDBAgent_BASH.h \
+	GDBAgent_DBG.C \
+	GDBAgent_DBG.h \
+	GDBAgent_DBX.C \
+	GDBAgent_DBX.h \
+	GDBAgent_GDB.C \
+	GDBAgent_GDB.h \
+	GDBAgent_JDB.C \
+	GDBAgent_JDB.h \
+	GDBAgent_MAKE.C \
+	GDBAgent_MAKE.h \
+	GDBAgent_PERL.C \
+	GDBAgent_PERL.h \
+	GDBAgent_PYDB.C \
+	GDBAgent_PYDB.h \
+	GDBAgent_XDB.C \
+	GDBAgent_XDB.h \
 	HelpCB.C     \
 	HelpCB.h     \
 	HistoryD.C   \
