@@ -814,7 +814,6 @@ vsllib: $(vsldir)/ddd.vsl $(VSLSRC)
 
 # YACC commands.
 YY = yy
-YACCTOCXX = $(srcdir)/yacctoC
 
 # LEX commands.
 LEXTOCXX = $(srcdir)/lextoC
@@ -825,12 +824,8 @@ LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
 # VSL parsers.
 vsl-lex.C: $(srcdir)/vsl-lex.L
 	$(LEX) $(LFLAGS) $(srcdir)/vsl-lex.L
-#	$(SHELL) $(LEXTOCXX) -prefix vsl
-#	$(MV) $(LEX_OUTPUT_ROOT).cc $@
-#	$(RM) $(LEX_OUTPUT_ROOT).c
 
-vsl-gramma.H vsl-gramma.C: $(srcdir)/vsl-gramma.Y \
-	$(YACCTOCXX) $(YACCTOCXX).bison $(YACCTOCXX).h $(YACCTOCXX).sun
+vsl-gramma.H vsl-gramma.C: $(srcdir)/vsl-gramma.Y
 	$(YACC) $(YFLAGS) -d $(srcdir)/vsl-gramma.Y
 
 VSLRead.$(OBJEXT): vsl-lex.C vsl-gramma.H vsl-gramma.C
@@ -838,9 +833,6 @@ VSLRead.$(OBJEXT): vsl-lex.C vsl-gramma.H vsl-gramma.C
 # DDD regexp parsers.
 rxscan.C: $(srcdir)/rxscan.L
 	$(LEX) $(LFLAGS) $(srcdir)/rxscan.L
-#	$(SHELL) $(LEXTOCXX) -prefix "ddd"
-#	$(MV) $(LEX_OUTPUT_ROOT).cc $@
-#	$(RM) $(LEX_OUTPUT_ROOT).c
 
 regexps.$(OBJEXT): rxscan.C
 
@@ -1589,10 +1581,8 @@ dddapp_DATA = Ddd
 # In a distribution, these should be already built.
 #
 # Order is significant here!  First source files, then derived files.
-PROG_STUFF = $(LEXTOCXX).flex $(LEXTOCXX).sun \
-	     vsl-lex.L $(LEXTOCXX) vsl-lex.C \
-	     $(YACCTOCXX).bison $(YACCTOCXX).sun \
-	     vsl-gramma.Y $(YACCTOCXX) yacctoC.h vsl-gramma.H vsl-gramma.C \
+PROG_STUFF = vsl-lex.L vsl-lex.C \
+	     vsl-gramma.Y vsl-gramma.H vsl-gramma.C \
 	     rxscan.L rxscan.C \
              $(srcdir)/../TIPS $(srcdir)/../m4/tips.m4 \
 	     $(srcdir)/tips2m4.awk $(srcdir)/tips.html \
