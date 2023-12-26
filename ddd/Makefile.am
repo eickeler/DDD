@@ -724,6 +724,8 @@ vsl_SOURCES       = vsl.C \
 	DocSpace.c \
 	DocSpace.h \
 	DocSpaceP.h \
+	string-fun.C \
+	regexps.C \
 	$(BASE_SRC) \
 	$(TEMPLATE_SRC) \
 	$(AGENT_SRC) \

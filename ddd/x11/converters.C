@@ -666,7 +666,7 @@ static Boolean CvtStringToFontStruct(Display *display,
     if (!convert_fontspec(display, fontspec, "CvtStringToFontStruct"))
 	return False;
 
-    XFontStruct *font = XLoadQueryFont(display, fontspec);
+    XFontStruct *font = XLoadQueryFont(display, fontspec.chars());
     if (font == 0)
     {
 	Cardinal num_params = 1;
@@ -702,13 +702,13 @@ static Boolean CvtStringToXmFontList(Display *display,
 {
     // Get string
     const string source = str(fromVal, false);
-
+    //printf("CvtStringToXmFontList  %s \n", source.chars());
     const int n_segments = source.freq(',') + 1;
     string *segments = new string[n_segments];
     
     split(source, segments, n_segments, ',');
 
-    XmFontList target = 0;
+    XmRenderTable target = 0;
     for (int i = 0; i < n_segments; i++)
     {
 	const string& segment = segments[i];
@@ -740,31 +740,13 @@ static Boolean CvtStringToXmFontList(Display *display,
 	if (!convert_fontspec(display, fontspec, "CvtStringToXmFontList"))
 	    continue;
 
-#if XmVersion < 1002
-	XFontStruct *font = XLoadQueryFont(display, fontspec);
-	if (font == 0)
-	{
-	    Cardinal num_params = 1;
-	    String params = CONST_CAST(char*,fontspec.chars());
-	    XtAppWarningMsg(XtDisplayToApplicationContext(display),
-			    "noSuchFont", "CvtStringToXmFontList",
-			    "XtToolkitError",
-			    "No such font: %s",
-			    &params, &num_params);
-	    continue;
-	}
-
-	if (target == 0)
-	    target = XmFontListCreate(font, charset);
-	else
-	    target = XmFontListAdd(target, font, charset);
-
-#else  // XmVersion >= 1002
-	XmFontListEntry entry = XmFontListEntryLoad(display, XMST(fontspec), 
-						    XmFONT_IS_FONT, charset);
+//  	XmRendition entry = XmFontListEntryLoad(display, XMST(fontspec.chars()),
+//  						    XmFONT_IS_XFT, (char*)charset.chars());
+	XmFontListEntry entry = XmFontListEntryLoad(display, XMST(fontspec.chars()),
+						    XmFONT_IS_FONT, (char*)charset.chars());
+        //printf("fontspec %s  charset %s\n", fontspec.chars(), charset.chars());
 	target = XmFontListAppendEntry(target, entry);
 	XmFontListEntryFree(&entry);
-#endif
     }
 
     delete[] segments;
@@ -775,7 +757,7 @@ static Boolean CvtStringToXmFontList(Display *display,
 	return False;
     }
     
-    donef(XmFontList, target, XmFontListFree(XmFontList));
+    donef(XmFontList, target, XmFontListFree(target));
 }
 
 #endif
