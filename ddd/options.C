@@ -101,6 +101,8 @@ extern int ptrace(int request, int pid, int addr, int data);
 
 #include <signal.h>
 
+#include <vector>
+
 #if HAVE_LINK && !HAVE_LINK_DECL
 extern "C" int link (const char *oldname, const char *newname);
 #endif
@@ -2262,14 +2264,14 @@ bool get_restart_commands(string& restart, unsigned long flags)
 
     bool have_data_displays = (data_disp->count_data_displays() > 0);
 
-    IntArray display_numbers;
+    std::vector<int> display_numbers;
     data_disp->get_all_display_numbers(display_numbers);
     bool have_displays = display_numbers.size() > 0;
 
     if (have_data || have_displays)
     {
         // Get displays
-        StringArray scopes;
+        std::vector<string> scopes;
         bool displays_ok = true;
 
         if (have_data && have_data_displays && displays_ok)
@@ -2749,8 +2751,8 @@ bool save_options(unsigned long flags)
     // Shortcut expressions
     os << "\n! Display shortcuts.\n";
     {
-        StringArray exprs;
-        StringArray labels;
+        std::vector<string> exprs;
+        std::vector<string> labels;
         data_disp->get_shortcut_menu(exprs, labels);
         string expr = "";
 
@@ -2890,7 +2892,7 @@ bool save_options(unsigned long flags)
     // Window sizes.
     os << "\n! Window sizes.\n";
 
-    os << paned_widget_height(data_disp->graph_edit) << '\n';
+    os << paned_widget_size(data_disp->graph_edit) << '\n';
     os << paned_widget_size(source_view->source())   << '\n';
     os << paned_widget_size(source_view->code())     << '\n';
     os << paned_widget_size(gdb_w)                   << '\n';

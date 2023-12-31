@@ -393,10 +393,6 @@ static void SetSplashScreenCB(Widget, XtPointer, XtPointer);
 static void popup_splash_screen(Widget parent, const string& color_key);
 static void popdown_splash_screen(XtPointer data = 0, XtIntervalId *id = 0);
 
-// Read in database from FILENAME.  Upon version mismatch, ignore some
-// resources such as window sizes.
-static XrmDatabase GetFileDatabase(const string &filename);
-
 // Lock `~/.ddd'
 static bool lock_ddd(Widget parent, LockInfo& info);
 
@@ -404,7 +400,7 @@ static bool lock_ddd(Widget parent, LockInfo& info);
 static void setup_version_info();
 static void setup_environment();
 static void setup_options(int& argc, const char *argv[],
-                          StringArray& saved_options, string& gdb_name,
+                          std::vector<string>& saved_options, string& gdb_name,
                           bool& no_windows);
 static void setup_command_tty();
 static void setup_ddd_version_warnings();
@@ -2075,7 +2071,7 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     // `-L'     - no windows (XDB)
     // `--PLAY' - logplayer mode (DDD)
     // and options that would otherwise be eaten by Xt
-    StringArray saved_options;
+    std::vector<string> saved_options;
     string gdb_name = "";
     setup_options(argc, (const char**)argv, saved_options, gdb_name, no_windows);
 
@@ -2102,14 +2098,14 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     create_session_dir(DEFAULT_SESSION, messages);
 
     // Read ~/.ddd/init resources
-    XrmDatabase dddinit = 
-        GetFileDatabase(session_state_file(DEFAULT_SESSION));
+    XrmDatabase dddinit =
+        XrmGetFileDatabase(session_state_file(DEFAULT_SESSION).chars());
     if (dddinit == 0)
         dddinit = XrmGetStringDatabase("");
 
     // Read ~/.ddd/tips resources
     XrmDatabase dddtips =
-        GetFileDatabase(session_tips_file());
+        XrmGetFileDatabase(session_tips_file().chars());
     if (dddtips != 0)
         XrmMergeDatabases(dddtips, &dddinit);
 
@@ -2173,8 +2169,8 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     if (!restart_session().empty())
     {
         // A session is given in $DDD_SESSION: override everything.
-        XrmDatabase session_db = 
-            GetFileDatabase(session_state_file(restart_session()));
+        XrmDatabase session_db =
+            XrmGetFileDatabase(session_state_file(restart_session()).chars());
         if (session_db != 0)
             XrmMergeDatabases(session_db, &dddinit);
     }
@@ -2182,8 +2178,8 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     {
         // Merge in session resources; these override `~/.ddd/init' as
         // well as the command-line options.
-        XrmDatabase session_db = 
-            GetFileDatabase(session_state_file(session_id));
+        XrmDatabase session_db =
+            XrmGetFileDatabase(session_state_file(session_id).chars());
         if (session_db != 0)
             XrmMergeDatabases(session_db, &dddinit);
     }
@@ -3405,99 +3401,6 @@ static void ddd_check_version()
         TipOfTheDayCB(gdb_w);
 }
 
-// Read in database from FILENAME.  Upon version mismatch, ignore some
-// resources such as window sizes.
-XrmDatabase GetFileDatabase(const string& filename)
-{
-    const string tmpfile = tempfile();
-
-    std::ofstream os(tmpfile.chars());
-    std::ifstream is(filename.chars());
-
-#if 0
-    std::clog << "Copying " << filename.chars() << " to " << tmpfile << "\n";
-#endif
-
-    // Resources to ignore upon copying
-    static const char * const do_not_copy[] = 
-    { 
-        XmNwidth, XmNheight,                      // Shell sizes
-        XmNcolumns, XmNrows,                      // Text window sizes
-        XtNtoolRightOffset, XtNtoolTopOffset, // Command tool offset
-        XtNshowHints,                              // Show edge hints
-    };
-
-    bool version_mismatch = false;
-    while (is)
-    {
-        char _line[ARG_MAX];
-        _line[0] = '\0';
-        is.getline(_line, sizeof(_line));
-        string line = _line;
-
-        bool copy = true;
-        if (line.contains('!', 0))
-        {
-            // Comment -- proceed
-        }
-        else
-        {
-            if (line.contains(XtNdddinitVersion ":"))
-            {
-                string version_found = line.after(":");
-                strip_space(version_found);
-
-                if (version_found != DDD_VERSION)
-                    version_mismatch = true;
-            }
-
-#define XtNdisplayShortcuts "displayShortcuts"
-
-            if (line.contains(XtNdisplayShortcuts ":"))
-            {
-                line.gsub(XtNdisplayShortcuts ":", XtNgdbDisplayShortcuts ":");
-            }
-
-            for (int i = 0; copy && i < int(XtNumber(do_not_copy)); i++)
-            {
-                string res(".");
-                res += do_not_copy[i];
-                res += ":";
-                if (line.contains(res) && version_mismatch)
-                {
-#if 0
-                    std::cerr << "Warning: ignoring " << line 
-                         << " in " << filename.chars() << "\n";
-#endif
-                    copy = false;
-                }
-            }
-        }
-
-        if (copy)
-            os << line << '\n';
-    }
-
-    // Flush them all
-    os.close();
-    is.close();
-
-    XrmDatabase db;
-    if (version_mismatch)
-    {
-        // Read database from filtered file
-        db = XrmGetFileDatabase(tmpfile.chars());
-    }
-    else
-    {
-        // No version mismatch - read from original file
-        db = XrmGetFileDatabase(filename.chars());
-    }
-
-    unlink(tmpfile.chars());
-    return db;
-}
-
 
 
 //-----------------------------------------------------------------------------
@@ -3592,8 +3495,8 @@ static void set_shortcut_menu(DataDisp *data_disp, const string& exprs)
     string *items = new string[newlines];
     split(exprs, items, newlines, '\n');
 
-    StringArray items_s;
-    StringArray labels_s;
+    std::vector<string> items_s;
+    std::vector<string> labels_s;
     for (int i = 0; i < newlines; i++)
     {
         string item  = items[i];
@@ -7384,7 +7287,7 @@ static void setup_environment()
 }
 
 static void setup_options(int& argc, const char *argv[],
-                          StringArray& saved_options, string& gdb_name,
+                          std::vector<string>& saved_options, string& gdb_name,
                           bool& no_windows)
 {
     int gdb_option_pos = -1;
@@ -7748,7 +7651,7 @@ static void setup_options()
 static void setup_theme_manager()
 {
     DispBox::theme_manager = ThemeManager(app_data.themes);
-    StringArray available_themes;
+    std::vector<string> available_themes;
     get_themes(available_themes);
 
     for (int i = 0; i < int(available_themes.size()); i++)
