@@ -28,15 +28,27 @@
 #ifndef _DDD_FontTable_h
 #define _DDD_FontTable_h
 
+//#define USE_XFT_LIB
+
+#ifdef USE_XFT_LIB
+#include <X11/Xft/Xft.h>
+#endif
 #include <X11/Xlib.h>
 #include "base/strclass.h"
 #include "base/TypeInfo.h"
 #include "base/assert.h"
 
+
+#ifdef USE_XFT_LIB
+typedef XftFont BoxFont;
+#else
+typedef XFontStruct BoxFont;
+#endif
+
 #define MAX_FONTS 511 /* Max #Fonts */
 
 struct FontTableHashEntry {
-    XFontStruct *font;
+    BoxFont *font;
     string name;
 
     FontTableHashEntry(): font(0), name() {}
@@ -67,13 +79,19 @@ public:
 	    table[i].name = "";
 	}
     }
+
     virtual ~FontTable()
     {
+#ifndef USE_XFT_LIB
 	for (unsigned i = 0; i < MAX_FONTS; i++)
 	    if (table[i].font != 0)
 		XFreeFont(_display, table[i].font);
+#endif
     }
-    XFontStruct *operator[](const string& name);
+
+    BoxFont *operator[](const string& name);
+
+    Display *getDisplay() {return _display;}
 };
 
 #endif

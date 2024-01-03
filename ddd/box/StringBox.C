@@ -58,6 +58,7 @@ Box *StringBox::resize()
 {
     if (_font != 0)
     {
+#ifndef USE_XFT_LIB
 	int direction, font_ascent, font_descent;
 	XCharStruct overall;
 
@@ -68,11 +69,17 @@ Box *StringBox::resize()
 	XCharStruct max_bounds = _font->max_bounds;
 
 	_ascent = max_bounds.ascent;
-	thesize() = BoxSize(overall.width, 
+	thesize() = BoxSize(overall.width,
 			    max_bounds.ascent + max_bounds.descent);
 #else
 	_ascent = font_ascent;
-	thesize() = BoxSize(overall.width, font_ascent + font_descent);
+	thesize() = BoxSize(extents.width, extents.height);
+#endif
+#else
+        XGlyphInfo extents;
+	XftTextExtents8(fontTable->getDisplay(), _font, (const uint8_t*)_string.chars(), _string.length(), &extents);
+
+        thesize() = BoxSize(extents.width, _font->height);
 #endif
     }
 
@@ -87,12 +94,33 @@ void StringBox::_draw(Widget w,
 		      bool) const
 {
     BoxPoint origin = r.origin();
-
+#ifndef USE_XFT_LIB
     if (_font != 0)
 	XSetFont(XtDisplay(w), gc, _font->fid);
 
     XDrawString(XtDisplay(w), XtWindow(w), gc, origin[X], origin[Y] + _ascent,
 		_string.chars(), _string.length());
+#else
+    Visual *visual = DefaultVisual(XtDisplay(w), DefaultScreen(XtDisplay(w)));
+    Colormap cmap = DefaultColormap(XtDisplay(w),  DefaultScreen(XtDisplay(w)));
+    XftDraw *draw = XftDrawCreate(XtDisplay(w), XtWindow(w), visual, cmap);
+
+    XGCValues gc_values;
+    XGetGCValues(XtDisplay(w), gc, GCForeground, &gc_values);
+
+    XftColor color;
+    XColor xcol;
+    xcol.pixel = gc_values.foreground;
+    XQueryColor(XtDisplay(w), DefaultColormap(XtDisplay(w), DefaultScreen(XtDisplay(w))), &xcol);
+    color.color.red = xcol.red;
+    color.color.blue = xcol.blue;
+    color.color.green = xcol.green;
+    color.color.alpha = 0xFFFF;
+
+    XftDrawStringUtf8(draw, &color, _font, origin[X], origin[Y] + _ascent, (const FcChar8*)_string.chars(), _string.length());
+    XftColorFree(XtDisplay(w), visual, cmap, &color);
+    XftDrawDestroy(draw);
+#endif
 }
 
 

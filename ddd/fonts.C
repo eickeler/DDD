@@ -56,6 +56,8 @@ char fonts_rcsid[] =
 #include <Xm/PushB.h>
 #include <X11/Xatom.h>		// XA_...
 
+#include "box/FontTable.h" // for the define USE_XFT_LIB
+
 
 //-----------------------------------------------------------------------------
 // Return X font attributes
@@ -373,11 +375,23 @@ static void title(const AppData& ad, const string& s)
 static void get_derived_sizes(Dimension size,
 			      Dimension& small_size,
 			      Dimension& tiny_size,
-			      Dimension& llogo_size)
+			      Dimension& llogo_size,
+                              bool calcPixel=false)
 {
-    small_size = ((size * 8) / 90) * 10;
-    tiny_size  = ((size * 6) / 90) * 10;
-    llogo_size = ((size * 3) / 20) * 10;
+    if (calcPixel)
+    {
+        // size i pixels
+        small_size = (size * 8) / 9;
+        tiny_size  = (size * 6) / 9;
+        llogo_size = (size * 3) / 2;
+    }
+    else
+    {
+        // last digit has to be zero for size in points
+        small_size = ((size * 8) / 90) * 10;
+        tiny_size  = ((size * 6) / 90) * 10;
+        llogo_size = ((size * 3) / 20) * 10;
+    }
 }
 
 static void setup_x_fonts(const AppData& ad, XrmDatabase& db)
@@ -452,13 +466,46 @@ static void setup_x_fonts(const AppData& ad, XrmDatabase& db)
     setup_font_db(ad, db);
 }
 
+//-----------------------------------------------------------------------------
+// Setup XFT fonts
+//-----------------------------------------------------------------------------
+
+static void setup_xft_fonts(AppData& ad, XrmDatabase& db)
+{
+    if (ad.fixed_width_font_size >=80)
+        ad.fixed_width_font_size = 11; // size seem to be in points -> set default
+
+    // according to hints from Joe Nelson
+    XrmPutLineResource(&db, "Ddd*source_text_w*renderTable: rtfix");
+    XrmPutLineResource(&db, "Ddd*gdb_w*renderTable: rtfix");
+    XrmPutLineResource(&db, "Ddd*code_text_w*renderTable: rtfix");
+    XrmPutLineResource(&db, "Ddd*rtfix*fontType: FONT_IS_XFT");
+    XrmPutLineResource(&db, (string("Ddd*rtfix*fontName: ") + ad.fixed_width_font).chars());
+    XrmPutLineResource(&db, (string("Ddd*rtfix*fontSize: ") + itostring(ad.fixed_width_font_size)).chars());
+
+    if (ad.variable_width_font_size>=80)
+        ad.variable_width_font_size = 11; // size seem to be in points -> set default
+
+    XrmPutLineResource(&db, "Ddd*renderTable: rtvar");
+    XrmPutLineResource(&db, "Ddd*rtvar*fontType: FONT_IS_XFT");
+    XrmPutLineResource(&db, (string("Ddd*rtvar*fontName: ") + ad.variable_width_font).chars());
+    XrmPutLineResource(&db, (string("Ddd*rtvar*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
 
 
+}
 //-----------------------------------------------------------------------------
 // Set VSL font resources
 //-----------------------------------------------------------------------------
 
-static void replace_vsl_font(string& defs, const string& func, 
+void replace_vsl_xftfont(string& defs, const string& func,
+			     const string& font, const Dimension size, const string& override = "")
+{
+    string fontname = quote(font+string(":size=")+itostring(size)+override);
+    defs += "#pragma replace " + func + "\n" + 
+	func + "(box) = font(box, " + fontname + ");\n";
+}
+
+void replace_vsl_font(string& defs, const string& func,
 			     const AppData& ad, const string& override = "",
 			     DDDFont font = DataDDDFont)
 {
@@ -470,6 +517,32 @@ static void replace_vsl_font(string& defs, const string& func,
 static void setup_vsl_fonts(AppData& ad)
 {
     Dimension small_size, tiny_size, llogo_size;
+#ifdef USE_XFT_LIB
+    if (ad.data_font_size >=80)
+        ad.data_font_size = 11;
+
+    get_derived_sizes(ad.data_font_size, small_size, tiny_size, llogo_size, true);
+
+    static string defs; // defs.chars() is used in AppData
+    defs = "";
+
+    title(ad, "VSL defs");
+
+    replace_vsl_xftfont(defs, "rm", ad.data_font, ad.data_font_size);
+    replace_vsl_xftfont(defs, "bf", ad.data_font, ad.data_font_size, ":weight=bold");
+    replace_vsl_xftfont(defs, "it", ad.data_font, ad.data_font_size, ":slant=italic");
+    replace_vsl_xftfont(defs, "bf", ad.data_font, ad.data_font_size, ":weight=bold:slant=italic");
+
+    replace_vsl_xftfont(defs, "small_rm", ad.data_font, small_size);
+    replace_vsl_xftfont(defs, "small_bf", ad.data_font, small_size, ":weight=bold");
+    replace_vsl_xftfont(defs, "small_it", ad.data_font, small_size, ":slant=italic");
+    replace_vsl_xftfont(defs, "small_bf", ad.data_font, small_size, ":weight=bold:slant=italic");
+
+    replace_vsl_xftfont(defs, "tiny_rm", ad.data_font, tiny_size);
+    replace_vsl_xftfont(defs, "tiny_bf", ad.data_font, tiny_size, ":weight=bold");
+    replace_vsl_xftfont(defs, "tiny_it", ad.data_font, tiny_size, ":slant=italic");
+    replace_vsl_xftfont(defs, "tiny_bf", ad.data_font, tiny_size, ":weight=bold:slant=italic");
+#else
     get_derived_sizes(ad.data_font_size, small_size, tiny_size, llogo_size);
 
     string small_size_s = itostring(small_size);
@@ -517,6 +590,7 @@ static void setup_vsl_fonts(AppData& ad)
 			      override(Slant, "*", 
 				       override(PointSize, tiny_size_s))),
 		     VariableWidthDDDFont);
+#endif
 
     if (ad.show_fonts)
 	std::cout << defs;
@@ -528,7 +602,11 @@ static void setup_vsl_fonts(AppData& ad)
 void setup_fonts(AppData& ad, XrmDatabase db)
 {
     XrmDatabase db2 = db;
+#ifdef USE_XFT_LIB
+    setup_xft_fonts(ad, db2);
+#else
     setup_x_fonts(ad, db2);
+#endif
     assert(db == db2);
 
     setup_vsl_fonts(ad);

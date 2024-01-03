@@ -49,7 +49,7 @@ inline unsigned hash(const char *name)
 }
 
 // Return XFontStruct for given font name NAME
-XFontStruct *FontTable::operator[](const string& name)
+BoxFont *FontTable::operator[](const string& name)
 {
     int i = hash(name.chars());
     while (table[i].font != 0 && name != table[i].name)
@@ -62,14 +62,21 @@ XFontStruct *FontTable::operator[](const string& name)
     {
 	// Insert new font
 	table[i].name = name;
+#ifdef USE_XFT_LIB
+ 	table[i].font = XftFontOpenName(_display, DefaultScreen(_display), (name+":antialias=true").chars());
+#else
 	table[i].font = XLoadQueryFont(_display, name.chars());
-
+#endif
 	if (table[i].font == 0)
 	{
 	    std::cerr << "Warning: Could not load font \"" << name << "\"";
 
 	    // Try default font
-	    GC default_gc = 
+#ifdef USE_XFT_LIB
+            table[i].font = XftFontOpen(_display, DefaultScreen(_display), XFT_FAMILY, XftTypeString, "", NULL);
+            std::cerr << ", using default font instead\n";
+#else
+	    GC default_gc =
 		DefaultGCOfScreen(DefaultScreenOfDisplay(_display));
 	    XGCValues gc_values;
 	    if (XGetGCValues(_display, default_gc, GCFont, &gc_values))
@@ -82,8 +89,11 @@ XFontStruct *FontTable::operator[](const string& name)
 		    table[i].font = font;
 		}
 	    }
-	}
+#endif
 
+        }
+
+#ifndef USE_XFT_LIB
 	if (table[i].font == 0)
 	{
 	    // Try "fixed" font
@@ -97,6 +107,7 @@ XFontStruct *FontTable::operator[](const string& name)
 
 	if (table[i].font == 0)
 	    std::cerr << "\n";
+#endif
     }
 
     return table[i].font;

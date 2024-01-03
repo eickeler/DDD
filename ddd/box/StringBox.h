@@ -44,7 +44,7 @@ public:
 private:
     string _string;
     string _fontname;
-    XFontStruct *_font;
+    BoxFont *_font;
     BoxCoordinate _ascent;
 
     StringBox& operator = (const StringBox&);
@@ -76,24 +76,21 @@ public:
     static bool quoted;          // Flag: insert \ before quotes?
 
     // Constructor
-    StringBox(const string& s, const char *fontname = "fixed",
-	const char *t = "StringBox"):
+    StringBox(const string& s, const char *fontname = "fixed", const char *t = "StringBox"):
 	PrimitiveBox(BoxSize(0,0), BoxExtend(0, 0), t),
 	_string(s), _fontname(fontname), _font(0), _ascent(0)
     {
 	newFont();
     }
 
-    StringBox(const char *s = "", const char *fontname = "fixed",
-	const char *t = "StringBox"):
+    StringBox(const char *s = "", const char *fontname = "fixed", const char *t = "StringBox"):
 	PrimitiveBox(BoxSize(0,0), BoxExtend(0, 0), t),
 	_string(s), _fontname(fontname), _font(0), _ascent(0)
     {
 	newFont();
     }
 
-    StringBox(const string& s, XFontStruct *fnt,
-	const char *t = "StringBox"):
+    StringBox(const string& s, BoxFont *fnt, const char *t = "StringBox"):
 	PrimitiveBox(BoxSize(0,0), BoxExtend(0, 0), t),
 	_string(s), _fontname("?"), _font(fnt), _ascent(0)
     {
@@ -102,7 +99,7 @@ public:
 
     Box *dup() const { return new StringBox(*this); }
 
-    void _newFont(XFontStruct *newfont)
+    void _newFont(BoxFont *newfont)
     {
 	// If this is a new font, resize
 	if (newfont != _font)
@@ -120,7 +117,7 @@ public:
 		const PrintGC& gc) const;
 
     // Resources
-    const XFontStruct *font() const { return _font; }
+    const BoxFont *font() const { return _font; }
     const string& fontName() const  { return _fontname; }
     const char *fontName_c() const { return _fontname.chars(); }
     virtual string str() const { return _string; }
