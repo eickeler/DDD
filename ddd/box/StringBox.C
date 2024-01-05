@@ -78,7 +78,7 @@ Box *StringBox::resize()
 #else
         XGlyphInfo extents;
 	XftTextExtents8(fontTable->getDisplay(), _font, (const uint8_t*)_string.chars(), _string.length(), &extents);
-
+        _ascent = _font->ascent;
         thesize() = BoxSize(extents.width, _font->height);
 #endif
     }
