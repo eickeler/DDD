@@ -431,8 +431,8 @@ XtIntervalId DataDisp::refresh_addr_timer       = 0;
 XtIntervalId DataDisp::refresh_graph_edit_timer = 0;
 
 // Array of shortcut expressions and their labels
-StringArray DataDisp::shortcut_exprs;
-StringArray DataDisp::shortcut_labels;
+std::vector<string> DataDisp::shortcut_exprs;
+std::vector<string> DataDisp::shortcut_labels;
 
 //----------------------------------------------------------------------------
 // Helpers
@@ -453,7 +453,7 @@ inline bool absolute_le(int a, int b)
 
 
 // Sort A
-static void sort(IntArray& a, bool (*le)(int, int) = default_le)
+static void sort(std::vector<int>& a, bool (*le)(int, int) = default_le)
 {
     // Shell sort -- simple and fast
     int h = 1;
@@ -561,7 +561,7 @@ int DataDisp::count_data_displays()
 }
 
 // Get all display numbers
-void DataDisp::get_all_display_numbers(IntArray& numbers)
+void DataDisp::get_all_display_numbers(std::vector<int>& numbers)
 {
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -574,7 +574,7 @@ void DataDisp::get_all_display_numbers(IntArray& numbers)
 }
 
 // Get all clusters
-void DataDisp::get_all_clusters(IntArray& numbers)
+void DataDisp::get_all_clusters(std::vector<int>& numbers)
 {
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -745,7 +745,7 @@ void DataDisp::unapplyThemeCB (Widget w, XtPointer client_data, XtPointer)
     }
 
     // 3. Remove first matching pattern
-    StringArray patterns = tp.patterns();
+    std::vector<string> patterns = tp.patterns();
     for (int i = 0; i < int(patterns.size()); i++)
     {
 	tp.remove(patterns[i]);
@@ -863,7 +863,7 @@ void DataDisp::toggle_themeSQ(const string& theme, const string& pattern,
     string p = pattern;
     strip_space(p);
 
-    const StringArray& patterns = DispBox::theme_manager.pattern(t).patterns();
+    const std::vector<string>& patterns = DispBox::theme_manager.pattern(t).patterns();
     for (int i = 0; i < int(patterns.size()); i++)
 	if (patterns[i] == p)
 	{
@@ -919,7 +919,7 @@ void DataDisp::dereferenceInPlaceCB(Widget w, XtPointer, XtPointer)
     p = disp_node_arg->pos();
     new_display(display_expression, &p, "", false, false, w);
 
-    IntArray nrs;
+    std::vector<int> nrs;
     nrs.push_back(disp_node_arg->disp_nr());
     delete_display(nrs, w);
 }
@@ -950,8 +950,8 @@ void DataDisp::toggleDetailCB(Widget dialog,
 
     set_last_origin(dialog);
 
-    IntArray disable_nrs;
-    IntArray enable_nrs;
+    std::vector<int> disable_nrs;
+    std::vector<int> enable_nrs;
 
     bool changed = false;
     MapRef ref;
@@ -1036,7 +1036,7 @@ void DataDisp::show(Widget dialog, int depth, int more)
 	return;
     }
 
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
 
     bool changed = false;
     MapRef ref;
@@ -1093,7 +1093,7 @@ void DataDisp::hideDetailCB (Widget dialog, XtPointer, XtPointer)
 	return;
     }
 
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
 
     bool changed = false;
     MapRef ref;
@@ -1201,7 +1201,7 @@ void DataDisp::rotateCB(Widget w, XtPointer client_data, XtPointer)
 void DataDisp::toggleDisableCB (Widget dialog, XtPointer, XtPointer)
 {
     set_last_origin(dialog);
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
 
     bool do_enable  = true;
     bool do_disable = true;
@@ -1279,7 +1279,7 @@ void DataDisp::deleteCB (Widget dialog, XtPointer /* client_data */,
 	return;
     }
 
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
     std::vector<GraphNode *> ancestors;
     std::vector<GraphNode *> descendants;
 
@@ -1364,7 +1364,7 @@ void DataDisp::enableCB(Widget w, XtPointer, XtPointer)
 {
     set_last_origin(w);
 
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
 
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -1384,7 +1384,7 @@ void DataDisp::disableCB(Widget w, XtPointer, XtPointer)
 {
     set_last_origin(w);
 
-    IntArray disp_nrs;
+    std::vector<int> disp_nrs;
 
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -1437,8 +1437,8 @@ void DataDisp::shortcutCB(Widget w, XtPointer client_data, XtPointer)
 }
 
 // Set shortcut menu to expressions EXPRS
-void DataDisp::set_shortcut_menu(const StringArray& exprs,
-				 const StringArray& labels)
+void DataDisp::set_shortcut_menu(const std::vector<string>& exprs,
+				 const std::vector<string>& labels)
 {
     shortcut_labels = labels;
     shortcut_exprs  = exprs;
@@ -1709,7 +1709,7 @@ class NewDisplayInfo {
 public:
     string display_expression;
     string scope;
-    StringArray display_expressions;
+    std::vector<string> display_expressions;
     BoxPoint point;
     BoxPoint *point_ptr;
     string depends_on;
@@ -2335,9 +2335,9 @@ void DataDisp::set_args(const BoxPoint& p, SelectionMode mode)
     }
 
     // Themes.
-    static StringArray all_themes;
+    static std::vector<string> all_themes;
     all_themes = DispBox::theme_manager.themes();
-    StringArray current_themes;
+    std::vector<string> current_themes;
     DispValue *dv = selected_value();
     if (dv != 0)
 	current_themes = DispBox::theme_manager.themes(dv->full_name());
@@ -2876,7 +2876,7 @@ void DataDisp::RefreshArgsCB(XtPointer, XtIntervalId *timer_id)
 int DataDisp::max_display_number = 99;
 
 // Get scopes in SCOPES
-bool DataDisp::get_scopes(StringArray& scopes)
+bool DataDisp::get_scopes(std::vector<string>& scopes)
 {
     // Fetch current backtrace and store scopes in SCOPES
     string backtrace = gdb_question(gdb->where_command(), -1, true);
@@ -2924,7 +2924,7 @@ void DataDisp::write_frame_command(std::ostream& os, int& current_frame,
 // Write commands to restore scope of DN in OS
 void DataDisp::write_restore_scope_command(std::ostream& os,
 					   int& current_frame,
-					   const StringArray& scopes,
+					   const std::vector<string>& scopes,
 					   DispNode *dn,
 					   const bool& ok)
 {
@@ -3055,7 +3055,7 @@ void DataDisp::get_node_state(std::ostream& os, DispNode *dn, bool include_posit
 bool DataDisp::get_state(std::ostream& os,
 			 bool restore_state,
 			 bool include_position,
-			 const StringArray& scopes,
+			 const std::vector<string>& scopes,
 			 int target_frame)
 {
     // Sort displays by number, such that old displays appear before
@@ -3063,7 +3063,7 @@ bool DataDisp::get_state(std::ostream& os,
 
     // Note: this fails with the negative numbers of user-defined
     // displays; a topological sort would make more sense here. (FIXME)
-    IntArray nrs;
+    std::vector<int> nrs;
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
 	 dn != 0;
@@ -3132,7 +3132,7 @@ void DataDisp::reset_done(const string& answer, void *)
 void DataDisp::reset()
 {
     // Clear all data displays
-    IntArray display_nrs;
+    std::vector<int> display_nrs;
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
 	 dn != 0;
@@ -3169,7 +3169,7 @@ int DataDisp::alias_display_nr(GraphNode *node)
 // Update graph editor selection after a change in the display editor
 void DataDisp::UpdateGraphEditorSelectionCB(Widget, XtPointer, XtPointer)
 {
-    IntArray display_nrs;
+    std::vector<int> display_nrs;
     getItemNumbers(display_list_w, display_nrs);
 
     // Update graph editor selection
@@ -3259,7 +3259,7 @@ void DataDisp::UpdateGraphEditorSelectionCB(Widget, XtPointer, XtPointer)
 	    continue;
 
 	// Find the display numbers in this cluster
-	IntArray cluster_children;
+	std::vector<int> cluster_children;
 	MapRef ref;
 	for (DispNode *dn2 = disp_graph->first(ref); 
 	     dn2 != 0; dn2 = disp_graph->next(ref))
@@ -3432,7 +3432,7 @@ int DataDisp::display_number(const string& name, bool verbose)
     return nr;
 }
 
-void DataDisp::get_display_numbers(const string& name, IntArray& numbers)
+void DataDisp::get_display_numbers(const string& name, std::vector<int>& numbers)
 {
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); dn != 0;
@@ -3544,7 +3544,7 @@ void DataDisp::new_displaySQ (const string& display_expression,
     else
     {
 	// Data display
-	StringArray expressions;
+	std::vector<string> expressions;
 	int ret = unfold_expressions(display_expression, expressions);
 	if (ret || expressions.size() == 0)
 	    return;
@@ -3591,7 +3591,7 @@ void DataDisp::new_displaySQ (const string& display_expression,
 
 // Find all expressions in DISPLAY_EXPRESSIONS, using FROM..TO syntax
 int DataDisp::unfold_expressions(const string& display_expression,
-				 StringArray& expressions)
+				 std::vector<string>& expressions)
 {
     if (!display_expression.contains(rxmore_than_one))
     {
@@ -3714,7 +3714,7 @@ string DataDisp::builtin_user_command(const string& cmd, DispNode *node)
     if (cmd.contains(CLUSTER_COMMAND, 0))
     {
 	MapRef ref;
-	IntArray clustered_displays;
+	std::vector<int> clustered_displays;
 	for (DispNode* dn = disp_graph->first(ref); 
 	     dn != 0;
 	     dn = disp_graph->next(ref))
@@ -4276,7 +4276,7 @@ int DataDisp::new_cluster(const string& name, bool plotted)
 int DataDisp::current_cluster()
 {
     // Use last cluster or create a new one
-    IntArray all_clusters;
+    std::vector<int> all_clusters;
     get_all_clusters(all_clusters);
     sort(all_clusters);
 
@@ -4295,8 +4295,8 @@ class RefreshInfo {
 public:
     bool verbose;
     bool prompt;
-    IntArray display_nrs;
-    StringArray cmds;
+    std::vector<int> display_nrs;
+    std::vector<string> cmds;
 
     RefreshInfo()
 	: verbose(false), prompt(false), display_nrs(), cmds()
@@ -4310,7 +4310,7 @@ private:
     RefreshInfo& operator = (const RefreshInfo&);
 };
 
-int DataDisp::add_refresh_data_commands(StringArray& cmds)
+int DataDisp::add_refresh_data_commands(std::vector<string>& cmds)
 {
     int initial_size = cmds.size();
 
@@ -4341,7 +4341,7 @@ int DataDisp::add_refresh_data_commands(StringArray& cmds)
     return cmds.size() - initial_size;
 }
 
-int DataDisp::add_refresh_user_commands(StringArray& cmds)
+int DataDisp::add_refresh_user_commands(std::vector<string>& cmds)
 {
     int initial_size = cmds.size();
 
@@ -4381,7 +4381,7 @@ void DataDisp::refresh_displaySQ(Widget origin, bool verbose, bool do_prompt)
     make_sane();
 
     // Now for the refreshments.  Process all displays.
-    StringArray cmds;
+    std::vector<string> cmds;
     VoidArray dummy;
 
     if (gdb->has_info_display_command())
@@ -4420,7 +4420,7 @@ void DataDisp::refresh_displaySQ(Widget origin, bool verbose, bool do_prompt)
     }
 }
 
-void DataDisp::refresh_displayOQAC (StringArray& answers,
+void DataDisp::refresh_displayOQAC (std::vector<string>& answers,
 				    const VoidArray& qu_datas,
 				    void*  data)
 {
@@ -4428,8 +4428,8 @@ void DataDisp::refresh_displayOQAC (StringArray& answers,
 
     string data_answers;
     int data_answers_seen = 0;
-    StringArray user_answers;
-    StringArray addr_answers;
+    std::vector<string> user_answers;
+    std::vector<string> addr_answers;
 
     RefreshInfo *info = (RefreshInfo *)data;
 
@@ -4507,7 +4507,7 @@ void DataDisp::refresh_displayOQAC (StringArray& answers,
 //-----------------------------------------------------------------------------
 
 // Convert A to a space-separated string
-string DataDisp::numbers(IntArray& a)
+string DataDisp::numbers(std::vector<int>& a)
 {
     sort(a);
 
@@ -4523,7 +4523,7 @@ string DataDisp::numbers(IntArray& a)
 }
 
 // Sort and verify the display numbers in DISPLAY_NRS
-bool DataDisp::sort_and_check(IntArray& display_nrs)
+bool DataDisp::sort_and_check(std::vector<int>& display_nrs)
 {
     bool ok = true;
     sort(display_nrs);
@@ -4544,7 +4544,7 @@ bool DataDisp::sort_and_check(IntArray& display_nrs)
 }
 
 // For all nodes in DISPLAY_NRS, add their aliases
-void DataDisp::add_aliases(IntArray& display_nrs)
+void DataDisp::add_aliases(std::vector<int>& display_nrs)
 {
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -4570,7 +4570,7 @@ void DataDisp::add_aliases(IntArray& display_nrs)
     }
 }
 
-string DataDisp::disable_display_cmd(IntArray& display_nrs)
+string DataDisp::disable_display_cmd(std::vector<int>& display_nrs)
 {
     add_aliases(display_nrs);
 
@@ -4580,7 +4580,7 @@ string DataDisp::disable_display_cmd(IntArray& display_nrs)
 	return "";
 }
 
-void DataDisp::disable_displaySQ(IntArray& display_nrs, bool verbose, 
+void DataDisp::disable_displaySQ(std::vector<int>& display_nrs, bool verbose,
 				 bool do_prompt)
 {
     bool ok = sort_and_check(display_nrs);
@@ -4650,7 +4650,7 @@ void DataDisp::disable_displayOQC (const string& answer, void *data)
 // Enable Displays
 //-----------------------------------------------------------------------------
 
-string DataDisp::enable_display_cmd(IntArray& display_nrs)
+string DataDisp::enable_display_cmd(std::vector<int>& display_nrs)
 {
     add_aliases(display_nrs);
 
@@ -4660,7 +4660,7 @@ string DataDisp::enable_display_cmd(IntArray& display_nrs)
 	return "";
 }
 
-void DataDisp::enable_displaySQ(IntArray& display_nrs, bool verbose, 
+void DataDisp::enable_displaySQ(std::vector<int>& display_nrs, bool verbose,
  				bool do_prompt)
 {
     bool ok = sort_and_check(display_nrs);
@@ -4732,7 +4732,7 @@ void DataDisp::enable_displayOQC (const string& answer, void *data)
 // Delete Displays
 //-----------------------------------------------------------------------------
 
-string DataDisp::delete_display_cmd(IntArray& display_nrs)
+string DataDisp::delete_display_cmd(std::vector<int>& display_nrs)
 {
     if (app_data.delete_alias_displays)
 	add_aliases(display_nrs);
@@ -4749,10 +4749,10 @@ string DataDisp::delete_display_cmd(const string& name)
 }
 
 // Return true iff DISPLAY_NRS contains all data displays
-bool DataDisp::all_data_displays(IntArray& display_nrs)
+bool DataDisp::all_data_displays(std::vector<int>& display_nrs)
 {
     // Fetch given data displays
-    IntArray data_display_nrs;
+    std::vector<int> data_display_nrs;
     int i;
     for (i = 0; i < int(display_nrs.size()); i++)
 	if (display_nrs[i] > 0)
@@ -4762,7 +4762,7 @@ bool DataDisp::all_data_displays(IntArray& display_nrs)
 	return false;
 
     // Fetch existing data displays
-    IntArray all_data_display_nrs;
+    std::vector<int> all_data_display_nrs;
 
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -4787,7 +4787,7 @@ bool DataDisp::all_data_displays(IntArray& display_nrs)
     return true;
 }
 
-void DataDisp::delete_displaySQ(IntArray& display_nrs, bool verbose, 
+void DataDisp::delete_displaySQ(std::vector<int>& display_nrs, bool verbose,
 				bool do_prompt)
 {
     bool ok = sort_and_check(display_nrs);
@@ -4854,8 +4854,7 @@ void DataDisp::delete_displayOQC (const string& answer, void *data)
 	if (!reply.contains('y', 0))
 	{
 	    // Deletion was canceled
-	    static const IntArray empty;
-	    info->display_nrs = empty;
+	    info->display_nrs.clear();
 	}
     }
 
@@ -4878,7 +4877,7 @@ void DataDisp::delete_displayOQC (const string& answer, void *data)
     deletion_done(info->display_nrs, info->prompt);
 }
 
-void DataDisp::deletion_done (IntArray& display_nrs, bool do_prompt)
+void DataDisp::deletion_done (std::vector<int>& display_nrs, bool do_prompt)
 {
     bool unclustered = false;
 
@@ -5007,7 +5006,7 @@ void DataDisp::process_info_display(string& info_display_answer,
     // Process DDD displays
 
     // Part 1.  Update existing display values.
-    IntArray deleted_displays;
+    std::vector<int> deleted_displays;
     bool changed = false;
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref);
@@ -5349,9 +5348,9 @@ string DataDisp::process_displays(string& displays,
 // Undo stuff
 //-----------------------------------------------------------------------------
 
-void DataDisp::update_displays(const StringArray& displays, 
-			       const StringArray& values,
-			       const StringArray& addrs)
+void DataDisp::update_displays(const std::vector<string>& displays,
+			       const std::vector<string>& values,
+			       const std::vector<string>& addrs)
 {
     assert(displays.size() == values.size());
     assert(displays.size() == addrs.size());
@@ -5471,7 +5470,7 @@ void DataDisp::make_sane()
 // Handle output of user commands
 //-----------------------------------------------------------------------------
 
-void DataDisp::process_user (StringArray& answers)
+void DataDisp::process_user (std::vector<string>& answers)
 {
     if (answers.size() == 0)
 	return;
@@ -5536,7 +5535,7 @@ void DataDisp::process_scope(const string& scope)
     CommandGroup cg;
 
     // Fetch deferred displays that are in current scope
-    IntArray deferred_displays;
+    std::vector<int> deferred_displays;
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
 	 dn != 0;
@@ -5640,7 +5639,7 @@ static string fmt(string s, unsigned size)
     return s;
 }
 
-static int max_width(const StringArray& s)
+static int max_width(const std::vector<string>& s)
 {
     int w = 0;
 
@@ -5671,11 +5670,11 @@ void DataDisp::RefreshDisplayListCB(XtPointer client_data, XtIntervalId *id)
     const bool silent = client_data?true:false;
     const int number_of_displays = disp_graph->count_all();
 
-    StringArray nums;
-    StringArray states;
-    StringArray exprs;
-    StringArray scopes;
-    StringArray addrs;
+    std::vector<string> nums;
+    std::vector<string> states;
+    std::vector<string> exprs;
+    std::vector<string> scopes;
+    std::vector<string> addrs;
 
     if (number_of_displays > 0)
     {
@@ -5852,7 +5851,7 @@ void DataDisp::RefreshDisplayListCB(XtPointer client_data, XtIntervalId *id)
 	{
 	    // Show info about multiple selected displays
 	    msg = rm("Displays ");
-	    IntArray displays;
+	    std::vector<int> displays;
 	    for (k = disp_graph->first_nr(ref); k != 0; 
 		 k = disp_graph->next_nr(ref))
 	    {
@@ -6094,7 +6093,7 @@ void DataDisp::new_user_display(const string& name)
 
 void DataDisp::delete_user_display(const string& name)
 {
-    IntArray killme;
+    std::vector<int> killme;
 
     MapRef ref;
     for (DispNode* dn = disp_graph->first(ref); 
@@ -6189,10 +6188,10 @@ void DataDisp::set_cluster_displays(bool value)
     else
     {
 	// Uncluster all
-	IntArray all_clusters;
+	std::vector<int> all_clusters;
 	get_all_clusters(all_clusters);
 
-	IntArray killme;
+	std::vector<int> killme;
 
 	for (int i = 0; i < int(all_clusters.size()); i++)
 	{
@@ -6249,10 +6248,10 @@ void DataDisp::unclusterSelectedCB(Widget, XtPointer, XtPointer)
     }
 
     // Delete selected clusters
-    IntArray all_clusters;
+    std::vector<int> all_clusters;
     get_all_clusters(all_clusters);
 
-    IntArray killme;
+    std::vector<int> killme;
     for (int i = 0; i < int(all_clusters.size()); i++)
     {
 	DispNode *cluster = disp_graph->get(all_clusters[i]);
@@ -6272,7 +6271,7 @@ void DataDisp::unclusterSelectedCB(Widget, XtPointer, XtPointer)
 void DataDisp::clusterSelectedCB(Widget, XtPointer, XtPointer)
 {
     int target_cluster = 0;
-    IntArray all_clusters;
+    std::vector<int> all_clusters;
     get_all_clusters(all_clusters);
 
     // If we have a selected cluster, choose this one as a target
@@ -6345,7 +6344,7 @@ void DataDisp::set_detect_aliases(bool value)
 }
 
 // Add address-printing commands to CMDS
-int DataDisp::add_refresh_addr_commands(StringArray& cmds, DispNode *dn)
+int DataDisp::add_refresh_addr_commands(std::vector<string>& cmds, DispNode *dn)
 {
     if (!detect_aliases)
 	return 0;
@@ -6402,7 +6401,7 @@ void DataDisp::RefreshAddrCB(XtPointer client_data, XtIntervalId *id)
     bool sent = false;
     if (can_do_gdb_command())
     {
-	StringArray cmds;
+	std::vector<string> cmds;
 	VoidArray dummy;
 
 	add_refresh_addr_commands(cmds, dn);
@@ -6449,7 +6448,7 @@ void DataDisp::RefreshAddrCB(XtPointer client_data, XtIntervalId *id)
 }
 
 // Handle output of addr commands
-void DataDisp::process_addr (StringArray& answers)
+void DataDisp::process_addr (std::vector<string>& answers)
 {
     int i = 0;
 
@@ -6532,7 +6531,7 @@ bool DataDisp::check_aliases()
 	    bool added = false;
 	    for (int i = 0; !added && i < int(list.size()); i++)
 	    {
-		IntArray& displays = list[i];
+		std::vector<int>& displays = list[i];
 		assert (displays.size() > 0);
 
 		DispNode *d1 = disp_graph->get(displays[0]);
@@ -6549,7 +6548,7 @@ bool DataDisp::check_aliases()
 
 	    if (!added)
 	    {
-		IntArray new_displays;
+		std::vector<int> new_displays;
 		new_displays.push_back(k);
 		list.push_back(new_displays);
 	    }
@@ -6568,7 +6567,7 @@ bool DataDisp::check_aliases()
 
 	for (int i = 0; i < int(list.size()); i++)
 	{
-	    IntArray& displays = list[i];
+	    std::vector<int>& displays = list[i];
 	    assert(displays.size() > 0);
 
 	    if (addr.empty() || displays.size() == 1)
@@ -6604,7 +6603,7 @@ int DataDisp::last_change_of_disp_nr(int disp_nr)
 }
 
 // Sort DISP_NRS according to the last change
-void DataDisp::sort_last_change(IntArray& disp_nrs)
+void DataDisp::sort_last_change(std::vector<int>& disp_nrs)
 {
     // Shell sort -- simple and fast
     int h = 1;
@@ -6628,7 +6627,7 @@ void DataDisp::sort_last_change(IntArray& disp_nrs)
 
 // Merge displays in DISPLAYS.  Set CHANGED iff changed.  Set
 // SUPPRESSED if displays were suppressed.
-void DataDisp::merge_displays(IntArray displays,
+void DataDisp::merge_displays(std::vector<int> displays,
 			      bool& changed, bool& suppressed)
 {
     assert(displays.size() > 0);
@@ -6653,7 +6652,7 @@ void DataDisp::merge_displays(IntArray displays,
 	changed = unmerge_display(displays[0]) || changed;
     }
 
-    IntArray suppressed_displays;
+    std::vector<int> suppressed_displays;
     for (i = 1; i < int(displays.size()); i++)
     {
 	int disp_nr = displays[i];

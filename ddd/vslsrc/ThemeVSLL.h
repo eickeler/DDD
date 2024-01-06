@@ -29,13 +29,14 @@
 #define _DDD_ThemedVSLLib_h
 
 #include "VSLLib.h"
-#include "template/StringA.h"
+#include "base/strclass.h"
+#include <vector>
 
 class ThemedVSLLib: public VSLLib {
 private:
     VSLLib *_original_lib;
     unsigned _optimizeMode;
-    StringArray _theme_list;
+    std::vector<string> _theme_list;
 
     // Assignment
     ThemedVSLLib& operator=(const ThemedVSLLib&);
@@ -53,8 +54,8 @@ public:
     virtual void optimize(unsigned mode = stdOpt);
 
     // Theme list
-    const StringArray& theme_list() const { return _theme_list; }
-    void set_theme_list(const StringArray& themes);
+    const std::vector<string>& theme_list() const { return _theme_list; }
+    void set_theme_list(const std::vector<string>& themes);
 
     // Destructor
     virtual ~ThemedVSLLib();

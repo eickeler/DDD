@@ -65,7 +65,7 @@ void ThemedVSLLib::optimize(unsigned optimizeMode)
     VSLLib::optimize(optimizeMode);
 }
 
-void ThemedVSLLib::set_theme_list(const StringArray& themes)
+void ThemedVSLLib::set_theme_list(const std::vector<string>& themes)
 {
     if (_theme_list == themes)
 	return;			// Everything stays the same

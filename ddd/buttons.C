@@ -41,7 +41,6 @@ char buttons_rcsid[] =
 #include "HelpCB.h"
 #include "motif/MakeMenu.h"
 #include "SourceView.h"
-#include "template/StringSA.h"
 #include "agent/TimeOut.h"
 #include "UndoBuffer.h"
 #include "args.h"
@@ -67,6 +66,7 @@ char buttons_rcsid[] =
 #include "x11/verify.h"
 #include "windows.h"
 #include "wm.h"
+#include "base/strclass.h"
 
 #include <Xm/Xm.h>
 #include <Xm/Label.h>
@@ -79,7 +79,8 @@ char buttons_rcsid[] =
 #include <ctype.h>
 
 #include <algorithm>
-    
+#include <vector>
+
 //-----------------------------------------------------------------------------
 // Data
 //-----------------------------------------------------------------------------
@@ -716,7 +717,7 @@ static MString gdbDefaultButtonText(Widget widget, XEvent *,
 	help_name[0] == 'r' && isdigit(help_name[1]))
     {
 	// Return help on `recent file' item
-	StringArray recent_files;
+	std::vector<string> recent_files;
 	get_recent(recent_files);
 	int index = help_name[1] - '1';
 	if (index >= 0 && index < int(recent_files.size()))
@@ -1595,8 +1596,8 @@ void dddEditShortcutsCB(Widget w, XtPointer, XtPointer)
 
 void refresh_button_editor()
 {
-    StringArray exprs;
-    StringArray labels;
+    std::vector<string> exprs;
+    std::vector<string> labels;
 
     data_disp->get_shortcut_menu(exprs, labels);
     string expr;

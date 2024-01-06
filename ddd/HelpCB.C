@@ -85,13 +85,12 @@ char HelpCB_rcsid[] =
 #include "simpleMenu.h"
 #include "x11/verify.h"
 #include "x11/Delay.h"
-#include "template/StringA.h"
-#include "IntArray.h"
 #include "wm.h"
 #include "post.h"
 #include "mydialogs.h"
 #include "ArgField.h"
 
+#include <vector>
 
 //-----------------------------------------------------------------------
 // Resources
@@ -645,7 +644,7 @@ static void FindCB(Widget w, XtPointer client_data, XtPointer call_data,
     string key(key_s);
     XtFree(key_s);
 
-    static StringArray find_keys;
+    static std::vector<string> find_keys;
 
     int next_occurrence = -1;
     if (!key.empty())
@@ -1047,8 +1046,8 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     }
 
     // Find titles
-    StringArray titles;
-    IntArray positions;
+    std::vector<string> titles;
+    std::vector<int> positions;
 
     if (info)
     {

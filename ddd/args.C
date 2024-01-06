@@ -33,7 +33,6 @@ char args_rcsid[] =
 
 #include "x11/Delay.h"
 #include "HelpCB.h"
-#include "template/StringA.h"
 #include "Command.h"
 #include "SourceView.h"
 #include "ddd.h"
@@ -47,6 +46,7 @@ char args_rcsid[] =
 #include "string-fun.h"
 #include "x11/verify.h"
 #include "wm.h"
+#include "base/strclass.h"
 
 #include <Xm/Xm.h>
 #include <Xm/List.h>
@@ -55,6 +55,7 @@ char args_rcsid[] =
 #include <Xm/Text.h>
 
 #include <ctype.h>
+#include <vector>
 
 
 //-----------------------------------------------------------------------------
@@ -64,25 +65,25 @@ char args_rcsid[] =
 // Argument storage
 static Widget run_dialog;
 static Widget run_arguments_w;
-static StringArray run_arguments;
+static std::vector<string> run_arguments;
 static string last_run_argument;
 static bool run_arguments_updated = false;
 
 static Widget make_dialog;
-static StringArray make_arguments;
+static std::vector<string> make_arguments;
 static Widget make_arguments_w;
 static bool make_arguments_updated = false;
 static string last_make_argument;
 
 static Widget cd_dialog;
-static StringArray cd_arguments;
+static std::vector<string> cd_arguments;
 static Widget cd_arguments_w;
 static bool cd_arguments_updated = false;
 static string last_cd_argument;
 
 
 // Add ARG to the list of arguments
-static void add_argument(string arg, StringArray& arguments, 
+static void add_argument(string arg, std::vector<string>& arguments,
 			 string& last, bool& updated)
 {
     strip_trailing_space(arg);
@@ -205,7 +206,7 @@ void add_to_arguments(const string& line)
 
 // Update list of arguments
 static void update_arguments(Widget dialog, Widget arguments_w,
-			     StringArray& arguments, const string& last,
+			     std::vector<string>& arguments, const string& last,
 			     bool& updated)
 {
     if (updated || dialog == 0)

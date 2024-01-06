@@ -56,16 +56,15 @@
 #include "GDBAgent.h"
 #include "graph/GraphEdit.h"
 #include "HelpCB.h"
-#include "IntArray.h"
 #include "motif/MString.h"
 #include "motif/MakeMenu.h"
-#include "template/StringA.h"
 #include "vslsrc/VSEFlags.h"
 #include "vslsrc/VSLLib.h"
 #include "x11/events.h"
 #include "base/strclass.h"
 #include "string-fun.h"
 
+#include <vector>
 
 //-----------------------------------------------------------------------------
 extern GDBAgent *gdb;
@@ -200,8 +199,8 @@ class DataDisp {
 
     static int getDispNrAtPoint(const BoxPoint& point);
 
-    static string numbers(IntArray& a);
-    static bool all_data_displays(IntArray& numbers);
+    static string numbers(std::vector<int>& a);
+    static bool all_data_displays(std::vector<int>& numbers);
 
     static void show(Widget dialog, int depth, int more);
 
@@ -265,8 +264,8 @@ class DataDisp {
     static const int theme_items;
 
     // Array of shortcut expressions
-    static StringArray shortcut_exprs;
-    static StringArray shortcut_labels;
+    static std::vector<string> shortcut_exprs;
+    static std::vector<string> shortcut_labels;
 
     static void add_shortcut_expr(const string& expr);
 
@@ -305,17 +304,17 @@ public:
 				  bool prompt = true);
 
     // Disable displays given in DISPLAY_NRS.  Sends `disable display' to GDB.
-    static void disable_displaySQ(IntArray& display_nrs,
+    static void disable_displaySQ(std::vector<int>& display_nrs,
 				  bool verbose = true,
 				  bool prompt = true);
 
     // Enable displays given in DISPLAY_NRS.  Sends `enable display' to GDB.
-    static void enable_displaySQ(IntArray& display_nrs,
+    static void enable_displaySQ(std::vector<int>& display_nrs,
 				 bool verbose = true,
 				 bool prompt = true);
 
     // Delete displays given in DISPLAY_NRS.  Sends `delete display' to GDB.
-    static void delete_displaySQ(IntArray& display_nrs,
+    static void delete_displaySQ(std::vector<int>& display_nrs,
 				 bool verbose = true,
 				 bool prompt = true);
 
@@ -345,9 +344,9 @@ public:
 				  bool plotted = false);
 
     static string refresh_display_cmd();
-    static string disable_display_cmd(IntArray& display_nrs);
-    static string enable_display_cmd(IntArray& display_nrs);
-    static string delete_display_cmd(IntArray& display_nrs);
+    static string disable_display_cmd(std::vector<int>& display_nrs);
+    static string enable_display_cmd(std::vector<int>& display_nrs);
+    static string delete_display_cmd(std::vector<int>& display_nrs);
     static string delete_display_cmd(const string& name);
     static string apply_theme_cmd(const string& theme, 
 				  const string& pattern);
@@ -374,19 +373,19 @@ public:
 	gdb_command(refresh_display_cmd(), origin);
     }
 
-    static void disable_display(IntArray& display_nrs, Widget origin = 0)
+    static void disable_display(std::vector<int>& display_nrs, Widget origin = 0)
     {
 	if (display_nrs.size() > 0)
 	    gdb_command(disable_display_cmd(display_nrs), origin);
     }
 
-    static void enable_display(IntArray& display_nrs, Widget origin = 0)
+    static void enable_display(std::vector<int>& display_nrs, Widget origin = 0)
     {
 	if (display_nrs.size() > 0)
 	    gdb_command(enable_display_cmd(display_nrs), origin);
     }
 
-    static void delete_display(IntArray& display_nrs, Widget origin = 0)
+    static void delete_display(std::vector<int>& display_nrs, Widget origin = 0)
     {
 	if (display_nrs.size() > 0)
 	    gdb_command(delete_display_cmd(display_nrs), origin);
@@ -428,22 +427,22 @@ public:
 				   bool& disabling_occurred);
 
     // Process user-defined command output in ANSWERS.
-    static void process_user(StringArray& answers);
+    static void process_user(std::vector<string>& answers);
 
     // Process data output in ANSWERS.
-    static void process_addr(StringArray& answers);
+    static void process_addr(std::vector<string>& answers);
 
     // Process current scope
     static void process_scope(const string& scope);
     static bool need_scope();
 
     // Set shortcut menu to expressions EXPRS
-    static void set_shortcut_menu(const StringArray& exprs,
-				  const StringArray& labels);
+    static void set_shortcut_menu(const std::vector<string>& exprs,
+				  const std::vector<string>& labels);
 
     // Return current shortcut menu items
-    static void get_shortcut_menu(StringArray& exprs,
-				  StringArray& labels);
+    static void get_shortcut_menu(std::vector<string>& exprs,
+				  std::vector<string>& labels);
 
     // Refresh argument buttons
     static void refresh_args(bool update_arg = false);
@@ -462,7 +461,7 @@ private:
     static void new_user_displayOQC  (const string& answer, void* data);
 
     static void refresh_displayOQC   (const string& answer, void*  data);
-    static void refresh_displayOQAC  (StringArray& answers,
+    static void refresh_displayOQAC  (std::vector<string>& answers,
 				      const VoidArray& qu_datas,
 				      void*  data);
 
@@ -470,16 +469,16 @@ private:
     static void enable_displayOQC    (const string& answer, void* data);
     static void delete_displayOQC    (const string& answer, void* data);
 
-    static void deletion_done(IntArray& display_nrs, bool do_prompt);
+    static void deletion_done(std::vector<int>& display_nrs, bool do_prompt);
 
-    static void add_aliases(IntArray& a);
-    static bool sort_and_check(IntArray& a);
+    static void add_aliases(std::vector<int>& a);
+    static bool sort_and_check(std::vector<int>& a);
 
     static void select_with_all_descendants(GraphNode *node);
     static void select_with_all_ancestors(GraphNode *node);
 
     static int unfold_expressions(const string& display_expression,
-				  StringArray& expressions);
+				  std::vector<string>& expressions);
 
     // Get display number and name from ANSWER; store them in NR and NAME
     static void read_number_and_name(string& answer, string& nr, string& name);
@@ -510,7 +509,7 @@ private:
 
     // Alias checking
     static bool check_aliases();
-    static void sort_last_change(IntArray& disp_nrs);
+    static void sort_last_change(std::vector<int>& disp_nrs);
     static int last_change_of_disp_nr(int disp_nr);
 
     // True iff aliases are to be checked regardless of address changes
@@ -518,7 +517,7 @@ private:
 
     // Merge displays in DISPLAYS.  Set CHANGED iff changed.  Set
     // SUPPRESSED if displays were suppressed.
-    static void merge_displays(IntArray displays, 
+    static void merge_displays(std::vector<int> displays,
 			       bool& changed, bool& suppressed);
 
     // Unmerge display DISP_NR; return true iff change
@@ -533,14 +532,14 @@ private:
 				   int target_frame);
     static void write_restore_scope_command(std::ostream& os,
 					    int& current_frame,
-					    const StringArray& scopes,
+					    const std::vector<string>& scopes,
 					    DispNode *dn,
 					    const bool& ok);
 
     static bool get_state(std::ostream& os,
 			  bool restore_state,
 			  bool include_position,
-			  const StringArray& scopes,
+			  const std::vector<string>& scopes,
 			  int target_frame);
 
     static void get_node_state(std::ostream& os, DispNode *dn,
@@ -570,8 +569,8 @@ public:
     void create_shells();
 
     static int count_data_displays();
-    static void get_all_display_numbers(IntArray& numbers);
-    static void get_all_clusters(IntArray& numbers);
+    static void get_all_display_numbers(std::vector<int>& numbers);
+    static void get_all_clusters(std::vector<int>& numbers);
     static void refresh_graph_edit (bool silent = false);
     static Widget graph_form() { return graph_form_w; }
 
@@ -579,9 +578,9 @@ public:
     static void refresh_addr(DispNode *node = 0);
 
     // Command(s) to re-print all displays; return # of commands
-    static int add_refresh_data_commands(StringArray& cmds);
-    static int add_refresh_user_commands(StringArray& cmds);
-    static int add_refresh_addr_commands(StringArray& cmds, DispNode *dn = 0);
+    static int add_refresh_data_commands(std::vector<string>& cmds);
+    static int add_refresh_user_commands(std::vector<string>& cmds);
+    static int add_refresh_addr_commands(std::vector<string>& cmds, DispNode *dn = 0);
 
     // Callbacks for menu bar
     static void EditDisplaysCB(Widget, XtPointer, XtPointer);
@@ -623,9 +622,9 @@ public:
     // Return DDD commands to restore current state (displays, etc.)
     // Return true iff all went well.  SCOPES are obtained via
     // GET_SCOPES (see below).  TARGET_FRAME indicates final frame.
-    static bool get_state(std::ostream& os, const StringArray& scopes, 
+    static bool get_state(std::ostream& os, const std::vector<string>& scopes,
 			  int target_frame = 0);
-    static bool get_scopes(StringArray& scopes);
+    static bool get_scopes(std::vector<string>& scopes);
 
     // Return true if a core dump is needed to restore displays
     static bool need_core_to_restore();
@@ -645,15 +644,15 @@ public:
 
     // Get number(s) of display NAME
     static int display_number(const string& name, bool verbose = false);
-    static void get_display_numbers(const string& name, IntArray& numbers);
+    static void get_display_numbers(const string& name, std::vector<int>& numbers);
 
     // Refresh titles after change in APP_DATA
     static void refresh_titles();
 
     // Update and activate displays manually (from undo)
-    static void update_displays(const StringArray& names, 
-				const StringArray& values,
-				const StringArray& addrs);
+    static void update_displays(const std::vector<string>& names,
+				const std::vector<string>& values,
+				const std::vector<string>& addrs);
 
     // Restore sane state
     static void make_sane();
@@ -665,18 +664,18 @@ private:
 
 inline bool DataDisp::get_selection(std::ostream& os, bool include_position)
 {
-    StringArray dummy;
+    std::vector<string> dummy;
     return get_state(os, false, include_position, dummy, 0);
 }
 
-inline bool DataDisp::get_state(std::ostream& os, const StringArray& scopes, 
+inline bool DataDisp::get_state(std::ostream& os, const std::vector<string>& scopes,
 				int target_frame)
 {
     return get_state(os, true, true, scopes, target_frame);
 }
 
-inline void DataDisp::get_shortcut_menu(StringArray& exprs,
-					StringArray& labels)
+inline void DataDisp::get_shortcut_menu(std::vector<string>& exprs,
+					std::vector<string>& labels)
 {
     exprs  = shortcut_exprs;
     labels = shortcut_labels;
