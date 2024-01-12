@@ -339,7 +339,7 @@ Ddd*wwwPage: http://www.gnu.org/software/ddd/
 ! letting all these commands fail may take some time...
 
 Ddd*wwwCommand: \
-   firefox -remote 'openURL(@URL@)' \
+   firefox '@URL@' \
 || mozilla -remote 'openURL(@URL@)' \
 || opera -remote 'openURL(@URL@)' \
 || ${WWWBROWSER-false} '@URL@' \
@@ -484,7 +484,7 @@ Ddd*dataButtons:
 ! The command tool buttons, as of DDD 2.0 and later.
 Ddd*toolButtons: \
 run\nbreak^C\nstep\nstepi\nnext\nnexti\nuntil\nfinish\ncont\n\kill\n\
-up\ndown\nUndo\nRedo\nEdit\nMake
+up\ndown\nUndo\nRedo
 
 Ddd*break.labelString: Interrupt
 
@@ -3185,11 +3185,11 @@ Ddd*helpMenu.onVersion.documentationString:	\
 !-----------------------------------------------------------------------------
 
 ! The number of rows in the command tool.
-Ddd*tool_buttons.fractionBase:			90
+Ddd*tool_buttons.fractionBase:			70
 
 ! The positions are set up according to the following scheme:
 ! 
-!    0 45 90	Each line has its individual number.
+!    0 35 70	Each line has its individual number.
 !  0 +--+--+	`topPosition' refers to the line above the button;
 !    |  |  |	`bottomPosition' is the line below.  Likewise,
 ! 10 +--+--+	`leftPosition' is the line at the left, and
@@ -3205,90 +3205,86 @@ Ddd*tool_buttons.fractionBase:			90
 ! 60 +--+--+	resource values for the new button, specifying its
 !    |  |  |	location.
 ! 70 +--+--+	
-!    |  |  |	
-! 80 +--+--+	
-!    |  |  |	
-! 90 +--+--+	
 
 Ddd*tool_buttons.run.topPosition:		0
 Ddd*tool_buttons.run.bottomPosition:		10
 Ddd*tool_buttons.run.leftPosition:		0
-Ddd*tool_buttons.run.rightPosition:		90
+Ddd*tool_buttons.run.rightPosition:		70
 
 Ddd*tool_buttons.break.topPosition:		10
 Ddd*tool_buttons.break.bottomPosition:		20
 Ddd*tool_buttons.break.leftPosition:		0
-Ddd*tool_buttons.break.rightPosition:		90
+Ddd*tool_buttons.break.rightPosition:		70
 
 Ddd*tool_buttons.step.topPosition:		20
 Ddd*tool_buttons.step.bottomPosition:		30
 Ddd*tool_buttons.step.leftPosition:		0
-Ddd*tool_buttons.step.rightPosition:		45
+Ddd*tool_buttons.step.rightPosition:		35
 
 Ddd*tool_buttons.stepi.topPosition:		20
 Ddd*tool_buttons.stepi.bottomPosition:		30
-Ddd*tool_buttons.stepi.leftPosition:		45
-Ddd*tool_buttons.stepi.rightPosition:		90
+Ddd*tool_buttons.stepi.leftPosition:		35
+Ddd*tool_buttons.stepi.rightPosition:		70
 
 Ddd*tool_buttons.next.topPosition:		30
 Ddd*tool_buttons.next.bottomPosition:		40
 Ddd*tool_buttons.next.leftPosition:		0
-Ddd*tool_buttons.next.rightPosition:		45
+Ddd*tool_buttons.next.rightPosition:		35
 
 Ddd*tool_buttons.nexti.topPosition:		30
 Ddd*tool_buttons.nexti.bottomPosition:		40
-Ddd*tool_buttons.nexti.leftPosition:		45
-Ddd*tool_buttons.nexti.rightPosition:		90
+Ddd*tool_buttons.nexti.leftPosition:		35
+Ddd*tool_buttons.nexti.rightPosition:		70
 
 Ddd*tool_buttons.until.topPosition:		40
 Ddd*tool_buttons.until.bottomPosition:		50
 Ddd*tool_buttons.until.leftPosition:		0
-Ddd*tool_buttons.until.rightPosition:		45
+Ddd*tool_buttons.until.rightPosition:		35
 
 Ddd*tool_buttons.finish.topPosition:		40
 Ddd*tool_buttons.finish.bottomPosition:		50
-Ddd*tool_buttons.finish.leftPosition:		45
-Ddd*tool_buttons.finish.rightPosition:		90
+Ddd*tool_buttons.finish.leftPosition:		35
+Ddd*tool_buttons.finish.rightPosition:		70
 
 Ddd*tool_buttons.cont.topPosition:		50
 Ddd*tool_buttons.cont.bottomPosition:		60
 Ddd*tool_buttons.cont.leftPosition:		0
-Ddd*tool_buttons.cont.rightPosition:		45
+Ddd*tool_buttons.cont.rightPosition:		35
 
 Ddd*tool_buttons.kill.topPosition:		50
 Ddd*tool_buttons.kill.bottomPosition:		60
-Ddd*tool_buttons.kill.leftPosition:		45
-Ddd*tool_buttons.kill.rightPosition:		90
+Ddd*tool_buttons.kill.leftPosition:		35
+Ddd*tool_buttons.kill.rightPosition:		70
 
 Ddd*tool_buttons.up.topPosition:		60
 Ddd*tool_buttons.up.bottomPosition:		70
 Ddd*tool_buttons.up.leftPosition:		0
-Ddd*tool_buttons.up.rightPosition:		45
+Ddd*tool_buttons.up.rightPosition:		35
 
 Ddd*tool_buttons.down.topPosition:		60
 Ddd*tool_buttons.down.bottomPosition:		70
-Ddd*tool_buttons.down.leftPosition:		45
-Ddd*tool_buttons.down.rightPosition:		90
+Ddd*tool_buttons.down.leftPosition:		35
+Ddd*tool_buttons.down.rightPosition:		70
 
-Ddd*tool_buttons.Undo.topPosition:		70
-Ddd*tool_buttons.Undo.bottomPosition:		80
-Ddd*tool_buttons.Undo.leftPosition:		0
-Ddd*tool_buttons.Undo.rightPosition:		45
+!Ddd*tool_buttons.Undo.topPosition:		70
+!Ddd*tool_buttons.Undo.bottomPosition:		80
+!Ddd*tool_buttons.Undo.leftPosition:		0
+!Ddd*tool_buttons.Undo.rightPosition:		40
 
-Ddd*tool_buttons.Redo.topPosition:		70
-Ddd*tool_buttons.Redo.bottomPosition:		80
-Ddd*tool_buttons.Redo.leftPosition:		45
-Ddd*tool_buttons.Redo.rightPosition:		90
+!Ddd*tool_buttons.Redo.topPosition:		70
+!Ddd*tool_buttons.Redo.bottomPosition:		80
+!Ddd*tool_buttons.Redo.leftPosition:		40
+!Ddd*tool_buttons.Redo.rightPosition:		80
 
-Ddd*tool_buttons.Edit.topPosition:		80
-Ddd*tool_buttons.Edit.bottomPosition:		90
-Ddd*tool_buttons.Edit.leftPosition:		0
-Ddd*tool_buttons.Edit.rightPosition:		45
+!Ddd*tool_buttons.Edit.topPosition:		80
+!Ddd*tool_buttons.Edit.bottomPosition:		90
+!Ddd*tool_buttons.Edit.leftPosition:		0
+!Ddd*tool_buttons.Edit.rightPosition:		45
 
-Ddd*tool_buttons.Make.topPosition:		80
-Ddd*tool_buttons.Make.bottomPosition:		90
-Ddd*tool_buttons.Make.leftPosition:		45
-Ddd*tool_buttons.Make.rightPosition:		90
+!Ddd*tool_buttons.Make.topPosition:		80
+!Ddd*tool_buttons.Make.bottomPosition:		90
+!Ddd*tool_buttons.Make.leftPosition:		45
+!Ddd*tool_buttons.Make.rightPosition:		90
 
 ! Command tool button placement.  Don't change this.
 Ddd*tool_buttons*topAttachment:			XmATTACH_POSITION
