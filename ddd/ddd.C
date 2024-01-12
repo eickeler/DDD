@@ -2030,11 +2030,15 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 #ifdef LC_ALL
     // Let DDD locales be controlled by the locale-specific
     // environment variables -- especially $LANG.
-    
+#ifndef USE_XFT_LIB
     // ddd cannot handle UTF-8. As workaround we use the latin1 charset 
     // and try to map UTF-8 characters on this set.
     setlocale(LC_ALL, "C.ISO-8859-1");
     //XtSetLanguageProc(NULL, NULL, NULL); // do not call XtSetLanguageProc, the default seems to be latin1
+#else
+    setlocale(LC_ALL, "C.UTF-8");
+    XtSetLanguageProc(NULL, NULL, NULL);
+#endif
 #endif
 
     // Save environment for restart.
@@ -7070,8 +7074,11 @@ static void setup_version_info()
     std::ostringstream os;
     show_configuration(os);
     string cinfo(os);
-
+#ifdef USE_XFT_LIB
+    cinfo.gsub("(C)", "\302\251"); //0xC2 0xA9
+#else
     cinfo.gsub("(C)", "\251");
+#endif
 
     // Set e-mail address in @tt; the remainder in @rm
     int cinfo_lt = cinfo.index('<', -1);
@@ -7163,6 +7170,20 @@ static void setup_version_info()
     s += "To start, select `Help->What Now?'.";
     XmTextSetString(SourceView::source(), s);
 #else
+#ifdef USE_XFT_LIB
+    XmTextSetString(gdb_w, XMST(
+                    "GNU " DDD_NAME " " DDD_VERSION " (" DDD_HOST "), "
+                    "by Dorothea L\303\274tkehaus and Andreas Zeller,\n"
+                    "maintained by Michael Eager and Stefan Eickeler.\n"
+                    "Copyright \302\251 1995-1999 "
+                    "Technische Universit\303\244t Braunschweig, Germany.\n"
+                    "Copyright \302\251 1999-2001 "
+                    "Universit\303\244t Passau, Germany.\n"
+                    "Copyright \302\251 2001 "
+                    "Universit\303\244t des Saarlandes, Germany.\n"
+                    "Copyright \302\251 2001-2023 "
+                    "Free Software Foundation, Inc.\n"));
+#else
     XmTextSetString(gdb_w, XMST(
                     "GNU " DDD_NAME " " DDD_VERSION " (" DDD_HOST "), "
                     "by Dorothea L\374tkehaus and Andreas Zeller.\n"
@@ -7174,6 +7195,7 @@ static void setup_version_info()
                     "Universit\344t des Saarlandes, Germany.\n"
                     "Copyright \251 2001-2023 "
                     "Free Software Foundation, Inc.\n"));
+#endif
 #endif
 }
 
@@ -7240,7 +7262,11 @@ static void setup_environment()
     {
         case GDB:
             // reset the internationalization in gdb to allow the correct interpretation of the answers from gdg
+#ifdef USE_XFT_LIB
+            put_environment("LANG", "C.UTF-8");
+#else
             put_environment("LANG", "");
+#endif
         // fallthrough
         case BASH:
         case DBG:

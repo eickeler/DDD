@@ -66,10 +66,63 @@ static const int MAX_LINE_NUMBER_WIDTH = 6;
 #define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
 #endif
 
+bool utf8toUnicode(wchar_t &unicode, const char *text, int &pos, const int length)
+{
+    const unsigned char *utext = (const unsigned char *)text;
+    unicode = 0;
+    if (utext==nullptr || pos>=length || utext[pos] == 0)
+        return false;
 
+    if ((utext[pos] & 0x80) == 0)
+    {
+        // U+0000-U+007F
+        unicode = utext[pos];
+        pos += 1;
+        return true;
+    }
 
+    if (pos+1>=length || utext[pos+1] == 0)
+        return false;
 
-int SourceCode::calculate_indent(int pos)
+    if ((utext[pos] & 0xe0) == 0xc0 && (utext[pos+1] & 0xc0) == 0x80)
+    {
+        // U+0080-U+07FF
+        unicode = ((utext[pos] & 0x1f) << 6) | (utext[pos+1] & 0x3f);
+        pos += 2;
+        return true;
+    }
+
+    if (pos+2>=length || utext[pos+2] == 0)
+        return false;
+
+    if ((utext[pos] & 0xf0) == 0xe0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80)
+    {
+        // U+0800-U+FFFF
+        unicode = ((utext[pos] & 0x1f) << 12) | ((utext[pos+1] & 0x3f) << 6) | (utext[pos+2] & 0x3f);
+        pos += 3;
+        return true;
+    }
+
+    if (pos+2>=length || utext[pos+2] == 0)
+        return false;
+
+    if ((utext[pos] & 0xf8) == 0xf0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80 && (utext[pos+3] & 0xc0) == 0x80)
+    {
+        // U+10000-U+10FFFF
+        unicode = ((utext[pos] & 0x1f) << 18) | ((utext[pos+1] & 0x3f) << 12) | ((utext[pos+2] & 0x3f) << 6) | (utext[pos+3] & 0x3f);
+        pos += 4;
+        return true;
+    }
+
+    return false;
+}
+
+/*! Measures the indent of the specified \c line.
+ * If the line number is negative, the default indent is returned
+ * \param[in] line line number in the range 1..number of lines
+ * \return returns the amount of indention
+ */
+int SourceCode::calculate_indent(int line)
 {
     int indent = source_indent_amount;
 
@@ -83,14 +136,17 @@ int SourceCode::calculate_indent(int pos)
     // Make sure indentation stays within reasonable bounds
     indent = min(max(indent, 0), MAX_INDENT);
 
-    if (pos >= 0)
+    line --; // convert from extenal 1.. to internal 0..
+    if (line < 0 || line >= int(bytepos_of_line.size()))
+        return indent;
+
+    const string& text = current_source;
+
+    int bpos = bytepos_of_line[line] + indent;
+    while (bpos < int(text.length()) && text[bpos] == ' ')
     {
-        const string& text = current_source;
-        while (pos < int(text.length()) && text[pos] == ' ')
-        {
-            pos++;
-            indent++;
-        }
+        bpos++;
+        indent++;
     }
 
     return indent;
@@ -483,57 +539,6 @@ String SourceCode::read_from_gdb(const string& file_name, long& length,
     return text;
 }
 
-bool utf8toUnicode(wchar_t &unicode, const char *text, int &pos, const int length)
-{
-    const unsigned char *utext = (const unsigned char *)text;
-    unicode = 0;
-    if (utext==nullptr || pos>=length || utext[pos] == 0)
-        return false;
-
-    if ((utext[pos] & 0x80) == 0)
-    {
-        // U+0000-U+007F
-        unicode = utext[pos];
-        pos += 1;
-        return true;
-    }
-
-    if (pos+1>=length || utext[pos+1] == 0)
-        return false;
-
-    if ((utext[pos] & 0xe0) == 0xc0 && (utext[pos+1] & 0xc0) == 0x80)
-    {
-        // U+0080-U+07FF
-        unicode = ((utext[pos] & 0x1f) << 6) | (utext[pos+1] & 0x3f);
-        pos += 2;
-        return true;
-    }
-
-    if (pos+2>=length || utext[pos+2] == 0)
-        return false;
-
-    if ((utext[pos] & 0xf0) == 0xe0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80)
-    {
-        // U+0800-U+FFFF
-        unicode = ((utext[pos] & 0x1f) << 12) | ((utext[pos+1] & 0x3f) << 6) | (utext[pos+2] & 0x3f);
-        pos += 3;
-        return true;
-    }
-
-    if (pos+2>=length || utext[pos+2] == 0)
-        return false;
-
-    if ((utext[pos] & 0xf8) == 0xf0 && (utext[pos+1] & 0xc0) == 0x80 && (utext[pos+2] & 0xc0) == 0x80 && (utext[pos+3] & 0xc0) == 0x80)
-    {
-        // U+10000-U+10FFFF
-        unicode = ((utext[pos] & 0x1f) << 18) | ((utext[pos+1] & 0x3f) << 12) | ((utext[pos+2] & 0x3f) << 6) | (utext[pos+3] & 0x3f);
-        pos += 4;
-        return true;
-    }
-
-    return false;
-}
-
 // Read file FILE_NAME and format it
 String SourceCode::read_indented(string& file_name, long& length,
                                  SourceOrigin& origin, bool silent)
@@ -648,6 +653,7 @@ String SourceCode::read_indented(string& file_name, long& length,
     // At this point, we have a source text.
     file_name = full_file_name;
 
+#ifndef USE_XFT_LIB
 
     // determine utf-8 encoding
     bool utf8 = true;
@@ -707,6 +713,7 @@ String SourceCode::read_indented(string& file_name, long& length,
             text = newtext;
         }
     }
+#endif
 
     // Determine text length and number of lines
     int lines = 0;
@@ -808,7 +815,6 @@ String SourceCode::read_indented(string& file_name, long& length,
     return indented_text;
 }
 
-//sc
 // Read file FILE_NAME into current_source; get it from the cache if possible
 int SourceCode::read_current(string& file_name, bool force_reload, bool silent, Widget w)
 {
@@ -867,16 +873,43 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
 
     // Number of lines
     line_count   = current_source.freq('\n');
-    m_pos_of_line.clear();
-    m_pos_of_line.reserve(line_count + 2);
-    m_pos_of_line.push_back((XmTextPosition(0)));
-    m_pos_of_line.push_back((XmTextPosition(0)));
-
+    textpos_of_line.clear();
+    textpos_of_line.reserve(line_count + 2);
+    textpos_of_line.push_back((XmTextPosition(0)));
+    bytepos_of_line.clear();
+    bytepos_of_line.reserve(line_count + 2);
+    bytepos_of_line.push_back((XmTextPosition(0)));
+#ifndef USE_XFT_LIB
+    char_count = current_source.length();
     for (int i = 0; i < int(current_source.length()); i++)
+    {
         if (current_source[i] == '\n')
-                m_pos_of_line.push_back((XmTextPosition(i + 1)));
+        {
+            textpos_of_line.push_back((XmTextPosition(i + 1)));
+            bytepos_of_line.push_back(i + 1);
+        }
+    }
+#else
+    int length = int(current_source.length());
+    char_count = 0;
+    int bytepos = 0;
+    wchar_t unicode;
+    while (bytepos<length)
+    {
+        bool res = utf8toUnicode(unicode, current_source.chars(), bytepos, length);
+        if (res==false)
+            break;
 
-    assert(int( m_pos_of_line.size()) == line_count + 2);
+        char_count ++;
+        if (unicode == '\n')
+        {
+            textpos_of_line.push_back((XmTextPosition(char_count)));
+            bytepos_of_line.push_back(bytepos);
+        }
+    }
+
+#endif
+    assert(int( textpos_of_line.size()) == line_count + 1);
 
     if (current_source.length() == 0)
         return -1;
@@ -887,14 +920,177 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
     return 0;
 }
 
-// Return position of line LINE
+/*! Get the character position of the start of \c line
+ * \param[in] line line number with range: 1..number of lines
+ * \return return the position
+ */
 XmTextPosition SourceCode::pos_of_line(int line)
 {
-    if (line < 0 || line > line_count || line >= int( m_pos_of_line.size()))
+    line --; // external counting starts with 1
+    if (line < 0 || line > line_count || line >= int( textpos_of_line.size()))
         return 0;
 
-    return m_pos_of_line[line];
+    return textpos_of_line[line];
 }
+
+/*! Get line number from character position
+ * \param[in] pos character position
+ * \return returns the line number with range: 1..number of lines
+ */
+int SourceCode::line_of_pos(XmTextPosition pos)
+{
+    auto it = std::lower_bound(textpos_of_line.begin(), textpos_of_line.end(), pos+1);
+    if (it != textpos_of_line.begin())
+        return std::distance(textpos_of_line.begin(), it);
+
+    return textpos_of_line.back();
+}
+
+/*! Get line number from byte position
+ * \param[in] pos character position
+ * \return returns the line number with range: 1..number of lines
+ */
+int SourceCode::line_of_bytepos(int pos)
+{
+    auto it = std::lower_bound(bytepos_of_line.begin(), bytepos_of_line.end(), pos+1);
+    if (it != bytepos_of_line.begin())
+        return std::distance(bytepos_of_line.begin(), it);
+
+    return bytepos_of_line.back();
+}
+
+/*! Get position of start of line from character position
+ * \param[in] pos character position
+ * \return returns the position of the start of the line
+ */
+XmTextPosition SourceCode::startofline_at_pos(XmTextPosition pos)
+{
+    auto it = std::lower_bound(textpos_of_line.begin(), textpos_of_line.end(), pos+1);
+    --it;
+    if (it != textpos_of_line.begin())
+        return *it;
+
+    return textpos_of_line.back();
+}
+
+/*! Determine if character at \c pos is the last character of the line
+ * \param[in] pos character position
+ * \return returns true for the last character
+ */
+XmTextPosition SourceCode::endofline_at_pos(XmTextPosition pos)
+{
+    auto it = std::lower_bound(textpos_of_line.begin(), textpos_of_line.end(), pos+1);
+    if (it != textpos_of_line.begin())
+        return *it - 1;
+
+    return true;
+}
+
+const subString SourceCode::get_source_line(int line)
+{
+    if (line<1 || line > int(bytepos_of_line.size()))
+        return current_source.at(0, 0); // empty substring
+
+    int start = bytepos_of_line[line-1];
+
+    int stop = current_source.length();
+    if (line < int(bytepos_of_line.size()))
+        stop = bytepos_of_line[line];
+
+    return current_source.at(start, stop - start - 1);
+}
+
+string SourceCode::get_source_lineASCII(int line)
+{
+    if (line<1 || line > int(bytepos_of_line.size()))
+        return string(""); // empty string
+
+    int pos = bytepos_of_line[line-1];
+    string linestr;
+    while (pos<int(current_source.length()))
+    {
+        wchar_t unicode;
+        bool res = utf8toUnicode(unicode, current_source.chars(), pos, current_source.length());
+        if (res==false)
+            break;
+
+        if (unicode<=127)
+            linestr += char(unicode);
+        else
+            linestr += '_';
+
+        if (unicode == '\n')
+            break;
+    }
+
+    return linestr;
+}
+
+const subString SourceCode::get_source_at(int pos, int length)
+{
+    if (length <= 0)
+        return current_source.at(0, 0); // empty substring
+
+    int startline = line_of_pos(pos) -1;
+    int charpos = textpos_of_line[startline];
+    int bytepos = bytepos_of_line[startline];
+    int bytestart = 0;
+    while (bytepos<int(current_source.length()) && charpos<pos+length)
+    {
+        wchar_t unicode;
+        bool res = utf8toUnicode(unicode, current_source.chars(), bytepos, current_source.length());
+        if (res==false)
+            break;
+        charpos++;
+
+        if (charpos==pos)
+            bytestart = bytepos;
+    }
+    int byteend = bytepos;
+    return current_source.at(bytestart, byteend-bytestart);
+}
+
+int SourceCode::charpos_to_bytepos(XmTextPosition pos)
+{
+    int startline = line_of_pos(pos) - 1;
+    XmTextPosition charpos = textpos_of_line[startline];
+    int bytepos = bytepos_of_line[startline];
+    while (bytepos<int(current_source.length()))
+    {
+        wchar_t unicode;
+        bool res = utf8toUnicode(unicode, current_source.chars(), bytepos, current_source.length());
+        if (res==false)
+            break;
+        charpos++;
+
+        if (charpos==pos)
+            return bytepos;
+    }
+
+    return 0;
+}
+
+XmTextPosition SourceCode::bytepos_to_charpos(int pos)
+{
+    int startline = line_of_bytepos(pos) - 1;
+    XmTextPosition charpos = textpos_of_line[startline];
+    int bytepos = bytepos_of_line[startline];
+    while (bytepos<int(current_source.length()))
+    {
+        wchar_t unicode;
+        bool res = utf8toUnicode(unicode, current_source.chars(), bytepos, current_source.length());
+        if (res==false)
+            break;
+        charpos++;
+
+        if (bytepos==pos)
+            return charpos;
+    }
+
+    return 0;
+}
+
+
 
 // Clear the file cache
 void SourceCode::clear_file_cache()

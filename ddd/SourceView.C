@@ -472,17 +472,6 @@ bool SourceView::is_source_widget(Widget w)
     return false;
 }
 
-const string& SourceView::current_text(Widget w)
-{
-    assert(is_source_widget(w) || is_code_widget(w));
-
-    if (is_code_widget(w))
-        return current_code;
-    else
-        return sourcecode.get_source();
-}
-
-
 static const int MAX_INDENT = 64;
 
 int SourceView::indent_amount(Widget w, int pos)
@@ -490,9 +479,14 @@ int SourceView::indent_amount(Widget w, int pos)
     assert(is_source_widget(w) || is_code_widget(w));
 
     if (is_code_widget(w))
+    {
         return indent_amount_code(pos);
+    }
     else
-        return sourcecode.calculate_indent(pos);
+    {
+        int line = sourcecode.line_of_pos(pos);
+        return sourcecode.calculate_indent(line);
+    }
 }
 
 int SourceView::indent_amount_code(int pos)
@@ -1611,9 +1605,16 @@ void SourceView::set_source_argCB(Widget text_w,
                                   XtPointer client_data, 
                                   XtPointer call_data)
 {
-    const string& text = current_text(text_w);
-    if (text.empty())
-        return;
+    if (is_source_widget(text_w))
+    {
+        if (!sourcecode.have_source())
+            return;
+    }
+    else
+    {
+        if (current_code.empty())
+            return;
+    }
 
     XmTextVerifyCallbackStruct *cbs = (XmTextVerifyCallbackStruct *)call_data;
     bool motion = bool((int)(long)client_data);
@@ -1679,15 +1680,27 @@ void SourceView::set_source_argCB(Widget text_w,
     }
 
     int startIndex = 0;
-    if (startPos > 0)
-        startIndex = text.index('\n', startPos - text.length()) + 1;
-
     int endIndex = 0;
-    if (endPos > 0)
-        endIndex = text.index('\n', endPos - text.length()) + 1;
+    bool sameline;
+    if (is_source_widget(text_w))
+    {
+        int lineofstart = sourcecode.line_of_pos(startPos);
+        int lineofend = sourcecode.line_of_pos(endPos);
+        sameline = (lineofstart == lineofend);
+    }
+    else
+    {
+        if (startPos > 0)
+            startIndex = current_code.index('\n', startPos - current_code.length()) + 1;  // line_of_pos ?
+
+        if (endPos > 0)
+        endIndex = current_code.index('\n', endPos - current_code.length()) + 1;
+
+        sameline = (startIndex == endIndex);
+    }
 
     bool in_bp_area = false;
-    if (selection_click && startIndex == endIndex)
+    if (selection_click && sameline)
     {
         string pos = "";
 
@@ -1698,8 +1711,7 @@ void SourceView::set_source_argCB(Widget text_w,
             int bp_nr;
             string address;
 
-            if (get_line_of_pos(source_text_w, startPos, line_nr, address, 
-                                in_text, bp_nr) 
+            if (get_line_of_pos(source_text_w, startPos, line_nr, address, in_text, bp_nr)
                 && !in_text)
             {
                 in_bp_area = true;
@@ -1723,12 +1735,12 @@ void SourceView::set_source_argCB(Widget text_w,
                  && endPos - endIndex <= indent_amount_code())
         {
             // Selection from address area
-            int index = address_index(text, startPos);
+            int index = address_index(current_code, startPos);
             if (index >= 0)
             {
                 in_bp_area = true;
 
-                pos = text.from(index);
+                pos = current_code.from(index);
                 pos = pos.through(rxaddress);
 
                 source_arg->set_string(pos);
@@ -1765,10 +1777,17 @@ void SourceView::set_source_argCB(Widget text_w,
     {
         // Selection from source or code
         string s;
-        if (startPos < XmTextPosition(text.length())
-            && endPos < XmTextPosition(text.length()))
+        if (text_w == source_text_w)
         {
-            s = text.at((int)startPos, (int)(endPos - startPos));
+            s = sourcecode.get_source_at((int)startPos, (int)(endPos - startPos));
+        }
+        else
+        {
+            if (startPos < XmTextPosition(current_code.length())
+                && endPos < XmTextPosition(current_code.length()))
+            {
+                s = current_code.at((int)startPos, (int)(endPos - startPos));
+            }
         }
 
         while (s.contains('\n'))
@@ -1807,8 +1826,7 @@ BreakPoint *SourceView::breakpoint_at(const string& arg)
                 if (gdb->type() == DBX)
                     pos = dbx_lookup(arg);
             }
-            
-            if (is_file_pos(pos))
+            else
             {
                 // File:line given
                 string file = pos.before(':');
@@ -1873,43 +1891,76 @@ BreakPoint *SourceView::watchpoint_at(const string& expr)
 // Show position POS in TEXT_W, scrolling nicely
 void SourceView::ShowPosition(Widget text_w, XmTextPosition pos, bool fromTop)
 {
-    const string& text = current_text(text_w);
-    if (text.length() == 0)
-        return;                        // No position to show
-
-    short rows = 0;
-    XmTextPosition current_top = 0;
-    XtVaGetValues(text_w,
-                  XmNrows, &rows,
-                  XmNtopCharacter, &current_top,
-                  XtPointer(0));
-
-    // Find current relative row
-    short relative_row = 1;
-    for (XmTextPosition p = min(text.length() - 1, pos); p > current_top; p--)
-        if (text[p] == '\n')
-            relative_row++;
-
-    if (relative_row <= lines_above_cursor 
-        || relative_row >= rows - (lines_below_cursor + 1))
+    if (is_source_widget(text_w))
     {
-        // Determine new TOP position
-        short n = rows / 2;        // #Lines between new TOP and POS
-        if (fromTop || relative_row <= lines_above_cursor)
-            n = lines_above_cursor;
-        else if (relative_row >= rows - (lines_below_cursor + 1))
-            n = rows - (lines_below_cursor + 1);
+        if (sourcecode.have_source()==false)
+            return;
 
-        XmTextPosition new_top = pos;
-        for (;;) {
-            while (new_top > 0 && text[new_top - 1] != '\n')
-                new_top--;
-            if (new_top == 0 || n-- <= 0)
-                break;
-            new_top--;
+        short rows = 0;
+        XmTextPosition current_top = 0;
+        XtVaGetValues(text_w,
+                    XmNrows, &rows,
+                    XmNtopCharacter, &current_top,
+                    XtPointer(0));
+
+        int toprow = sourcecode.line_of_pos(current_top);
+        int currentrow = sourcecode.line_of_pos(pos);
+        int relative_row = currentrow - toprow;
+
+       if (relative_row <= lines_above_cursor || relative_row >= rows - (lines_below_cursor + 1))
+       {
+            // Determine new TOP position
+            short n = rows / 2;        // #Lines between new TOP and POS
+            if (fromTop || relative_row <= lines_above_cursor)
+                n = lines_above_cursor;
+            else if (relative_row >= rows - (lines_below_cursor + 1))
+                n = rows - (lines_below_cursor + 1);
+
+            XmTextPosition new_top = sourcecode.pos_of_line(toprow+n);
+
+            XmTextSetTopCharacter(text_w, new_top);
         }
+    }
+    else
+    {
+        const string& text = current_code;
+        if (text.length() == 0)
+            return;                        // No position to show
 
-        XmTextSetTopCharacter(text_w, new_top);
+        short rows = 0;
+        XmTextPosition current_top = 0;
+        XtVaGetValues(text_w,
+                    XmNrows, &rows,
+                    XmNtopCharacter, &current_top,
+                    XtPointer(0));
+
+        // Find current relative row
+        short relative_row = 1;
+        for (XmTextPosition p = min(text.length() - 1, pos); p > current_top; p--)
+            if (text[p] == '\n')
+                relative_row++;
+
+        if (relative_row <= lines_above_cursor
+            || relative_row >= rows - (lines_below_cursor + 1))
+        {
+            // Determine new TOP position
+            short n = rows / 2;        // #Lines between new TOP and POS
+            if (fromTop || relative_row <= lines_above_cursor)
+                n = lines_above_cursor;
+            else if (relative_row >= rows - (lines_below_cursor + 1))
+                n = rows - (lines_below_cursor + 1);
+
+            XmTextPosition new_top = pos;
+            for (;;) {
+                while (new_top > 0 && text[new_top - 1] != '\n')
+                    new_top--;
+                if (new_top == 0 || n-- <= 0)
+                    break;
+                new_top--;
+            }
+
+            XmTextSetTopCharacter(text_w, new_top);
+        }
     }
 
     XmTextShowPosition(text_w, pos);        // just to make sure
@@ -2078,10 +2129,10 @@ void SourceView::read_file (string file_name,
         msg += rm("1 line, ");
     else
         msg += rm(itostring(sourcecode.get_num_lines()) + " lines, ");
-    if (sourcecode.get_length() == 1)
+    if (sourcecode.get_num_characters() == 1)
         msg += rm("1 character");
     else
-        msg += rm(itostring(sourcecode.get_length()) + " characters");
+        msg += rm(itostring(sourcecode.get_num_characters()) + " characters");
 
     set_status_mstring(msg);
 
@@ -2166,7 +2217,7 @@ void SourceView::refresh_source_bp_disp(bool reset)
             continue;
 
         int pos = sourcecode.pos_of_line(line_nr);
-        int indent = sourcecode.calculate_indent(pos);
+        int indent = sourcecode.calculate_indent(line_nr);
 
         if (indent > 0)
         {
@@ -2208,7 +2259,7 @@ void SourceView::refresh_source_bp_disp(bool reset)
             continue;
 
         XmTextPosition pos = sourcecode.pos_of_line(line_nr);
-        int indent = sourcecode.calculate_indent(pos);
+        int indent = sourcecode.calculate_indent(line_nr);
 
         if (indent > 0)
         {
@@ -2230,7 +2281,7 @@ void SourceView::refresh_source_bp_disp(bool reset)
             {
                 for (int i = insert_string.length(); i < indent - 1; i++)
                 {
-                    insert_string += sourcecode.get_source()[pos + i];
+                    insert_string += sourcecode.get_source_at(pos + i, 1);
                 }
             }
 
@@ -2321,11 +2372,15 @@ void SourceView::refresh_code_bp_disp(bool reset)
 // Position management
 //-----------------------------------------------------------------------
 
-// Find the line number at POS
-// LINE_NR becomes the line number at POS
-// IN_TEXT becomes true iff POS is in the source area
-// BP_NR is the number of the breakpoint at POS (none: 0)
-// Return false iff failure
+/*!Find the line number at \c pos
+ * \param[in] w widget
+ * \param[in] pos position in characters
+ * \param[out] line_nr becomes the line number at POS
+ * \param[out] address
+ * \param[out] in_text becomes true iff POS is in the source area
+ * \param[out] bp_nr
+ * \return Return false iff failure
+ */
 bool SourceView::get_line_of_pos (Widget   w,
                                   XmTextPosition pos,
                                   int&     line_nr,
@@ -2357,7 +2412,8 @@ bool SourceView::get_line_of_pos (Widget   w,
              bp != 0;
              bp = bp_map.next(ref))
         {
-            for (int i = 0; i < bp->n_locations(); i++) {
+            for (int i = 0; i < bp->n_locations(); i++)
+            {
                 BreakPointLocn &locn = bp->get_location(i);
                 if (w == locn.source_glyph() || w == locn.code_glyph())
                 {
@@ -2372,88 +2428,63 @@ bool SourceView::get_line_of_pos (Widget   w,
         }
     }
 
-    if (pos >= int(current_text(text_w).length()))
-    {
-        // Position is on the right of text
-        in_text = false;
-        line_nr = sourcecode.get_num_lines();
-        return true;
-    }
+//     if (pos >= int(current_text(text_w).length()))
+//     {
+//         // Position is on the right of text
+//         in_text = false;
+//         line_nr = sourcecode.get_num_lines();
+//         return true;
+//     }
 
     if (text_w == source_text_w)
     {
-        // Search in source code
-        XmTextPosition line_pos = 0;
-        XmTextPosition next_line_pos = 0;
 
-        while (!found && sourcecode.get_num_lines() >= line_nr)
+        line_nr = sourcecode.line_of_pos(pos);
+        if (pos > sourcecode.get_num_characters())
         {
-            next_line_pos = (sourcecode.get_num_lines() >= line_nr + 1) ?
-                            sourcecode.pos_of_line(line_nr + 1) :
-                XmTextGetLastPosition (text_w) + 1;
+            in_text = false;
+            return true;
+        }
 
-            bool left_of_first_nonblank = false;
-            if (pos < next_line_pos)
+        int offset = pos - sourcecode.pos_of_line(line_nr);
+
+        if (offset > sourcecode.calculate_indent(line_nr) - 1)
+        {
+            // Position is in text
+            in_text = true;
+            return true;
+        }
+
+        // Position in breakpoint area
+        in_text = false;
+        line_nr = max(line_nr, 1);
+
+        // Check for breakpoints...
+        std::vector<int>& bps = bps_in_line[line_nr];
+        if (bps.size() == 1)
+        {
+            // Return single breakpoint in this line
+            bp_nr = bps[0];
+        }
+        else if (bps.size() > 1)
+        {
+            // Find which breakpoint was selected
+            XmTextPosition bp_disp_pos = sourcecode.pos_of_line(line_nr);
+            for (int i = 0; i < int(bps.size()); i++)
             {
-                // Check if we're left of first non-blank source character
-                int first_nonblank = line_pos + sourcecode.calculate_indent();
-                const string& text = sourcecode.get_source();
-                while (first_nonblank < next_line_pos
-                       && first_nonblank < int(text.length())
-                       && isspace(text[first_nonblank]))
-                    first_nonblank++;
-                left_of_first_nonblank = (pos < first_nonblank);
-            }
+                BreakPoint* bp = bp_map.get(bps[i]);
+                assert(bp != NULL);
 
-            if (pos == line_pos
-                || left_of_first_nonblank
-                || pos < (line_pos + sourcecode.calculate_indent() - 1))
-            {
-                // Position in breakpoint area
-                found = true;
-                in_text = false;
-                line_nr = max(line_nr, 1);
-
-                // Check for breakpoints...
-                std::vector<int>& bps = bps_in_line[line_nr];
-                if (bps.size() == 1)
+                bp_disp_pos += 2; // respect '#' and '_';
+                bp_disp_pos += itostring(bp->number()).length();
+                if (pos < bp_disp_pos)
                 {
-                    // Return single breakpoint in this line
-                    bp_nr = bps[0];
+                    bp_nr = bps[i];
+                    break; // exit for loop
                 }
-                else if (bps.size() > 1)
-                {
-                    // Find which breakpoint was selected
-                    XmTextPosition bp_disp_pos = line_pos;
-                    int i;
-                    for (i = 0; i < int(bps.size()); i++)
-                    {
-                        BreakPoint* bp = bp_map.get(bps[i]);
-                        assert(bp != NULL);
-
-                        bp_disp_pos += 2; // respect '#' and '_';
-                        bp_disp_pos += itostring(bp->number()).length();
-                        if (pos < bp_disp_pos)
-                        {
-                            bp_nr = bps[i];
-                            break; // exit for loop
-                        }
-                    }
-                }
-            }
-            else if (pos < next_line_pos)
-            {
-                // Position is in text
-                found   = true;
-                in_text = true;
-            }
-            else
-            {
-                // Position is in one of the following lines
-                line_pos = next_line_pos;
-                line_nr++;
             }
         }
+        return true;
     }
     else if (text_w == code_text_w)
     {
@@ -2527,19 +2558,40 @@ void SourceView::find_word_bounds (Widget text_w,
                                    XmTextPosition& endpos)
 {
     startpos = endpos = pos;
+    string text;
+    XmTextPosition lineoffset = 0;
+    if (is_source_widget(text_w))
+    {
+        lineoffset = sourcecode.startofline_at_pos(pos);
+        int line = sourcecode.line_of_pos(pos);
+        text = sourcecode.get_source_lineASCII(line);
+        int offset = pos - lineoffset;
+        if (offset == 0 || offset < sourcecode.calculate_indent(line))
+        {
+            // Do not select words in breakpoint area.
+            return;
+        }
 
-    const string& text = current_text(text_w);
+        if (text.empty())
+            return;
 
-    XmTextPosition line_pos = pos;
-    if (line_pos < XmTextPosition(text.length()))
-        while (line_pos > 0 && text[line_pos - 1] != '\n')
+        startpos -= lineoffset;
+        endpos -= lineoffset;
+    }
+    else
+    {
+        text = current_code;
+        XmTextPosition line_pos = pos;
+        if (line_pos < XmTextPosition(text.length()))
+            while (line_pos > 0 && text[line_pos - 1] != '\n')
             line_pos--;
 
-    int offset = pos - line_pos;
-    if (offset == 0 || offset < indent_amount(text_w))
-    {
-        // Do not select words in breakpoint area.
-        return;
+        int offset = pos - line_pos;
+        if (offset == 0 || offset < indent_amount(text_w))
+        {
+            // Do not select words in breakpoint area.
+            return;
+        }
     }
 
     // We first check the special case in BASH and MAKE where we are 
@@ -2548,44 +2600,66 @@ void SourceView::find_word_bounds (Widget text_w,
     // We also dispose of the special automatic variables of GNU make: 
     // $@, $<, etc and special variables of BASH: $*, $@, $? $$, etc.
     if ( '$' == text[endpos] && endpos < XmTextPosition(text.length()) 
-         && (endpos - 1 <= 0 || '$' != text[endpos-1]) )
+         && (endpos - 1 >= 0 || '$' != text[endpos-1]) )
     {
-      if ( gdb->program_language() == LANGUAGE_BASH ) {
-        if ( text[endpos+1] == '{' )
-          // Advance position over ${
-          startpos = endpos += 2;
-        else if (is_bash_special(text[endpos+1])) {
-          // Found a Bash special variable
-          startpos = endpos;
-          endpos  =  endpos+2;
-          return;
+        if ( gdb->program_language() == LANGUAGE_BASH )
+        {
+            if (text[endpos+1] == '{')
+            {
+                // Advance position over ${
+                startpos = endpos += 2;
+            }
+            else if (is_bash_special(text[endpos+1]))
+            {
+                // Found a Bash special variable
+                startpos = endpos;
+                endpos  =  endpos+2;
+                startpos += lineoffset;
+                endpos += lineoffset;
+                return;
+            }
         }
-      } else if ( gdb->program_language() == LANGUAGE_MAKE ) {
-        if ( text[endpos+1] == '(' )
-          // Advance position over $(
-          startpos = endpos += 2;
-        else if (is_make_automatic(text[endpos+1])) {
-          // Found a GNU Make automatic variable
-          startpos = endpos;
-          endpos  =  endpos+2;
-          return;
+        else if ( gdb->program_language() == LANGUAGE_MAKE )
+        {
+            if ( text[endpos+1] == '(' )
+            {
+                // Advance position over $(
+                startpos = endpos += 2;
+            }
+            else if (is_make_automatic(text[endpos+1]))
+            {
+                // Found a GNU Make automatic variable
+                startpos = endpos;
+                endpos  =  endpos+2;
+                startpos += lineoffset;
+                endpos += lineoffset;
+                return;
+            }
         }
-      }
-    } else if (endpos - 1 > 0 || '$' == text[endpos-1]) {
-      /* Previous character was a $ - check it out. */
-      if ( gdb->program_language() == LANGUAGE_MAKE &&
-           is_make_automatic(text[endpos]) ) {
-        // Found a GNU Make automatic variable
-        startpos = endpos-1;
-        endpos  =  endpos+1;
-        return;
-      } else if ( gdb->program_language() == LANGUAGE_BASH &&
-           is_bash_special(text[endpos]) ) {
-        // Found a Bash special variable
-        startpos = endpos-1;
-        endpos  =  endpos+1;
-        return;
-      }
+    }
+    else if (endpos - 1 > 0 || '$' == text[endpos-1])
+    {
+        /* Previous character was a $ - check it out. */
+        if ( gdb->program_language() == LANGUAGE_MAKE &&
+            is_make_automatic(text[endpos]) )
+        {
+            // Found a GNU Make automatic variable
+            startpos = endpos-1;
+            endpos  =  endpos+1;
+            startpos += lineoffset;
+            endpos += lineoffset;
+            return;
+        }
+        else if ( gdb->program_language() == LANGUAGE_BASH &&
+            is_bash_special(text[endpos]) )
+        {
+            // Found a Bash special variable
+            startpos = endpos-1;
+            endpos  =  endpos+1;
+            startpos += lineoffset;
+            endpos += lineoffset;
+            return;
+        }
     }
 
     // Find end of word - Start scanning for a non-identifier
@@ -2683,6 +2757,8 @@ void SourceView::find_word_bounds (Widget text_w,
         else
             break;
     }
+    startpos += lineoffset;
+    endpos += lineoffset;
 }
 
 // Get the word at event position
@@ -2698,32 +2774,50 @@ string SourceView::get_word_at_event(Widget text_w,
 }
 
 
-// Get the word at POS
+/*! Get the word at POS
+ * \param[in] text_w widget
+ * \param[in] pos character position
+ * \param[out] startpos
+ * \param[out] endpos
+ * \return returns word of pos or ""
+ */
 string SourceView::get_word_at_pos(Widget text_w,
                                    XmTextPosition pos,
                                    XmTextPosition& startpos,
                                    XmTextPosition& endpos)
 {
-    const string& text = current_text(text_w);
-    if (text.empty())
-      {
-        startpos = 0;
-        endpos = 0;
-        return "";
-      }
-
-    if (!XmTextGetSelectionPosition(text_w, &startpos, &endpos)
-        || pos < startpos
-        || pos > endpos)
-    {
-        find_word_bounds(text_w, pos, startpos, endpos);
-    }
-
     string word = "";
-    if (startpos < XmTextPosition(text.length())
-        && startpos < endpos)
-        word = text.at(int(startpos), int(endpos - startpos));
 
+    if (is_source_widget(text_w))
+    {
+        if (sourcecode.have_source()==false)
+        {
+            startpos = 0;
+            endpos = 0;
+            return "";
+        }
+
+        if (!XmTextGetSelectionPosition(text_w, &startpos, &endpos)|| pos < startpos || pos > endpos)
+            find_word_bounds(text_w, pos, startpos, endpos);
+
+        word = sourcecode.get_source_at(int(startpos), int(endpos - startpos));
+
+    }
+    else
+    {
+        if (current_code.empty())
+        {
+            startpos = 0;
+            endpos = 0;
+            return "";
+        }
+
+        if (!XmTextGetSelectionPosition(text_w, &startpos, &endpos) || pos < startpos || pos > endpos)
+            find_word_bounds(text_w, pos, startpos, endpos);
+
+        if (startpos < XmTextPosition(current_code.length()) && startpos < endpos)
+            word = current_code.at(int(startpos), int(endpos - startpos));
+    }
     strip_space(word);
 
     return word;
@@ -3283,7 +3377,8 @@ void SourceView::_show_execution_position(const string& file, int line,
 
     XmTextPosition pos_line_end = 0;
     if (sourcecode.have_source())
-        pos_line_end = sourcecode.get_source().index('\n', pos) + 1;
+        pos_line_end = sourcecode.endofline_at_pos(pos) + 1;
+
 
     if (!display_glyphs && 
         (pos != last_start_highlight || pos_line_end != last_end_highlight))
@@ -3351,10 +3446,10 @@ void SourceView::show_position(string position, bool silent)
            
         if (line > 0 && line <= sourcecode.get_num_lines())
         {
-             add_position_to_history(file_name, line, false);
+            add_position_to_history(file_name, line, false);
     
             XmTextPosition pos = sourcecode.pos_of_line(line);
-            int indent = sourcecode.calculate_indent(pos);
+            int indent = sourcecode.calculate_indent(line);
             SetInsertionPosition(source_text_w, pos + indent, true);
                 
             last_pos = pos;
@@ -3978,7 +4073,7 @@ void SourceView::goto_entry(const string& file_name, int line,
             else
             {
                 XmTextPosition pos = sourcecode.pos_of_line(line);
-                int indent = sourcecode.calculate_indent(pos);
+                int indent = sourcecode.calculate_indent(line);
                 SetInsertionPosition(source_text_w, pos + indent, true);
             }
         }
@@ -4129,6 +4224,7 @@ void SourceView::find(const string& s,
 
     if (XmTextGetSelectionPosition(source_text_w, &startpos, &endpos))
     {
+        cursor = sourcecode.charpos_to_bytepos(cursor);
         switch (direction)
         {
         case forward:
@@ -4214,9 +4310,13 @@ void SourceView::find(const string& s,
     else
     {
         // Highlight occurrence
+        int endpos = pos + matchlen;
+        pos = sourcecode.bytepos_to_charpos(pos);
+        endpos = sourcecode.bytepos_to_charpos(endpos);
         TextSetSelection(source_text_w, pos, pos + matchlen, time);
 
         // Set position
+        cursor = sourcecode.bytepos_to_charpos(cursor);
         SetInsertionPosition(source_text_w, cursor, false);
 
         if (cursor == initial_cursor)
@@ -4422,9 +4522,7 @@ void SourceView::srcpopupAct (Widget w, XEvent* e, String *, Cardinal *)
     static string address;
     bool pos_found = get_line_of_pos(w, pos, line_nr, address, in_text, bp_nr);
 
-    bool right_of_text = 
-        pos < XmTextPosition(current_text(w).length()) 
-        && current_text(w)[pos] == '\n';
+    bool right_of_text = (sourcecode.endofline_at_pos(pos) == pos);
 
     if (pos_found && bp_nr != 0)
     {
@@ -4575,7 +4673,7 @@ void SourceView::doubleClickAct(Widget w, XEvent *e, String *params,
         bool double_click = 
             last_selection_time != 0 &&
             (Time(selection_time - last_selection_time) <= 
-             Time(XtGetMultiClickTime(XtDisplay(text_w))));
+             Time(2*XtGetMultiClickTime(XtDisplay(text_w))));
 
         if (double_click)
             last_selection_time = 0;
@@ -4620,12 +4718,10 @@ void SourceView::doubleClickAct(Widget w, XEvent *e, String *params,
         if (text_w == source_text_w)
         {
             // Check for function call
-            int p = endpos;
-            while (p < (int)sourcecode.get_length() &&
-                   isspace(sourcecode.get_source()[p]))
-                p++;
+            string nextchars = sourcecode.get_source_at(endpos, 32);
+            strip_leading_space(nextchars);
 
-            if (control || sourcecode.get_source().contains('(', p))
+            if (control || nextchars[0] == '(')
             {
                 if (*num_params >= 3)
                     gdb_button_command(params[2]);
@@ -6980,12 +7076,7 @@ string SourceView::get_line(string position)
     if (!is_current_file(file_name))
         return "";
 
-    XmTextPosition start = sourcecode.pos_of_line(line) + sourcecode.calculate_indent();
-    XmTextPosition end   = sourcecode.get_source().index('\n', start);
-    if (end < 0)
-        end = sourcecode.get_length();
-
-    const string text = sourcecode.get_source_at(int(start), end - start);
+    const string text = sourcecode.get_source_line(line);
     return itostring(line) + "\t" + text;
 }
 
@@ -7172,8 +7263,12 @@ int SourceView::line_height(Widget text_w)
     if (!ok)
         return 0;
 
-    const string& text = current_text(text_w);
-    XmTextPosition second = text.index('\n', top) + 1;
+    XmTextPosition second;
+    if (text_w == source_text_w)
+        second = sourcecode.pos_of_line(sourcecode.line_of_pos(top)+1);
+    else
+        second = current_code.index('\n', top) + 1;
+
     Position second_x, second_y;
     ok = XmTextPosToXY(text_w, second, &second_x, &second_y);
     if (!ok)
@@ -8027,7 +8122,7 @@ void SourceView::update_glyphs_now()
             continue;
 
         int plain_stops_count = 0;
-        int multi_stops_count  = 0;
+        int multi_stops_count = 0;
         int grey_stops_count  = 0;
 
         int plain_conds_count = 0;
@@ -8331,23 +8426,43 @@ XmTextPosition SourceView::glyph_position(Widget glyph, XEvent *e,
                   XmNtopCharacter, &current_top,
                   XtPointer(0));
 
-    const string& text = current_text(text_w);
-    XmTextPosition current_bottom = current_top;
-    while (current_bottom < int(text.length()) && rows > 0)
-        if (text[current_bottom++] == '\n')
-            rows--;
+    XmTextPosition current_bottom;
+    int textlength;
+    if (text_w == source_text_w)
+    {
+        int topline = sourcecode.line_of_pos(current_top);
+        int bottomline = std::min(topline + rows, sourcecode.get_num_lines());
+        current_bottom = sourcecode.pos_of_line(bottomline);
+        textlength = sourcecode.get_num_characters();
+    }
+    else
+    {
+        current_bottom = current_top;
+        while (current_bottom < int(current_code.length()) && rows > 0)
+            if (current_code[current_bottom++] == '\n')
+                rows--;
+
+        textlength = current_code.length();
+
+    }
 
     if (pos < current_top)
         pos = max(current_top - 1, 0);
     else if (pos > current_bottom)
-        pos = min(current_bottom + 1, text.length());
+        pos = min(current_bottom + 1, textlength);
 
     if (normalize)
     {
-        const string& text = current_text(glyph);
-        pos = min(pos, text.length());
-        while (pos > 0 && text[pos - 1] != '\n')
-            pos--;
+        if (text_w == source_text_w)
+        {
+            pos = sourcecode.startofline_at_pos(pos);
+        }
+        else
+        {
+            pos = min(pos, current_code.length());
+            while (pos > 0 && current_code[pos - 1] != '\n')
+                pos--;
+        }
     }
 
     return pos;

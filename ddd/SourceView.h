@@ -395,7 +395,6 @@ class SourceView {
 
     static bool is_source_widget(Widget w);
     static bool is_code_widget(Widget w);
-    static const string& current_text(Widget w);
 
     // Return current breakpoint indent amount.  If POS is given, add
     // the whitespace from POS.
