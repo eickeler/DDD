@@ -2489,9 +2489,10 @@ bool SourceView::get_line_of_pos (Widget   w,
     else if (text_w == code_text_w)
     {
         // Search in machine code
-        XmTextPosition line_pos = pos;
-        if (pos > current_code.length())
+        if (pos >= current_code.length() || pos < 0)
             return false;
+
+        XmTextPosition line_pos = pos;
 
         while (line_pos >= 0 && current_code[line_pos] != '\n')
             line_pos--;
