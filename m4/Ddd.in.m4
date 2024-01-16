@@ -594,6 +594,7 @@ set height 0\n\
 set width 0\n\
 set annotate 1\n\
 set print repeats unlimited\n\
+set print sevenbit-strings off\n\
 set verbose off\n
 
 ! The GDB settings.  Usually overridden in `~/.ddd/init'.
@@ -1838,7 +1839,7 @@ Have fun with DDD!
 Ddd*helpOnVersionString:	\
 @llogo DDD@logo: \
 The @llogo D@logo ata @llogo D@logo isplay @llogo D@logo ebugger\n\
-@rm by Dorothea L\374tkehaus and Andreas Zeller,\nmaintained by Michael Eager and Stefan Eickeler.\n\n
+@rm by Dorothea L\303\274tkehaus and Andreas Zeller,\nmaintained by Michael Eager and Stefan Eickeler.\n\n
 
 ! The default Help Text.
 Ddd*helpString:	\

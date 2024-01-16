@@ -1605,8 +1605,9 @@ static MMDesc startup_preferences_menu [] =
 };
 
 
-static Widget font_names[5];
-static Widget font_sizes[5];
+static Widget font_names[5] = {};
+static Widget font_sizes[5] = {};
+
 
 #define FONT_MENU(font) \
 { \
@@ -4189,20 +4190,15 @@ void update_options()
     if (font_names[DefaultDDDFont] != 0)
     {
         set_string(font_names[DefaultDDDFont], app_data.default_font);
-        set_string(font_names[VariableWidthDDDFont], 
-                   app_data.variable_width_font);
+        set_string(font_names[VariableWidthDDDFont], app_data.variable_width_font);
         set_string(font_names[FixedWidthDDDFont], app_data.fixed_width_font);
         set_string(font_names[DataDDDFont], app_data.data_font);
-
-        set_string_int(font_sizes[DefaultDDDFont], 
-                       app_data.default_font_size);
-        set_string_int(font_sizes[VariableWidthDDDFont],
-                       app_data.variable_width_font_size);
-        set_string_int(font_sizes[FixedWidthDDDFont], 
-                       app_data.fixed_width_font_size);
-        set_string_int(font_sizes[DataDDDFont], 
-                       app_data.data_font_size);
     }
+
+    set_string_int(font_sizes[DefaultDDDFont], app_data.default_font_size);
+    set_string_int(font_sizes[VariableWidthDDDFont], app_data.variable_width_font_size);
+    set_string_int(font_sizes[FixedWidthDDDFont], app_data.fixed_width_font_size);
+    set_string_int(font_sizes[DataDDDFont], app_data.data_font_size);
 
     // Key Bindings
     BindingStyle cut_copy_paste_style = app_data.cut_copy_paste_bindings;
@@ -5089,8 +5085,16 @@ static void make_preferences(Widget parent)
               max_width, max_height, false);
     add_panel(change, buttons, "startup", startup_preferences_menu, 
               max_width, max_height, false);
+#ifndef USE_XFT_LIB
     add_panel(change, buttons, "fonts", font_preferences_menu,
               max_width, max_height, false);
+#else
+    std::vector<MMDesc> fontmenu = CreateFontSelectMenu(font_sizes);
+    add_panel(change, buttons, "fonts", &fontmenu[0],
+              max_width, max_height, false);
+
+    SetActivatedFonts(app_data);
+#endif
     add_panel(change, buttons, "helpers", helpers_preferences_menu, 
               max_width, max_height, false);
 
@@ -5130,6 +5134,7 @@ static void create_status(Widget parent)
     XtSetArg(args[arg], XmNtopAttachment,      XmATTACH_FORM); arg++;
     XtSetArg(args[arg], XmNbottomAttachment,   XmATTACH_FORM); arg++;
     XtSetArg(args[arg], XmNrightAttachment,    XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNrightOffset,        25); arg++;
     XtSetArg(args[arg], XmNresizable,          False); arg++;
     XtSetArg(args[arg], XmNfillOnSelect,       True); arg++;
     XtSetArg(args[arg], XmNset,                True); arg++;

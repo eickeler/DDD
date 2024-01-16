@@ -81,13 +81,11 @@ static XmTextPosition start_of_line()
 {
     XmTextPosition end = XmTextGetLastPosition(gdb_w);
     XmTextPosition start;
-    char search1[] = "\n(";
-    bool res = XmTextFindString(gdb_w, end, search1, XmTEXT_BACKWARD, &start);
+    bool res = XmTextFindString(gdb_w, end, XMST("\n("), XmTEXT_BACKWARD, &start);
     if (res)
         return start + 1; // advance by '\n'
 
-    char search2[] = "\n>";
-    res = XmTextFindString(gdb_w, end, search2, XmTEXT_BACKWARD, &start);
+    res = XmTextFindString(gdb_w, end, XMST("\n>"), XmTEXT_BACKWARD, &start);
     if (res)
         return start + 1;
 

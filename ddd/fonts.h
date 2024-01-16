@@ -30,6 +30,9 @@
 
 #include "base/strclass.h"
 #include "AppData.h"
+#include "motif/MakeMenu.h"
+
+#include <vector>
 
 #include <X11/Intrinsic.h>
 
@@ -50,6 +53,12 @@ extern string make_font(const AppData& ad, DDDFont base,
 
 // Set a new font resource
 extern void set_font(DDDFont n, const string& name);
+
+std::vector<string> GetFixedWithFonts();
+
+std::vector<MMDesc> CreateFontSelectMenu(Widget *font_sizes);
+void SetActivatedFonts(const AppData& ad);
+
 
 // Browse fonts
 extern void BrowseFontCB(Widget w, XtPointer, XtPointer);
