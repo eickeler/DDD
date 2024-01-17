@@ -660,7 +660,7 @@ LIBXM = @XM_LIBS@
 LIBXAW = @XAW_LIBS@
 
 # Freetype2 libraries
-LIBXFT = @XFT_LIBS@
+LIBXFT = @XFT_LIBS@ -lfontconfig
 
 # Freetype2 headers
 XFTINCLUDE = @XFT_INCLUDE@

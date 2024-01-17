@@ -27,10 +27,10 @@
 
 #ifndef _DDD_FontTable_h
 #define _DDD_FontTable_h
+#include "config.h"
 
-//#define USE_XFT_LIB
 
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
 #include <X11/Xft/Xft.h>
 #endif
 #include <X11/Xlib.h>
@@ -39,7 +39,7 @@
 #include "base/assert.h"
 
 
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
 typedef XftFont BoxFont;
 #else
 typedef XFontStruct BoxFont;
@@ -82,7 +82,7 @@ public:
 
     virtual ~FontTable()
     {
-#ifndef USE_XFT_LIB
+#ifndef HAVE_FREETYPE
 	for (unsigned i = 0; i < MAX_FONTS; i++)
 	    if (table[i].font != 0)
 		XFreeFont(_display, table[i].font);

@@ -42,7 +42,6 @@
 #include "GDBAgent.h"
 #include "template/StringSA.h"
 
-#include "box/FontTable.h" // for the define USE_XFT_LIB
 
 //-----------------------------------------------------------------------------
 extern GDBAgent* gdb;

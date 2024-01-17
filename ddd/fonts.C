@@ -29,6 +29,7 @@
 char fonts_rcsid[] = 
     "$Id$";
 
+#include "config.h"
 #include "fonts.h"
 #include "x11/charsets.h"
 
@@ -58,7 +59,6 @@ char fonts_rcsid[] =
 
 #include <fontconfig/fontconfig.h>
 
-#include "box/FontTable.h" // for the define USE_XFT_LIB
 #include <algorithm>
 
 //-----------------------------------------------------------------------------
@@ -522,7 +522,7 @@ void replace_vsl_font(string& defs, const string& func,
 static void setup_vsl_fonts(AppData& ad)
 {
     Dimension small_size, tiny_size, llogo_size;
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
     if (ad.data_font_size >=80)
         ad.data_font_size = 11;
 
@@ -607,7 +607,7 @@ static void setup_vsl_fonts(AppData& ad)
 void setup_fonts(AppData& ad, XrmDatabase db)
 {
     XrmDatabase db2 = db;
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
     setup_xft_fonts(ad, db2);
 #else
     setup_x_fonts(ad, db2);
@@ -752,7 +752,7 @@ void SetFontSizeCB(Widget w, XtPointer client_data, XtPointer)
     update_reset_preferences();
 }
 
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
 std::vector<string> GetFixedWithFonts()
 {
     std::vector<string> fontlist;
@@ -824,7 +824,6 @@ std::vector<string> GetVarWithFonts()
                 (strcmp((char*)style, "Medium") == 0 || strcmp((char*)style, "Regular") == 0)
             )
             {
-                printf("Family: %s, Style: %s, Lang \n", family, style);
                 if(std::find(oklist.begin(), oklist.end(), string((char*)family)) != oklist.end())
                     fontlist.push_back(string((char*)family));
             }

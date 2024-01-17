@@ -298,8 +298,6 @@ extern "C" {
 }
 #endif
 
-#include "box/FontTable.h" // for the define USE_XFT_LIB
-
 //-----------------------------------------------------------------------------
 // Forward function decls
 //-----------------------------------------------------------------------------
@@ -2031,7 +2029,7 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 #ifdef LC_ALL
     // Let DDD locales be controlled by the locale-specific
     // environment variables -- especially $LANG.
-#ifndef USE_XFT_LIB
+#ifndef HAVE_FREETYPE
     // ddd cannot handle UTF-8. As workaround we use the latin1 charset 
     // and try to map UTF-8 characters on this set.
     setlocale(LC_ALL, "C.ISO-8859-1");
@@ -5085,7 +5083,7 @@ static void make_preferences(Widget parent)
               max_width, max_height, false);
     add_panel(change, buttons, "startup", startup_preferences_menu, 
               max_width, max_height, false);
-#ifndef USE_XFT_LIB
+#ifndef HAVE_FREETYPE
     add_panel(change, buttons, "fonts", font_preferences_menu,
               max_width, max_height, false);
 #else
@@ -5125,8 +5123,7 @@ static void create_status(Widget parent)
     Arg args[15];
     int arg = 0;
     XtSetArg(args[arg], XmNresizePolicy, XmRESIZE_ANY); arg++;
-    Widget status_form = 
-        verify(XmCreateForm(parent, XMST("status_form"), args, arg));
+    Widget status_form = verify(XmCreateForm(parent, XMST("status_form"), args, arg));
     XtManageChild(status_form);
 
     // Create LED
@@ -7072,7 +7069,7 @@ static void setup_version_info()
     std::ostringstream os;
     show_configuration(os);
     string cinfo(os);
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
     cinfo.gsub("(C)", "\302\251"); //0xC2 0xA9
 #else
     cinfo.gsub("(C)", "\251");
@@ -7168,7 +7165,7 @@ static void setup_version_info()
     s += "To start, select `Help->What Now?'.";
     XmTextSetString(SourceView::source(), s);
 #else
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
     XmTextSetString(gdb_w, XMST(
                     "GNU " DDD_NAME " " DDD_VERSION " (" DDD_HOST "), "
                     "by Dorothea L\303\274tkehaus and Andreas Zeller,\n"
@@ -7260,7 +7257,7 @@ static void setup_environment()
     {
         case GDB:
             // reset the internationalization in gdb to allow the correct interpretation of the answers from gdg
-#ifdef USE_XFT_LIB
+#ifdef HAVE_FREETYPE
             put_environment("LANG", "C.UTF-8");
 #else
             put_environment("LANG", "");
