@@ -40,7 +40,8 @@
 #include "graph/LineGraphE.h"
 #include "graph/PosGraphN.h"
 #include "graph/GraphNPA.h"
-#include "DispNodeM.h"
+#include "template/Map.h"
+#include "DispNode.h"
 
 //-----------------------------------------------------------------------------
 
@@ -58,7 +59,7 @@ public:
     DECLARE_TYPE_INFO
 
 private:
-    DispNodeMap  idMap;
+    Map<int, DispNode> idMap;
     HandlerList  handlers;
     bool         no_enabled;
     bool         no_disabled;

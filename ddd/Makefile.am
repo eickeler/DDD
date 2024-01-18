@@ -123,7 +123,6 @@ TEMPLATE_SRC = \
 	template/Queue.h      \
 	template/StatArray.h  \
 	template/StringA.h    \
-	template/StringMap.h  \
 	template/StringSA.h   \
 	template/StringSAA.h  \
 	template/TextPosA.h   \
@@ -515,7 +514,6 @@ DDD_SRC = \
 	DispGraph.h  \
 	DispNode.C   \
 	DispNode.h   \
-	DispNodeM.h  \
 	DispValue.C  \
 	DispValue.h  \
 	DispValueA.h \

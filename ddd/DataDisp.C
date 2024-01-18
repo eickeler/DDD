@@ -82,7 +82,6 @@ char DataDisp_rcsid[] =
 #include "graph/ScrolledGE.h"
 #include "SmartC.h"
 #include "box/StringBox.h"		// StringBox::fontTable
-#include "template/StringMap.h"
 #include "box/TagBox.h"
 #include "motif/TextSetS.h"
 #include "agent/TimeOut.h"
@@ -4978,7 +4977,7 @@ void DataDisp::process_info_display(string& info_display_answer,
 				    bool defer_deleted)
 {
     int disp_nr;
-    StringMap info_disp_string_map;
+    Map<int, string> info_disp_string_map;
     string *strptr;
     int max_disp_nr = 0;
 
@@ -5177,7 +5176,7 @@ string DataDisp::process_displays(string& displays,
     // Store graph displays in DISP_STRING_MAP; return all other
     // (text) displays as well as error messages
     int disp_nr = 0;
-    StringMap disp_string_map;
+    Map<int, string> disp_string_map;
 
 #if LOG_DISPLAYS
     std::clog << "Updating displays " << quote(displays) << "...\n";
