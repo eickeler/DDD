@@ -559,7 +559,6 @@ DDD_SRC = \
 	RefreshDI.h  \
 	SmartC.C     \
 	SmartC.h     \
-	SourceO.h    \
 	SourceCode.C \
 	SourceCode.h \
 	SourceView.C \

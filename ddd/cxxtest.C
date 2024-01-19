@@ -733,7 +733,7 @@ static void type_test()
 //--------------------------------------------------------------------------
 static void utf8test()
 {
-    // list created by ChatGDP
+    // list created by ChatGPT
     std::vector<std::vector<std::string>> languages = {
             {"English", "Hello"},
             {"Deutsch", "Hallo"},

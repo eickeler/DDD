@@ -1916,7 +1916,7 @@ void SourceView::ShowPosition(Widget text_w, XmTextPosition pos, bool fromTop)
             else if (relative_row >= rows - (lines_below_cursor + 1))
                 n = rows - (lines_below_cursor + 1);
 
-            XmTextPosition new_top = sourcecode.pos_of_line(toprow+n);
+            XmTextPosition new_top = sourcecode.pos_of_line(currentrow+n);
 
             XmTextSetTopCharacter(text_w, new_top);
         }
@@ -2103,23 +2103,23 @@ void SourceView::read_file (string file_name,
     MString msg;
     switch (sourcecode.get_origin())
     {
-    case ORIGIN_LOCAL:
+        case SourceCode::ORIGIN_LOCAL:
         msg += rm("File " + quote(file_name));
         if (remote_gdb())
             msg += rm(" (from local host)");
         break;
 
-    case ORIGIN_REMOTE:
+        case SourceCode::ORIGIN_REMOTE:
         msg += rm("File " + quote(file_name));
         msg += rm(" (from " + gdb_host + ")");
         break;
 
-    case ORIGIN_GDB:
+        case SourceCode::ORIGIN_GDB:
         msg += rm("Source " + quote(file_name));
         msg += rm(" (from " + gdb->title() + ")");
         break;
 
-    case ORIGIN_NONE:
+        case SourceCode::ORIGIN_NONE:
         msg += tt(file_name);
         break;
     }
@@ -2427,14 +2427,6 @@ bool SourceView::get_line_of_pos (Widget   w,
             }
         }
     }
-
-//     if (pos >= int(current_text(text_w).length()))
-//     {
-//         // Position is on the right of text
-//         in_text = false;
-//         line_nr = sourcecode.get_num_lines();
-//         return true;
-//     }
 
     if (text_w == source_text_w)
     {
@@ -8552,11 +8544,13 @@ void SourceView::dragGlyphAct(Widget glyph, XEvent *e, String *params,
     MapRef ref;
     for (BreakPoint *bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
     {
-        for (int i = 0; i < bp->n_locations(); i++) {
+        for (int i = 0; i < bp->n_locations(); i++)
+        {
             BreakPointLocn &locn = bp->get_location(i);
             if (glyph == locn.source_glyph() || glyph == locn.code_glyph())
             {
-                if (glyph == locn.code_glyph() && bp->n_locations() > 1) {
+                if (glyph == locn.code_glyph() && bp->n_locations() > 1)
+                {
                     // Cannot drag a breakpoint in code window if it has
                     // multiple locations.  FIXME: such glyphs should be
                     // visually distinguished.
@@ -8819,7 +8813,8 @@ void SourceView::deleteGlyphAct(Widget glyph, XEvent *, String *, Cardinal *)
     MapRef ref;
     for (BreakPoint *bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
     {
-        for (int i = 0; i < bp->n_locations(); i++) {
+        for (int i = 0; i < bp->n_locations(); i++)
+        {
             BreakPointLocn &locn = bp->get_location(i);
             if (glyph == locn.source_glyph() || glyph == locn.code_glyph())
             {

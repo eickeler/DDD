@@ -822,11 +822,12 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
     source_text_w = w; // store widget for error message output
     string requested_file_name = file_name;
 
-    if (cache_source_files && !force_reload && file_cache.has(file_name))
+    if (cache_source_files && !force_reload && filecache.find(file_name)!=filecache.end())
     {
-        current_source = file_cache[file_name];
-        current_origin = origin_cache[file_name];
-        file_name      = file_name_cache[file_name];
+        const FileCacheEntry &cached = filecache[file_name];
+        current_source = cached.text;
+        current_origin = cached.origin;
+        file_name      = cached.file_name;
 
         if (gdb->type() == JDB)
         {
@@ -849,16 +850,15 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
 
         if (current_source.length() > 0)
         {
-            file_cache[file_name]             = current_source;
-            origin_cache[file_name]           = current_origin;
-            file_name_cache[file_name]        = file_name;
+            FileCacheEntry newentry;
+            newentry.text = current_source;
+            newentry.origin = current_origin;
+            newentry.file_name = file_name;
+
+            filecache[file_name] = newentry;
 
             if (file_name != requested_file_name)
-            {
-                file_cache[requested_file_name]      = current_source;
-                origin_cache[requested_file_name]    = current_origin;
-                file_name_cache[requested_file_name] = file_name;
-            }
+                filecache[requested_file_name] = newentry;
         }
 
         int null_count = current_source.freq('\0');
@@ -1112,16 +1112,9 @@ XmTextPosition SourceCode::bytepos_to_charpos(int pos)
 // Clear the file cache
 void SourceCode::clear_file_cache()
 {
-    static const StringStringAssoc string_empty;
-    file_cache        = string_empty;
-    source_name_cache = string_empty;
-    file_name_cache   = string_empty;
-
-    static const StringOriginAssoc origin_empty;
-    origin_cache      = origin_empty;
-
-    static const std::vector<string> bad_files_empty;
-    bad_files         = bad_files_empty;
+    source_name_cache.clear();
+    filecache.clear();
+    bad_files.clear();
 }
 
 static const int MAX_TAB_WIDTH = 256;
@@ -1273,7 +1266,7 @@ string SourceCode::get_source_name(string filename)
         break;
 
     case JDB:
-        if (source_name_cache.has(filename))
+        if (source_name_cache.find(filename)!=source_name_cache.end())
         {
             // Use the source name as stored by read_class()
             source = source_name_cache[filename];

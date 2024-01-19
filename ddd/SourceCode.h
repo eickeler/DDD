@@ -28,19 +28,18 @@
 #ifndef _DDD_SourceCode_h
 #define _DDD_SourceCode_h
 #include <vector>
+#include <map>
 
 // Motif includes
 #include <Xm/Xm.h>
 
 // Misc includes
 #include "base/strclass.h"
-#include "template/Assoc.h"
 #include "base/cwd.h"
 #include "base/tabs.h"
 
 // DDD includes
 #include "GDBAgent.h"
-#include "template/StringSA.h"
 
 
 //-----------------------------------------------------------------------------
@@ -48,6 +47,10 @@ extern GDBAgent* gdb;
 
 class SourceCode
 {
+public:
+    // Source origins
+    enum SourceOrigin { ORIGIN_LOCAL, ORIGIN_REMOTE, ORIGIN_GDB, ORIGIN_NONE };
+
 private:
     // The current source text.
     string current_source = "";
@@ -74,10 +77,14 @@ private:
     bool cache_source_files = true;
 
     // source file caches
-    StringStringAssoc file_cache;
-    StringOriginAssoc origin_cache;
-    StringStringAssoc file_name_cache; // File name of current source (for JDB)
-    StringStringAssoc source_name_cache;
+    struct FileCacheEntry
+    {
+        string text;
+        SourceOrigin origin;
+        string file_name; // File name of current source (for JDB)
+    };
+    std::map<string, FileCacheEntry> filecache;
+    std::map<string, string> source_name_cache;
 
     bool display_line_numbers = false;              // Display line numbers?
 
@@ -158,10 +165,11 @@ public:
 
     bool get_source_from_file(const string& file_name, string& source_name)
     {
-        if (!source_name_cache.has(file_name))
+        auto search = source_name_cache.find(file_name);
+        if (search==source_name_cache.end())
             return false;
 
-        source_name = source_name_cache[file_name];
+        source_name = search->second;
         return true;
     }
 
