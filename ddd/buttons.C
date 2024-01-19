@@ -795,6 +795,10 @@ static MString gdbDefaultButtonText(Widget widget, XEvent *,
 	    tip = tip.before('[');
     }
 
+    // GDB has the command and abbreviations on the first line
+    if (tip.index(command)==0)
+        tip = tip.after('\n');
+
     // DBX (and others) restate the command name at the beginning.
     if (tip.contains(command, 0))
     {
