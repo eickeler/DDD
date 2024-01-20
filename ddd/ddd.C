@@ -4105,7 +4105,7 @@ void update_options()
     source_view->set_disassemble(gdb->type() == GDB || (gdb->type() == PYDB && app_data.disassemble));
     source_view->set_all_registers(app_data.all_registers);
     source_view->set_tab_width(app_data.tab_width);
-    source_view->set_indent(app_data.indent_source, app_data.indent_code, app_data.indent_script, app_data.line_number_width);
+    source_view->set_indent(app_data.indent_source, app_data.indent_code, app_data.indent_script);
 
     source_view->lines_above_cursor   = app_data.lines_above_cursor;
     source_view->lines_below_cursor   = app_data.lines_below_cursor;

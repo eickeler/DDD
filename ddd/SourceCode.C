@@ -734,6 +734,12 @@ String SourceCode::read_indented(string& file_name, long& length,
     }
 
     // Make room for line numbers
+    line_indent_amount = 4;
+    if (lines>=1000)
+        line_indent_amount = 5;
+    if (lines>=10000)
+        line_indent_amount = 6;
+
     int indent = calculate_indent();
     indented_text_length += (indent + script_indent_amount) * lines;
 
@@ -1135,18 +1141,16 @@ bool SourceCode::set_tab_width(int width)
 }
 
 //Change indentation
-bool SourceCode::set_indent(int source_indent, int script_indent, int line_indent)
+bool SourceCode::set_indent(int source_indent, int script_indent)
 {
-    if (source_indent < 0 || script_indent < 0 || line_indent < 0)
+    if (source_indent < 0 || script_indent < 0)
         return false;
 
-    if (source_indent == source_indent_amount && script_indent == script_indent_amount &&
-        line_indent == line_indent_amount)
+    if (source_indent == source_indent_amount && script_indent == script_indent_amount)
         return false;
 
     source_indent_amount = min(max(source_indent, 0), MAX_INDENT);
     script_indent_amount = min(max(script_indent, 0), MAX_INDENT);
-    line_indent_amount = min(max(line_indent, 0), MAX_LINE_NUMBER_WIDTH);
 
     return !current_file_name.empty();
 }

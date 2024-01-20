@@ -141,7 +141,7 @@ public:
     int read_current(string& file_name, bool force_reload, bool silent, Widget w);
 
     bool set_tab_width(int width);
-    bool set_indent(int source_indent, int script_indent, int line_indent);
+    bool set_indent(int source_indent, int script_indent);
     bool set_display_line_numbers(bool set);
 
     // Return current breakpoint indent amount.  If POS is given, add

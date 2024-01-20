@@ -6448,14 +6448,6 @@ The minimum indentation for script languages, such as Perl, Python, and
 Bash.  Default: @code{4}.
 @end defvr
 
-The maximum width of line numbers is controlled by this resource.
-
-@defvr Resource lineNumberWidth (class LineNumberWidth)
-The number of columns to use for line numbers (if displaying line
-numbers is enabled).  Line numbers wider than this value extend into
-the breakpoint space.  Default: @code{4}.
-@end defvr
-
 @cindex Tab width
 @lbindex Tab Width
 

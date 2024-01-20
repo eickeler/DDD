@@ -508,16 +508,6 @@ XtResource ddd_resources[] = {
     },
 
     {
-        XTRESSTR(XtNlineNumberWidth),
-        XTRESSTR(XtCLineNumberWidth),
-        XtRCardinal,
-        sizeof(Cardinal),
-        XtOffsetOf(AppData, line_number_width),
-        XmRImmediate,
-        XtPointer(4)
-    },
-
-    {
         XTRESSTR(XtNsourceEditing),
         XTRESSTR(XtCSourceEditing),
         XtRBoolean,

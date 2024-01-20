@@ -103,7 +103,7 @@ Ddd*Separate: off
 ! Ddd*separateSourceWindow: on
 
 ! You may show the source window and data window side by side.
-! Ddd*sideBySideWindows: on
+Ddd*sideBySideWindows: on
 
 
 ! The windows may be initially on or off.  By default, the data window 
@@ -484,7 +484,8 @@ Ddd*dataButtons:
 ! The command tool buttons, as of DDD 2.0 and later.
 Ddd*toolButtons: \
 run\nbreak^C\nstep\nstepi\nnext\nnexti\nuntil\nfinish\ncont\n\kill\n\
-up\ndown\nUndo\nRedo
+up\ndown\n
+!Undo\nRedo!\nEdit\nMake
 
 Ddd*break.labelString: Interrupt
 
@@ -563,10 +564,6 @@ Ddd*tabWidth:	        8
 ! Number of characters to indent the source and machine code
 Ddd*indentSource:	0
 Ddd*indentCode:	        4
-
-! Width of line numbers (if enabled; see the `displayLineNumbers' resource)
-! Line numbers wider than this value extend into the breakpoint space.
-Ddd*lineNumberWidth:	5
 
 ! The minimum number of lines to show before the current location.
 Ddd*linesAboveCursor:	2
@@ -765,7 +762,7 @@ Ddd*vslPath:			user_themes:ddd_themes:.
 ! scrollbars as a default: Many OSF/Motif installations choke
 ! on intermixed Motif/Athena applications and we don't want to get bug
 ! reports that should be directed to OSF.
-Ddd*pannedGraphEditor:		off
+Ddd*pannedGraphEditor:		on
 
 ! Nodes are moved when dragged more than 4 pixels.
 Ddd*graph_edit.moveDelta:	4
@@ -838,7 +835,7 @@ Ddd*glyphUpdateDelay: 5
 ! Ddd*cacheGlyphImages: on
 
 ! Do we wish to display line numbers? (Default in DDD 2.1.1 and earlier)
-Ddd*displayLineNumbers: off
+Ddd*displayLineNumbers: on
 
 ! Do we wish to cache source files in memory?
 Ddd*cacheSourceFiles: on
@@ -951,7 +948,7 @@ Ddd*maxUndoSize: 2000000
 
 ! Focus Policy
 ! POINTER means point-and-type, EXPLICIT means click-and-type.
-Ddd*keyboardFocusPolicy: POINTER
+Ddd*keyboardFocusPolicy: EXPLICIT
 
 ! Warnings
 ! Do we wish to suppress X warnings?

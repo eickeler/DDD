@@ -117,8 +117,6 @@
 #define XtNindentSource          "indentSource"
 #define XtNindentCode            "indentCode"
 #define XtCIndent                "Indent"
-#define XtNlineNumberWidth       "lineNumberWidth"
-#define XtCLineNumberWidth       "LineNumberWidth"
 #define XtNsourceEditing         "sourceEditing"
 #define XtCSourceEditing         "SourceEditing"
 #define XtNlineBufferedConsole   "lineBufferredConsole"
@@ -475,7 +473,6 @@ struct AppData {
     Cardinal  indent_source;
     Cardinal  indent_script;
     Cardinal  indent_code;
-    Cardinal  line_number_width;
     Boolean   source_editing;
     Boolean   line_buffered_console;
     OnOff     console_has_focus;

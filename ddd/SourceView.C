@@ -2016,12 +2016,12 @@ void SourceView::set_tab_width(int width)
 }
 
 // Change indentation
-void SourceView::set_indent(int source_indent, int code_indent, int script_indent, int line_indent)
+void SourceView::set_indent(int source_indent, int code_indent, int script_indent)
 {
-    if (source_indent < 0 || code_indent < 0 || script_indent < 0 || line_indent<0)
+    if (source_indent < 0 || code_indent < 0 || script_indent < 0)
         return;
 
-    if (sourcecode.set_indent(source_indent, script_indent, line_indent))
+    if (sourcecode.set_indent(source_indent, script_indent))
     {
         StatusDelay delay("Reformatting");
         reload();

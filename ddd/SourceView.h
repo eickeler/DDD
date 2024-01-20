@@ -705,7 +705,7 @@ public:
     static void set_tab_width(int width);
 
     // Set the indentation
-    static void set_indent(int source_indent, int code_indent, int script_indent, int line_indent);
+    static void set_indent(int source_indent, int code_indent, int script_indent);
 
     // Set the max number of glyphs
     static void set_max_glyphs(int max_glyphs);
