@@ -1057,7 +1057,8 @@ const subString SourceCode::get_source_at(int pos, int length)
     int startline = line_of_pos(pos) -1;
     int charpos = textpos_of_line[startline];
     int bytepos = bytepos_of_line[startline];
-    int bytestart = 0;
+    int bytestart = bytepos;
+
     while (bytepos<int(current_source.length()) && charpos<pos+length)
     {
         wchar_t unicode;
