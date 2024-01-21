@@ -62,10 +62,10 @@ static bool expand_label(string& name, const string& full_path, char sep)
 
 // Make each item in LABELS a base name of FILES, such that all
 // items have unique names.
-void uniquify(StringArray& files, StringArray& labels, char sep)
+void uniquify(std::vector<string>& files, std::vector<string>& labels, char sep)
 {
     // Start with base names
-    static const StringArray empty;
+    static const std::vector<string> empty;
     labels = empty;
     int i;
     for (i = 0; i < int(files.size()); i++)

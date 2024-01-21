@@ -28,12 +28,13 @@
 #ifndef _DDD_uniquify_h
 #define _DDD_uniquify_h
 
-#include "template/StringA.h"
+#include "base/strclass.h"
+#include <vector>
 
 // Make each item in LABELS a base name of FILES, such that all
 // items have unique names.
-extern void uniquify(StringArray& files, 
-		     StringArray& labels, 
+extern void uniquify(std::vector<string>& files,
+		     std::vector<string>& labels,
 		     char sep = '/');
 
 #endif // _DDD_uniquify_h
