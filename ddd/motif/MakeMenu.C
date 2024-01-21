@@ -684,10 +684,11 @@ void MMadjustPanel(const MMDesc items[], Dimension space)
 	if (item->label == 0)
 	    continue;
 
-	XtVaSetValues(item->label,
-		      XmNrecomputeSize, False,
-		      XmNwidth, max_label_width,
-		      XtPointer(0));
+        XtWidgetGeometry size;
+        size.request_mode = CWWidth;
+        XtQueryGeometry(item->label, (XtWidgetGeometry *)0, &size);
+
+        XtVaSetValues(item->label, XmNmarginRight, max_label_width - size.width, XtPointer(0));
     }
 }
 
