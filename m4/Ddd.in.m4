@@ -479,9 +479,8 @@ Ddd*dataButtons:
 
 ! The command tool buttons, as of DDD 2.0 and later.
 Ddd*toolButtons: \
-run\nbreak^C\nstep\nstepi\nnext\nnexti\nuntil\nfinish\ncont\n\kill\n\
-up\ndown\n
-!Undo\nRedo!\nEdit\nMake
+run\nbreak^C\nstep\nstepi\nnext\nnexti\nuntil\nfinish\ncont\n\kill\n\up\ndown
+
 
 Ddd*break.labelString: Interrupt
 
