@@ -29,13 +29,15 @@
 #define _DDD_ComboBox_h
 
 #include <X11/Intrinsic.h>
-#include "template/StringA.h"
+#include "base/strclass.h"
+
+#include <vector>
 
 // Create a combo box
 Widget CreateComboBox(Widget parent, const _XtString name, ArgList args, Cardinal arg);
 
 // Set the combo box value list
-void ComboBoxSetList(Widget name, const StringArray& items);
+void ComboBoxSetList(Widget name, const std::vector<string>& items);
 
 // Access ComboBox members
 Widget ComboBoxList(Widget text);

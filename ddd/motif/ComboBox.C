@@ -258,7 +258,7 @@ Widget ComboBoxTop(Widget text)
 
 
 // Set items
-void ComboBoxSetList(Widget text, const StringArray& items)
+void ComboBoxSetList(Widget text, const std::vector<string>& items)
 {
     Widget list = ComboBoxList(text);
 
