@@ -1015,7 +1015,7 @@ void exec_tty_running()
     {
         XEvent event;
 
-        if (XCheckTypedWindowEvent(XtDisplay(gdb_w), separate_tty_window,
+        if (kill(separate_tty_pid, 0)!=0 || XCheckTypedWindowEvent(XtDisplay(gdb_w), separate_tty_window,
                                    DestroyNotify, &event))
         {
             // TTY window has been killed - kill process as well
