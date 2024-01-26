@@ -446,6 +446,11 @@ void set_status_from_gdb(const string& text)
 	return;
 
     // Fetch line before prompt in GDB window
+    if (messagePosition > XmTextGetLastPosition(gdb_w))
+    {
+        printf("warning messagePosition fixed  %ld -> %ld\n", messagePosition, XmTextGetLastPosition(gdb_w));
+        messagePosition = XmTextGetLastPosition(gdb_w);
+    }
     int num_chars =  XmTextGetLastPosition(gdb_w) - messagePosition;
     int buffer_size = (num_chars* MB_CUR_MAX) + 1;
     char *buffer = new char[buffer_size];
@@ -472,7 +477,7 @@ void set_status_from_gdb(const string& text)
 
     if (show_next_line_in_status)
     {
-	messagePosition = XmTextGetLastPosition(gdb_w) + text.length();
+	messagePosition = XmTextGetLastPosition(gdb_w) + text.length();  // TODO: fix for utf-8
 	show_next_line_in_status = false;
 	message.gsub('\n', ' ');
     }
