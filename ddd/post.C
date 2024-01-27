@@ -89,6 +89,9 @@ Widget post_gdb_yn(string question, Widget w)
     if (question.empty())
 	return 0;
 
+    // remove tabs for cleaner layout in motif
+    question.gsub('\t', "");
+
     Arg args[10];
     int arg;
 
