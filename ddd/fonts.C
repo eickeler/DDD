@@ -481,9 +481,9 @@ static void setup_xft_fonts(AppData& ad, XrmDatabase& db)
         ad.fixed_width_font_size = 11; // size seem to be in points -> set default
 
     // according to hints from Joe Nelson
-    XrmPutLineResource(&db, "Ddd*source_text_w*renderTable: tt");
-    XrmPutLineResource(&db, "Ddd*gdb_w*renderTable: tt");
-    XrmPutLineResource(&db, "Ddd*help_area*text*renderTable: tt");
+    XrmPutLineResource(&db, "Ddd*source_text_w.renderTable: tt");
+    XrmPutLineResource(&db, "Ddd*gdb_w.renderTable: tt");
+    XrmPutLineResource(&db, "Ddd*help_area*text.renderTable: tt");
 
     XrmPutLineResource(&db, "Ddd*tt*fontType: FONT_IS_XFT");
     XrmPutLineResource(&db, (string("Ddd*tt*fontName: ") + ad.fixed_width_font).chars());
