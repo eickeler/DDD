@@ -496,6 +496,7 @@ void MMaddItems(Widget shell, MMDesc items[], bool ignore_seps)
 
 	case MMSpinBox:
 	case MMComboBox:
+        case MMDropDownList:
 	case MMTextField:
 	case MMEnterField:
 	{
@@ -528,6 +529,10 @@ void MMaddItems(Widget shell, MMDesc items[], bool ignore_seps)
 	    case MMComboBox:
 		arg = 0;
 		widget = CreateComboBox(panel, textName.chars(), args, arg);
+		break;
+	    case MMDropDownList:
+		arg = 0;
+		widget = CreateComboBox(panel, textName.chars(), args, arg, false);
 		break;
 
 	    case MMTextField:
@@ -822,6 +827,7 @@ static void addCallback(const MMDesc *item, XtPointer default_closure)
     }
 
     case MMComboBox:
+    case MMDropDownList:
     {
 	if (callback.callback != 0)
 	{

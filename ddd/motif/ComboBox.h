@@ -34,7 +34,7 @@
 #include <vector>
 
 // Create a combo box
-Widget CreateComboBox(Widget parent, const _XtString name, ArgList args, Cardinal arg);
+Widget CreateComboBox(Widget parent, const _XtString name, ArgList args, Cardinal arg, bool editable=true);
 
 // Set the combo box value list
 void ComboBoxSetList(Widget name, const std::vector<string>& items);

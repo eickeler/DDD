@@ -314,7 +314,7 @@ void ComboBoxSetList(Widget text, const std::vector<string>& items)
 
 // Create a combo box
 Widget CreateComboBox(Widget parent, const _XtString name, 
-		      ArgList _args, Cardinal _arg)
+		      ArgList _args, Cardinal _arg, bool editable)
 {
     ArgList args = new Arg[_arg + 10];
     Cardinal arg = 0;
@@ -379,7 +379,7 @@ Widget CreateComboBox(Widget parent, const _XtString name,
     // Set form size explicitly.
     XtWidgetGeometry size;
     size.request_mode = CWHeight | CWWidth;
-    XtQueryGeometry(combo, XtWidgetGeometry(0), &size);
+    XtQueryGeometry(combo, (XtWidgetGeometry *)0, &size);
     XtVaSetValues(form, 
 		  XmNheight, size.height, 
 		  XmNwidth, size.width,
@@ -401,6 +401,11 @@ Widget CreateComboBox(Widget parent, const _XtString name,
     XtSetArg(args[arg], XmNhighlightThickness, 0);     arg++;
     XtSetArg(args[arg], XmNshadowThickness,    0);     arg++;
     XtSetArg(args[arg], XmNresizable,          False); arg++;
+    if (editable==false)
+    {
+        XtSetArg(args[arg], XmNeditable,           False); arg++;
+        XtSetArg(args[arg], XmNcursorPositionVisible, False); arg++;
+    }
     for (Cardinal i = 0; i < _arg; i++)
 	args[arg++] = _args[i];
     info->text = verify(XmCreateTextField(form, XMST(name), args, arg));

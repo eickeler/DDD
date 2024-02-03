@@ -51,6 +51,7 @@ const MMType MMFlatPush    = 13; // Create `flat' PushButton without shadows
 const MMType MMArrow       = 14; // Create an arrow button
 const MMType MMSpinBox     = 15; // Like MMTextField, but add two spin buttons
 const MMType MMComboBox    = 16; // Create a combo box
+const MMType MMDropDownList= 17; // like MMComboBox, but not editable
 
 const MMType MMTypeMask    = 31; // mask to find type
 
