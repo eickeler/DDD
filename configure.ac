@@ -30,8 +30,8 @@ dnl
 dnl
 dnl
 dnl The product version, in the form `MAJOR-NUMBER.MINOR-NUMBER[.PATCHLEVEL]'
-AC_INIT([ddd],[3.4.0],[ddd@gnu.org])
-NICKNAME="Plitvice Lakes"
+AC_INIT([ddd],[3.4.1],[ddd@gnu.org])
+NICKNAME="Serengeti"
 AC_SUBST(NICKNAME)
 EXPIRES=
 AC_SUBST(EXPIRES)
