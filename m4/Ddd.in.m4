@@ -734,7 +734,7 @@ Ddd*vslPath:			user_themes:ddd_themes:.
 ! scrollbars as a default: Many OSF/Motif installations choke
 ! on intermixed Motif/Athena applications and we don't want to get bug
 ! reports that should be directed to OSF.
-Ddd*pannedGraphEditor:		on
+Ddd*pannedGraphEditor:		off
 
 ! Nodes are moved when dragged more than 4 pixels.
 Ddd*graph_edit.moveDelta:	4
