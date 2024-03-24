@@ -40,13 +40,6 @@ TEXINFO_DISTFILES = \
 dddrootdir   = $(pkgdatadir)-$(VERSION)
 
 # -----------------------------------------------------------------------------
-# Data.
-# -----------------------------------------------------------------------------
-
-dddroot_DATA = NEWS COPYING
-
-
-# -----------------------------------------------------------------------------
 # Subdirectories.
 # -----------------------------------------------------------------------------
 
@@ -76,7 +69,7 @@ REL = 1
 EXTRA_DIST = \
 	$(srcdir)/etc \
 	$(TEXINFO_DISTFILES) \
-        CREDITS
+        CREDITS NEWS FONTS NICKNAMES
 
 dist-hook:
 	rm -rf `find $(distdir)/ddd/PICS -name CVS -o -name .cvsignore -o -name \*.jpg -o -name \*.pdf -o -name .svn`
