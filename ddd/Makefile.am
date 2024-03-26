@@ -751,32 +751,19 @@ Ddd.ad.h: Ddd $(srcdir)/ad2c.sed
 
 $(srcdir)/Ddd.in: $(srcdir)/../m4/Ddd.in.m4 $(srcdir)/../m4/tips.m4 \
 	$(srcdir)/../m4/macros.m4 $(srcdir)/../m4/colors.m4 
-	( \
-	( \
-		echo "define(srcdir, \`$(srcdir)')dnl"; \
-		echo "include(srcdir()/../m4/Ddd.in.m4)dnl" \
-	) | $(M4); \
-        ( \
-		echo "define(srcdir, \`$(srcdir)')dnl"; \
-		echo "include(srcdir()/../m4/tips.m4)dnl" \
-	) | $(M4); \
-	) | $(DELETE_CR) > $@~ && $(MV) $@~ $@
+	$(M4) -D srcdir=$(srcdir) $(srcdir)/../m4/Ddd.in.m4 $(srcdir)/../m4/tips.m4 \
+	  | $(DELETE_CR) > $@
 
 $(srcdir)/../m4/tips.m4: $(srcdir)/../TIPS $(srcdir)/tips2m4.awk
 	$(AWK) -f $(srcdir)/tips2m4.awk $(srcdir)/../TIPS | $(DELETE_CR) \
 	    > $@~ && $(MV) $@~ $@
 
-$(srcdir)/tips.html: $(srcdir)/../TIPS
-	( \
-		echo "define(srcdir, \`$(srcdir)')dnl"; \
-		echo "define(macros, \`$(srcdir)/../m4/html.m4')dnl"; \
-		echo "include(srcdir()/../TIPS)dnl" \
-	) | $(M4) | $(AWK) -f $(srcdir)/tips2html.awk | \
+$(top_builddir)/ddd/tips.html: $(srcdir)/../TIPS
+	$(M4) -D srcdir=$(srcdir) -D macros=$(srcdir)/../m4/html.m4 $(srcdir)/TIPS \
+	  | $(AWK) -f $(srcdir)/tips2html.awk | \
 	$(SED) 's/\\133/\[/g' | $(SED) 's/\\135/\]/g' | \
 	$(SED) 's/@\([A-Z][A-Z]*\)@/\1/g' | $(SED) 's/@ /@/g' \
-	| $(DELETE_CR) > $@~ && $(MV) $@~ $@
-
-
+	| $(DELETE_CR) > $@
 
 # -----------------------------------------------------------------------------
 # VSL.
@@ -1579,7 +1566,7 @@ PROG_STUFF = vsl-lex.L vsl-lex.C \
 	     vsl-gramma.Y vsl-gramma.H vsl-gramma.C \
 	     rxscan.L rxscan.C \
              $(srcdir)/../TIPS $(srcdir)/../m4/tips.m4 \
-	     $(srcdir)/tips2m4.awk $(srcdir)/tips.html \
+	     $(srcdir)/tips2m4.awk $(top_builddir)/ddd/tips.html \
 	     $(srcdir)/../m4/macros.m4 $(srcdir)/../m4/colors.m4 \
              $(srcdir)/../m4/Ddd.in.m4 $(srcdir)/Ddd.in \
 	     host.h.in $(srcdir)/vsl2c.sed \
