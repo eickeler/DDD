@@ -10712,19 +10712,23 @@ Preferences @result{} Helpers @result{} Edit Sources}.  This is tied to
 the following resource:
 
 @defvr Resource editCommand (class EditCommand)
-@enindex XEDITOR
 @enindex EDITOR
 @pindex vi
+@pindex emacs
 A command string to invoke an editor on the specific file.
 @samp{@@LINE@@} is replaced by the current line number, @samp{@@FILE@@}
-by the file name.  The default is to invoke @command{$XEDITOR} first, then
-@command{$EDITOR}, then @command{vi}:
+by the file name.  The default is to invoke @command{gvim} first, then
+@command{emacs}:
 
 @example
 Ddd*editCommand: \
-$@{XEDITOR-false@} +@@LINE@@ @@FILE@@ || \
-xterm -e $@{EDITOR-vi@} +@@LINE@@ @@FILE@@
+@command{gvim} @@FILE@@ +@@LINE@@ || \
+@command{emacs} +@@LINE@@ @@FILE@@
 @end example
+
+You can tailor the editor options by creating a @command{gvim} profile
+or a @command{emacs} configuration file and invoking them with the 
+appropriate command line argument.
 @end defvr
 
 @pindex gnuclient

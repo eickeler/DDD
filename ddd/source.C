@@ -421,8 +421,9 @@ void gdbEditSourceCB  (Widget w, XtPointer, XtPointer)
     output_buffer = "";
 
     edit_agent->removeAllHandlers(Died);
-    edit_agent->addHandler(InputEOF, gdbEditDoneHP);
-    edit_agent->addHandler(Died,     gdbEditDoneHP);
+    // Following lines cause duplicate free error after editing source
+    // edit_agent->addHandler(InputEOF, gdbEditDoneHP);
+    // edit_agent->addHandler(Died,     gdbEditDoneHP);
     edit_agent->addHandler(Input,    gdbEditOutputHP);
     edit_agent->addHandler(Error,    gdbEditOutputHP);
     edit_agent->start();

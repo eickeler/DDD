@@ -295,11 +295,11 @@
 
 ! The `edit' command to invoke an editor on the specific file.
 ! `@LINE@' is replaced by the current line number,
-! `@FILE@' by the file name.  Default is to invoke $XEDITOR first,
+! `@FILE@' by the file name.  Default is to invoke gvim then emacs.
 ! then $EDITOR, then VI.
 @Ddd@*editCommand: \
-kdevelop @FILE@:@LINE@ \
-|| @XTERM@ -e ${EDITOR-vi} +@LINE@ @FILE@
+gvim @FILE@ +@LINE@ \
+|| emacs +@LINE@ @FILE@
 
 
 ! A command to get a core dump of a running process (typically, `gcore')
