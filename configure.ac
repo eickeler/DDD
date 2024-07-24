@@ -1068,15 +1068,6 @@ dnl
 dnl
 dnl User-defined options
 dnl
-AC_ARG_ENABLE(builtin-manual,
-AS_HELP_STRING([--enable-builtin-manual],[compile manual into DDD]),
-	builtin_manual="$enableval", builtin_manual=no)
-dnl
-if test "$builtin_manual" != no; then
-AC_DEFINE(WITH_BUILTIN_MANUAL,1,
-[Define if you want the manual to be compiled into the executable.])
-fi
-dnl
 dnl Check for risky LessTif versions.
 dnl
 dnl risky_lesstif=false

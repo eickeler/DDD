@@ -548,35 +548,15 @@ void DDDNewsCB(Widget w, XtPointer, XtPointer call_data)
 
 int ddd_man(std::ostream& os)
 {
-#if WITH_BUILTIN_MANUAL
-    static const char MANUAL[] =
-#include "ddd.info.txt.gz.C"
-	;
-
-    return uncompress(os, MANUAL, sizeof(MANUAL) - 1);
-#else
-    // Try `info ddd', `man ddd' and `man xddd'.
-    string cmd = 
-	"info --subnodes -o - -f " ddd_NAME " 2> /dev/null || "
-	"man " ddd_NAME " || man x" ddd_NAME;
-
-    const string s1 = sh_command(cmd);
-    FILE *fp = popen(s1.chars(), "r");
-    if (fp == 0)
-	return -1;
+    const string s1 = resolvePath("doc/ddd.info.txt"); 
+    std::ifstream is(s1.chars());
+    if (is.bad())
+	return 1;
 
     int c;
-    int i = 0;
-    while ((c = getc(fp)) != EOF)
-    {
-	if (i % 100 == 0)
-	    process_pending_events();
-	os << char(c);
-	i++;
-    }
-    pclose(fp);
+    while ((c = is.get()) != EOF)
+	os << (char)c;
     return 0;
-#endif
 }
 
 void DDDManualCB(Widget w, XtPointer, XtPointer)
@@ -591,14 +571,7 @@ void DDDManualCB(Widget w, XtPointer, XtPointer)
     ManualStringHelpCB(w, title, s);
 
     if (ret != 0 || !s.contains(DDD_NAME))
-    {
-#if WITH_BUILTIN_MANUAL
-	post_error("The " DDD_NAME " manual could not be uncompressed.", 
-		   "no_ddd_manual_error", w);
-#else
+     
 	post_error("The " DDD_NAME " manual could not be accessed.",
 		   "no_ddd_man_page_error", w);
-#endif
-    }
 }
-

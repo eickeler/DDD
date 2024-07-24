@@ -51,8 +51,10 @@ Obsolete files have been removed: PROBLEMS, ddd.spec, GDB manual, FONTS
 
 Update splash screen to ddd-3.4
 
+DDD Reference manual is available under Help menu. 
+
 Documents are now in doc directory in distribution tarball and
-are installed in /usr/share/doc.
+are installed in /usr/share/ddd-<version>/doc.
 
 Bugs fixed:
 #25109, All-registers display doesn't work

@@ -54,7 +54,6 @@ dddappdir     = $(pkgdatadir)-@VERSION@/@ddd@
 desktopdir    = $(datadir)/applications
 ddddocdir     = $(dddrootdir)/doc
 infodir       = $(dddrootdir)/info
-mandir        = $(dddrootdir)/man
 
 
 # -----------------------------------------------------------------------------
@@ -857,14 +856,6 @@ $(builddocdir)/ddd.info.txt: $(srcdir)/ddd.texi
 	info --subnodes -o - -f $(srcdir)/ddd.info | $(DELETE_CR) > $@~ \
 	    && $(MV) $@~ $@
 
-$(builddocdir)/ddd.info.txt.gz: $(builddocdir)/ddd.info.txt
-	$(COMPRESS) $? > $@~ && $(MV) $@~ $@
-
-$(builddocdir)/ddd.info.txt.gz.C: $(builddocdir)/ddd.info.txt.gz $(STRINGIFY)
-	-$(STRINGIFY) < $< > $@
-
-show.$(OBJEXT): $(builddocdir)/ddd.info.txt.gz.C
-
 # EPS code stuff.
 $(srcdir)/header.str: $(srcdir)/header.ps
 	$(SED) 's/^.*$$/"&\\n"/' $(srcdir)/header.ps | $(DELETE_CR) \
@@ -1592,8 +1583,8 @@ CLEANFILES = ddd.au ddd.cm ddd.cms ddd.en ddd.fl ddd.fls ddd.lb ddd.lbs \
 	ddd-themes.pdf ../doc/ddd-themes.pdf
 
 # Have `make maintainer-clean' remove _all_ derived files.
-MAINTAINERCLEANFILES = Ddd.in ddd.vsl.h ddd.info.txt.gz gfdl.texinfo \
-	ddd.info.txt.gz.C ddd.info \
+MAINTAINERCLEANFILES = Ddd.in ddd.vsl.h gfdl.texinfo \
+	ddd.info \
 	ddd.info.txt tips.m4 gpl.texinfo vsl-lex.C \
 	config.h.in config.texi vsl-gramma.C \
 	vsl-gramma.H xlibdir.C trailer.str tips.html \
@@ -1614,6 +1605,4 @@ progstuff: $(PROG_STUFF)
 desktop_DATA = ddd.desktop
 
 ddddoc_DATA = $(srcdir)/../doc/NEWS $(srcdir)/../doc/COPYING \
-	      $(srcdir)/../doc/CREDITS
-
-
+	      $(srcdir)/../doc/CREDITS $(builddocdir)/ddd.info.txt

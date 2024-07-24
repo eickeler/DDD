@@ -324,11 +324,6 @@ gvim @FILE@ +@LINE@ \
 	file @MASK@ | grep '.*:.*directory.*' | cut -d: -f1
 
 
-! Command to uncompress the @DDD@ manual.  Reads from standard input and
-! writes to standard output.
-@Ddd@*uncompressCommand: @UNCOMPRESS@
-
-
 ! Plotting stuff.
 
 ! The Gnuplot command.
@@ -8407,15 +8402,6 @@ uncompressing program is within your executable path.
 @Ddd@*no_news_error.dialogTitle: @DDD@: No news is good news
 @Ddd@*no_news_error*helpString:	\
 @rm The @DDD@ news could not be uncompressed.\n\
-\n\
-Please verify the contents of the\n\
-@bf Edit->@bf Preferences->@bf Helpers->@bf Uncompress@rm \n\
-setting and make sure that the given\n\
-uncompressing program is within your executable path.
-
-@Ddd@*no_ddd_manual_error.dialogTitle: @DDD@: No Manual
-@Ddd@*no_ddd_manual_error*helpString:	\
-@rm The @DDD@ manual could not be uncompressed.\n\
 \n\
 Please verify the contents of the\n\
 @bf Edit->@bf Preferences->@bf Helpers->@bf Uncompress@rm \n\
