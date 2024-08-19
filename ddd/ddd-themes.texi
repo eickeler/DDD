@@ -103,7 +103,7 @@ This is the @value{EDITION} Edition, @value{DATE}, of @cite{Writing
 
 @group
 @noindent
-Copyright @copyright{} 2023 Michael J. Eager and
+Copyright @copyright{} 2024 Michael J. Eager and
 Stefan Eickeler.
 
 @noindent
@@ -171,7 +171,7 @@ Send bug reports to @email{bug-ddd@@gnu.org}. @*
 
 @vskip 0pt plus 1filll
 @noindent
-Copyright @copyright{} 2023 Michael J. Eager and Stefan Eickeler.
+Copyright @copyright{} 2024 Michael J. Eager and Stefan Eickeler.
 @sp 1
 
 @noindent
@@ -252,7 +252,7 @@ lists all the lower level nodes in the document.
 
 @group
 @noindent
-Copyright @copyright{} 2023 Michael J. Eager and
+Copyright @copyright{} 2024 Michael J. Eager and
 Stefan Eickeler @*
 
 @noindent
