@@ -5061,7 +5061,7 @@ define(PLOT_VIEW_HELP, [\
 WIDGET(View Menu)\n\
 \n\
 DESC(Border, [display border])\n\
-DESC(Time, [display time of plot])\n\
+DESC(Timestamp, [display time of plot])\n\
 \n\
 DESC(Grid, [display grid])\n\
 DESC(X Zero Axis, [display X zero axis])\n\
@@ -5082,10 +5082,10 @@ Ddd*plotViewMenu.grid.mnemonic:		G
 Ddd*plotViewMenu.grid.documentationString:	\
 @rm Toggle grid
 
-Ddd*plotViewMenu.time.labelString:	Time
-Ddd*plotViewMenu.time.mnemonic:      	T
-Ddd*plotViewMenu.time.documentationString:	\
-@rm Toggle plot time
+Ddd*plotViewMenu.timestamp.labelString:	Timestamp
+Ddd*plotViewMenu.timestamp.mnemonic:      	T
+Ddd*plotViewMenu.timestamp.documentationString:	\
+@rm Toggle plot timestamp
 
 Ddd*plotViewMenu.xzeroaxis.labelString:	X Zero Axis
 Ddd*plotViewMenu.xzeroaxis.mnemonic:	X

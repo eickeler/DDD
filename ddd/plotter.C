@@ -158,7 +158,7 @@ static MMDesc file_menu[] =
 static MMDesc view_menu[] = 
 {
     { "border",    MMToggle, { ToggleOptionCB, 0 }, 0, 0, 0, 0 },
-    { "time",      MMToggle, { ToggleOptionCB, 0 }, 0, 0, 0, 0 },
+    { "timestamp",      MMToggle, { ToggleOptionCB, 0 }, 0, 0, 0, 0 },
     MMSep,
     { "grid",      MMToggle, { ToggleOptionCB, 0 }, 0, 0, 0, 0 },
     { "xzeroaxis", MMToggle, { ToggleOptionCB, 0 }, 0, 0, 0, 0 },
@@ -313,7 +313,10 @@ static void configure_options(PlotWindowInfo *plot, MMDesc *menu,
 	bool set = false;
 	if (callback == ToggleOptionCB)
 	{
-	    set = settings.contains("\nset " + name + "\n");
+	    set = settings.contains("\nset " + name);
+            if (settings.contains("\nset " + name + " \"\""))
+                set = false;
+
 	}
 	else if (callback == SetContourCB)
 	{
@@ -326,7 +329,7 @@ static void configure_options(PlotWindowInfo *plot, MMDesc *menu,
 	}
 	else if (callback == ToggleLogscaleCB)
 	{
-	    set = settings.contains("\nset logscale ");
+	    set = settings.contains("\nset logscale");
 	}
 
 	XmToggleButtonSetState(w, set, False);
@@ -1159,7 +1162,7 @@ static void ToggleOptionCB(Widget w, XtPointer client_data,
     if (cbs->set)
 	cmd = string("set ") + XtName(w);
     else
-	cmd = string("unset") + XtName(w);
+	cmd = string("unset ") + XtName(w);
 
     send_and_replot(plot, cmd);
 }
