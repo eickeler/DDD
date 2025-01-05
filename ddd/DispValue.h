@@ -98,13 +98,17 @@ class DispValue {
 				  const string& member_name);
 
     // Plotting stuff
-    void _plot(PlotAgent *plotter, int ndim) const;
-    void plot1d(PlotAgent *plotter, int ndim) const;
-    void plot2d(PlotAgent *plotter, int ndim) const;
-    void plot3d(PlotAgent *plotter, int ndim) const;
+    void _plot(PlotAgent *plotter) const;
+    void plot1d(PlotAgent *plotter) const;
+    void plot2d(PlotAgent *plotter) const;
+    void plot3d(PlotAgent *plotter) const;
+    void plotVector(PlotAgent *plotter) const;
+    void plotImage(PlotAgent *plotter) const;
+    void plotCVMat(PlotAgent *plotter) const;
     bool can_plot1d() const;
     bool can_plot2d() const;
     bool can_plot3d() const;
+    bool can_plotVector() const;
     static bool starts_number(char c);
 
     static void PlotterDiedHP(Agent *, void *, void *);
@@ -255,7 +259,6 @@ public:
     string& full_name()  { clear_cached_box(); return myfull_name; }
     string& name()       { clear_cached_box(); return print_name; }
     bool& enabled()      { clear_cached_box(); return myenabled; }
-    bool& has_plot_orientation() { return _has_plot_orientation; }
 
     bool is_changed() const { return changed; }
     bool descendant_changed() const;
@@ -353,7 +356,7 @@ public:
 
     // Return 0 if we cannot plot; return number of required
     // dimensions, otherwise (1, 2, or 3)
-    int can_plot() const;
+    bool can_plot() const;
 
     // Plot value
     void plot() const;

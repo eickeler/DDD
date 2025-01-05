@@ -2589,7 +2589,6 @@ void DataDisp::RefreshArgsCB(XtPointer, XtIntervalId *timer_id)
 
     bool dereference_ok = false;
     bool rotate_ok      = false;
-    bool rotate_plot_ok = false;
 
     if (disp_node_arg != 0 && disp_value_arg != 0)
     {
@@ -2597,9 +2596,6 @@ void DataDisp::RefreshArgsCB(XtPointer, XtIntervalId *timer_id)
 	switch (disp_value_arg->type())
 	{
 	case Simple:
-	    rotate_plot_ok = disp_value_arg->has_plot_orientation();
-	    break;
-
 	case Text:
 	case Reference:
         case UserCommand:
@@ -2703,10 +2699,8 @@ void DataDisp::RefreshArgsCB(XtPointer, XtIntervalId *timer_id)
     set_sensitive(plot_menu[PlotItms::History].widget, can_delete_arg);
 
     // Rotate
-    set_sensitive(node_popup[NodeItms::Rotate].widget,       
-		  rotate_ok || rotate_plot_ok);
-    set_sensitive(graph_cmd_area[CmdItms::Rotate].widget,    
-		  rotate_ok || rotate_plot_ok);
+    set_sensitive(node_popup[NodeItms::Rotate].widget, rotate_ok);
+    set_sensitive(graph_cmd_area[CmdItms::Rotate].widget, rotate_ok);
     set_sensitive(rotate_menu[RotateItms::RotateAll].widget, rotate_ok);
 
     // Show/Hide Detail
@@ -3932,7 +3926,7 @@ DispNode *DataDisp::new_data_node(const string& given_name,
 
     DispNode *dn = new DispNode(nr, title, scope, value, plotted);
 
-    if (plotted && (dn->value() == 0 || dn->value()->can_plot() == 0))
+    if (plotted && (dn->value() == 0 || dn->value()->can_plot() == false))
     {
 	post_gdb_message("Nothing to plot.", true, last_origin);
 
@@ -3982,7 +3976,7 @@ DispNode *DataDisp::new_user_node(const string& name,
     DispNode *dn = new DispNode(nr, name, scope, answer, plotted);
     DispValue::value_hook = 0;
 
-    if (plotted && (dn->value() == 0 || dn->value()->can_plot() == 0))
+    if (plotted && (dn->value() == 0 || dn->value()->can_plot() == false))
     {
 	post_gdb_message("Nothing to plot.", true, last_origin);
 	delete dn;

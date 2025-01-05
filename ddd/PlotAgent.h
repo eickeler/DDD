@@ -35,11 +35,24 @@
 
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 // Event types
 const unsigned Plot = LiterateAgent_NTypes;   // Plot data received
 
 const unsigned PlotAgent_NTypes = Plot + 1;   // number of events
+
+struct PlotElement
+{
+    enum {DATA_1D, DATA_2D, DATA_3D, IMAGE, RGBIMAGE, RGBAIMAGE} plottype = DATA_2D;
+    string file;		// allocated temporary file
+    string title;		// Title currently plotted
+    string value;		// Scalar
+    bool binary = false;        // true for binary files
+    string gdbtype;             // type of the variable as reported by GDB
+    string xdim;                // x dimension of array
+    string ydim;                // y dimension of array
+};
 
 class PlotAgent: public LiterateAgent {
 
@@ -47,33 +60,21 @@ public:
     DECLARE_TYPE_INFO
 
 private:
-    std::vector<string> files;		// Temporary files allocated by this Agent
-    std::vector<string> titles;		// Titles currently plotted
-    std::vector<string> values;		// Scalars
 
-    std::vector<int> dims;		// Dimensions of scalars
+    std::vector<PlotElement> elements;  // Data for the elements of the plot command
     std::ofstream plot_os;		// Stream used for adding data
-    int ndim;			// Number of dimensions used so far
-
-    double x_min, x_max;	// Minimum and maximum values
-    double y_min, y_max;
-    double v_min, v_max;
 
     string init_commands;	// Initialization commands
     bool need_reset;		// Reset with next plot
-    int last_ndim;		// Last number of dimensions
 
     bool getting_plot_data;	// True if getting plot data
 
 protected:
-    void add_v(double v);
-    void add_x(double x);
-    void add_y(double y);
-
     void reset();
-    string var(const char *name, double min, double max) const;
 
     virtual void dispatch(int type, const char *data, int length);
+
+    string getGnuplotType(string gdbtype);
 
 public:
     static string plot_2d_settings;
@@ -83,15 +84,8 @@ public:
     PlotAgent(XtAppContext app_context, const string& pth,
 	      unsigned nTypes = PlotAgent_NTypes)
 	: LiterateAgent(app_context, pth, nTypes),
-	  files(), titles(), values(), dims(),
-	  plot_os(), ndim(0), 
-	  x_min(0.0), x_max(0.0),
-	  y_min(0.0), y_max(0.0),
-	  v_min(0.0), v_max(0.0),
-	  init_commands(""),
-	  need_reset(false),
-	  last_ndim(0),
-	  getting_plot_data(false)
+	  plot_os(), init_commands(""),
+	  need_reset(false), getting_plot_data(false)
     {
 	reset();
     }
@@ -103,10 +97,10 @@ public:
     void abort();
 
     // Start plotting new data with TITLE in NDIM dimensions
-    void start_plot(const string& title, int ndim);
+    PlotElement &start_plot(const string& title);
+    void open_stream(const PlotElement &emdata);
 
     // Add plot point
-    void add_point(const string& v, int dim);
     void add_point(int x, const string& v);
     void add_point(double x, const string& v);
     void add_point(int x, int y, const string& v);
@@ -116,25 +110,18 @@ public:
     void add_break();
 
     // End plot
-    void end_plot();
+    void close_stream();
 
     // Flush accumulated data
     int flush();
 
     // Return number of dimensions
-    int dimensions() const { return ndim; }
-
-    // Return max and min values
-    double min_x() const { return x_min; }
-    double max_x() const { return x_max; }
-    double min_y() const { return y_min; }
-    double max_y() const { return y_max; }
-    double min_v() const { return v_min; }
-    double max_v() const { return v_max; }
-
-    // Get data titles and files
-    const std::vector<string>& data_titles() const { return titles; }
-    const std::vector<string>& data_files()  const { return files;  }
+    int dimensions() const
+    {
+        if (std::any_of(elements.begin(), elements.end(), [&](const PlotElement &elem) { return elem.plottype == PlotElement::DATA_3D; }))
+            return 3;
+        return 2;
+    }
 
     // Print plot to FILENAME
     void print(const string& filename, 

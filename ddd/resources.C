@@ -853,7 +853,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, plot_init_commands),
         XtRString,
-        XtPointer("set parametric")
+        XtPointer("")
     },
 
     {
@@ -863,7 +863,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, plot_2d_settings),
         XtRString,
-        XtPointer("")
+        XtPointer("set autoscale fix")
     },
 
     {

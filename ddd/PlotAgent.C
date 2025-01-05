@@ -37,6 +37,10 @@ char PlotAgent_rcsid[] =
 #include <float.h>
 #include <stdlib.h>		// atof()
 
+#include <map>
+#include <algorithm>
+
+
 DEFINE_TYPE_INFO_1(PlotAgent, LiterateAgent)
 
 string PlotAgent::plot_2d_settings = "";
@@ -54,178 +58,160 @@ void PlotAgent::start_with(const string& init)
 void PlotAgent::reset()
 {
     // Clear storage
-    titles.clear();
-    values.clear();
-    dims.clear();
-    ndim   = 0;
-
-    // Clear range
-    x_min = y_min = v_min = +DBL_MAX;
-    x_max = y_max = v_max = -DBL_MAX;
+    elements.clear();
 
     need_reset = false;
 }
 
 // Start a new plot
-void PlotAgent::start_plot(const string& title, int n)
+PlotElement &PlotAgent::start_plot(const string& title)
 {
     if (need_reset)
 	reset();
 
-    titles.push_back(title);
-    values.push_back("");
-    dims.push_back(0);
+    PlotElement st;
+    st.title = title;
+    st.file = tempfile();
+    elements.push_back(st);
 
-    ndim = n;
+    return elements.back();
+}
 
-    while (files.size() < titles.size())
-    {
-	// Open a new temporary file
-	files.push_back(tempfile());
-    }
-
+void PlotAgent::open_stream(const PlotElement &emdata)
+{
     // Open plot stream
-    plot_os.open(files[titles.size() - 1].chars());
+    plot_os.open(emdata.file.chars());
 
     // Issue initial line
-    plot_os << "# " DDD_NAME ": " << title << "\n"
-	    << "# Use `set parametric' and `"
-	    << (ndim <= 2 ? "plot" : "splot")
-	    << "' to plot this data.\n"
-	    << "# " 
-	    << (ndim <= 2 ? "X\tVALUE" : "X\tY\tVALUE")
-	    << "\n";
+    if (emdata.plottype==PlotElement::DATA_3D)
+        plot_os << "# " DDD_NAME ": " << emdata.title << "\n"
+                    << "# Use `splot' to plot this data.\n"
+                    << "# X\tY\tVALUE\n";
+    else
+        plot_os << "# " DDD_NAME ": " << emdata.title << "\n"
+            << "# Use `plot' to plot this data.\n"
+            << "# X\tVALUE\n";
+    return;
 }
 
 // End a new plot
-void PlotAgent::end_plot()
+void PlotAgent::close_stream()
 {
     // Close plot stream
     plot_os.close();
 }
 
-string PlotAgent::var(const char *name, double min, double max) const
+const static std::map<string, string> gdb2gnuplot = {
+    {string("char"), string("char")},
+    {string("unsigned char"), string("uchar")},
+    {string("short"), string("short")},
+    {string("unsigned short"), string("ushort")},
+    {string("int"), string("int")},
+    {string("unsigned int"), string("uint")},
+    {string("long"), string("long")},
+    {string("unsigned long"), string("ulong")},
+    {string("float"), string("float")},
+    {string("double"), string("double")}
+};
+
+
+string PlotAgent::getGnuplotType(string gdbtype)
 {
-    std::ostringstream os;
-
-    if (min < +DBL_MAX && max > -DBL_MAX)
+    auto search = gdb2gnuplot.find(gdbtype);
+    if (search == gdb2gnuplot.end())
     {
-	if (min != 0.0)
-	    os << min << " + ";
-	os << name << " * " << (max - min);
-    }
-    else
-    {
-	// Stick to default range
-	os << name;
+//         printf("unknown type \"%s\"\n", gdbtype.chars());
+        return "";
     }
 
-    return string(os);
+    return search->second;
 }
 
 // Flush it all
 int PlotAgent::flush()
 {
-    if (ndim == 0 || titles.size() == 0)
+    if (elements.size() == 0)
+        return -1;  // No data - ignore
+
+    // Issue plot command
+    string cmd;
+    int ndim = dimensions();
+    if (ndim==3)
     {
-	// No data - ignore
-	return -1;
+        if (!plot_3d_settings.empty())
+            cmd += plot_3d_settings + "\n";
+
+        cmd += "splot ";
     }
     else
     {
-	// Issue plot command
-	std::ostringstream cmd;
-	switch (ndim)
-	{
-	case 0:
-	    break;
+        if (!plot_2d_settings.empty())
+            cmd += plot_2d_settings + "\n";
 
-	case 1:
-	case 2:
-	    if (ndim != last_ndim && !plot_2d_settings.empty())
-	    {
-		cmd << plot_2d_settings << "\n";
-		last_ndim = ndim;
-	    }
-	    cmd << "plot ";
-	    break;
-
-	case 3:
-	    if (ndim != last_ndim && !plot_3d_settings.empty())
-	    {
-		cmd << plot_3d_settings << "\n";
-		last_ndim = ndim;
-	    }
-	    cmd << "splot ";
-	    break;
-	}
-
-	// Issue functions
-	for (int i = 0; i < int(titles.size()); i++)
-	{
-	    if (i > 0)
-		cmd << ", ";
-
-	    const string& v = values[i];
-	    int dim = dims[i];
-	    if (!v.empty())
-	    {
-		// Plot scalar value
-		if (ndim == 3)
-		{
-		    switch (dim)
-		    {
-		    case 0:	// u, v, VALUE - a horizontal plain
-			cmd << var("u", x_min, x_max) << ", "
-			    << var("v", y_min, y_max) << ", " 
-			    << v;
-			break;
-
-		    case 1:	// u, VALUE, v - a vertical plain
-			cmd << var("u", x_min, x_max) << ", "
-			    << v << ", "
-			    << var("v", v_min, v_max);
-			break;
-
- 		    case 2:	// VALUE, u, v - a vertical plain
-			cmd << v << ", "
-			    << var("u", y_min, y_max) << ", "
-			    << var("v", v_min, v_max);
-			break;
-		    }
-		}
-		else
-		{
-		    switch (dim)
-		    {
-		    case 0:	// t, VALUE - a horizontal line
-			cmd << var("t", x_min, x_max) << ", "
-			    << v;
-			break;
-
-		    case 1:	// VALUE, t - a vertical line
-		    case 2:
-			cmd << v << ", "
-			    << var("t", v_min, v_max);
-			break;
-		    }
-		}
-	    }
-	    else
-	    {
-		// Plot a file
-		cmd << quote(files[i]);
-	    }
-
-	    // Add title
-	    cmd << " title " << quote(titles[i]);
-	}
-	cmd << "\n";
-
-	// That's all, folks!
-	string c(cmd);
-	write(c.chars(), c.length());
+        cmd += "plot ";
     }
+
+    // Issue functions
+    for (int i = 0; i < int(elements.size()); i++)
+    {
+        PlotElement &elem = elements[i];
+
+        if (elements[i].binary && getGnuplotType(elem.gdbtype)=="")
+            continue;  // unknowm type
+
+        if (i > 0)
+            cmd += ", ";
+
+        // value or filename
+        if (!elem.value.empty())
+            cmd += elem.value;
+        else
+            cmd += quote(elem.file) + " "; // Plot a file
+
+
+        if (elements[i].binary)
+        {
+            cmd += "binary format='%" + getGnuplotType(elem.gdbtype) + "' ";
+
+            if (!elem.xdim.empty())
+            {
+                cmd += "array=(" + elem.xdim;
+                if (!elem.ydim.empty())
+                    cmd += "," + elem.ydim;
+                cmd += ") ";
+            }
+
+            switch (elem.plottype)
+            {
+                case PlotElement::DATA_2D:
+                    if (ndim==3)
+                        cmd += "u 0:(0):1 "; // convert 2D dta to 3D
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            switch (elem.plottype)
+            {
+                case PlotElement::DATA_2D:
+                    if (ndim==3)
+                        cmd += "u 1:(0):2 "; // convert 2D dta to 3D
+                    else
+                        cmd += "u 1:2 ";
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Add title
+        cmd += " title " + quote(elem.title);
+    }
+    cmd += "\n";
+    // That's all, folks!
+    write(cmd.chars(), cmd.length());
 
     need_reset = true;
 
@@ -236,93 +222,33 @@ int PlotAgent::flush()
 void PlotAgent::abort()
 {
     // Unlink temporary files
-    for (int i = 0; i < int(files.size()); i++)
-	unlink(files[i].chars());
+    for (int i = 0; i < int(elements.size()); i++)
+	unlink(elements[i].file.chars());
 
     // We're done
     LiterateAgent::abort();
 }
 
-inline double min(double a, double b)
-{
-    return a < b ? a : b;
-}
-
-inline double max(double a, double b)
-{
-    return a > b ? a : b;
-}
-
-// Check value
-void PlotAgent::add_v(double v)
-{
-    v_min = min(v_min, v);
-    v_max = max(v_max, v);
-}
-
-void PlotAgent::add_x(double x)
-{
-    x_min = min(x_min, x);
-    x_max = max(x_max, x);
-}
-
-void PlotAgent::add_y(double y)
-{
-    y_min = min(y_min, y);
-    y_max = max(y_max, y);
-}
 
 // Add plot point
-void PlotAgent::add_point(const string& v, int dim)
-{
-    values[values.size() - 1] = v;
-    dims[dims.size() - 1] = dim;
-
-    add_v(atof(v.chars()));
-}
-
 void PlotAgent::add_point(int x, const string& v)
 {
-    if (ndim > 2)
-	add_point(x, 0, v);
-    else
-    {
-	plot_os << x << '\t' << v << '\n';
-	add_x(x);
-	add_v(atof(v.chars()));
-    }
+    plot_os << x << '\t' << v << '\n';
 }
 
 void PlotAgent::add_point(double x, const string& v)
 {
-    if (ndim > 2)
-	add_point(x, 0.0, v);
-    else
-    {
-	plot_os << x << '\t' << v << '\n';
-	add_x(x);
-	add_v(atof(v.chars()));
-    }
+    plot_os << x << '\t' << v << '\n';
 }
 
 void PlotAgent::add_point(int x, int y, const string& v)
 {
-    assert(ndim == 3);
-
     plot_os << x << '\t' << y << '\t' << v << '\n';
-    add_x(x);
-    add_y(y);
-    add_v(atof(v.chars()));
 }
 
 void PlotAgent::add_point(double x, double y, const string& v)
 {
-    assert(ndim == 3);
-
     plot_os << x << '\t' << y << '\t' << v << '\n';
-    add_x(x);
-    add_y(y);
-    add_v(atof(v.chars()));
 }
 
 void PlotAgent::add_break()

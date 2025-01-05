@@ -60,6 +60,9 @@ char DispValue_rcsid[] =
 #include "value-read.h"
 
 #include <ctype.h>
+#include <stdlib.h>
+
+#include <algorithm>
 
 
 //-----------------------------------------------------------------------------
@@ -1483,23 +1486,27 @@ bool DispValue::structurally_equal(const DispValue *source,
 // Plotting
 //-----------------------------------------------------------------------------
 
-int DispValue::can_plot() const
+
+bool DispValue::can_plot() const
 {
     if (can_plot3d())
-	return 3;
+        return true;
+
+    if (can_plotVector())
+        return true;
 
     if (can_plot2d())
-	return 2;
+        return true;
 
     if (can_plot1d())
-	return 1;
+        return true;
 
     // Search for plottable array children
-    int ndim = 0;
     for (int i = 0; i < nchildren(); i++)
-	ndim = max(ndim, child(i)->can_plot());
+        if (child(i)->can_plot())
+            return true;
 
-    return ndim;
+    return false;
 }
 
 bool DispValue::starts_number(char c)
@@ -1607,6 +1614,32 @@ bool DispValue::can_plot3d() const
     return true;
 }
 
+bool DispValue::can_plotVector() const
+{
+    if (mytype!=STLVector)
+        return false;
+
+    // find one child with plotable data
+    bool canplot = true;
+    for (int i = 0; i < nchildren(); i++)
+    {
+        canplot = true;
+        DispValue *child = _children[i];
+        for (int j=0; j < child->nchildren(); j++)
+        {
+            if (child->_children[j]->can_plot1d())
+            {
+                canplot = false;
+                break;
+            }
+        }
+        if (canplot)
+            break;
+    }
+
+    return canplot;
+}
+
 int DispValue::nchildren_with_repeats() const
 {
     int sum = 0;
@@ -1641,8 +1674,7 @@ string DispValue::make_title(const string& name)
 
 void DispValue::plot() const
 {
-    int ndim = can_plot();
-    if (ndim == 0)
+    if (can_plot() == false)
 	return;
 
     if (plotter() == 0)
@@ -1658,34 +1690,40 @@ void DispValue::plot() const
     plotter()->plot_2d_settings = app_data.plot_2d_settings;
     plotter()->plot_3d_settings = app_data.plot_3d_settings;
 
-    _plot(plotter(), ndim);
+    _plot(plotter());
 
     plotter()->flush();
 }
 
-void DispValue::_plot(PlotAgent *plotter, int ndim) const
+void DispValue::_plot(PlotAgent *plotter) const
 {
     if (can_plot3d())
     {
-	plot3d(plotter, ndim);
+	plot3d(plotter);
+	return;
+    }
+
+    if (can_plotVector())
+    {
+	plotVector(plotter);
 	return;
     }
 
     if (can_plot2d())
     {
-	plot2d(plotter, ndim);
+	plot2d(plotter);
 	return;
     }
 
     if (can_plot1d())
     {
-	plot1d(plotter, ndim);
+	plot1d(plotter);
 	return;
     }
 
     // Plot all array children into one window
     for (int i = 0; i < nchildren(); i++)
-	child(i)->_plot(plotter, ndim);
+	child(i)->_plot(plotter);
 }
 
 void DispValue::replot() const
@@ -1709,65 +1747,88 @@ string DispValue::num_value() const
     return "0";			// Illegal value
 }
 
-void DispValue::plot1d(PlotAgent *plotter, int ndim) const
+
+void DispValue::plot1d(PlotAgent *plotter) const
 {
-    plotter->start_plot(make_title(full_name()), ndim);
+    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+    eldata.plottype = PlotElement::DATA_1D;
+    plotter->open_stream(eldata);
 
     string val = num_value();
 
-    if (!has_plot_orientation())
-    {
-	// Determine initial orientation.
-	// By default, this is plotted horizontally.
-	DispValueOrientation orientation = Horizontal;
-
-	// But if this is an integral value that lies within the index
-	// limits of a previously plotted array, plot it vertically.
-	if (!val.contains('.'))
-	{
-	    int v = atoi(val.chars());
-	    if (plotter->min_x() < plotter->max_x() &&
-		v >= plotter->min_x() && v <= plotter->max_x())
-	    {
-		orientation = Vertical;
-	    }
-	}
-	
-	MUTABLE_THIS(DispValue *)->_orientation = orientation;
-	MUTABLE_THIS(DispValue *)->_has_plot_orientation = true;
-    }
-
-    plotter->add_point(val, orientation() == Horizontal ? 0 : 1);
-    plotter->end_plot();
+    eldata.value = num_value();
+    plotter->close_stream();
 }
 
-void DispValue::plot2d(PlotAgent *plotter, int ndim) const
+void DispValue::plot2d(PlotAgent *plotter) const
 {
     if (type() == Array)
     {
-	plotter->start_plot(make_title(full_name()), ndim);
+        if (gdb->program_language()== LANGUAGE_C)
+        {
+            PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+            eldata.plottype = PlotElement::DATA_2D;
 
-	int index;
-	if (_have_index_base)
-	    index = _index_base;
-	else
-	    index = gdb->default_index_base();
+            // get variable type and dimensions of array
+            string gdbtype;
+            string answer = gdb_question("whatis " + myfull_name);
+            gdbtype = answer.after("=");
+            strip_space(gdbtype);
+            string length = (gdbtype.after('['));
+            length = length.before(']');
+            gdbtype = gdbtype.before('[');
+            strip_space(gdbtype);
 
-	for (int i = 0; i < nchildren(); i++)
-	{
-	    DispValue *c = child(i);
-	    for (int ii = 0; ii < c->repeats(); ii++)
-	    {
-		plotter->add_point(index++, c->num_value());
-	    }
-	}
+            // get starting address
+            answer = gdb_question("print /x  &" + myfull_name + "[0] ");
+            string address = answer.after("=");
+            strip_space(address);
+
+            // get size of variable type
+            answer = gdb_question("print sizeof(" + gdbtype + ")");
+            string sizestr = answer.after("=");
+            strip_space(sizestr);
+
+            // write memory block to file
+            string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
+            answer = gdb_question(question);
+
+            eldata.gdbtype = gdbtype;
+            eldata.xdim = length;
+            eldata.binary = true;
+        }
+        else
+        {
+            PlotElement &eldata  = plotter->start_plot(make_title(full_name()));
+            eldata.plottype = PlotElement::DATA_2D;
+            plotter->open_stream(eldata);
+
+            int index;
+            if (_have_index_base)
+                index = _index_base;
+            else
+                index = gdb->default_index_base();
+
+            for (int i = 0; i < nchildren(); i++)
+            {
+                DispValue *c = child(i);
+                for (int ii = 0; ii < c->repeats(); ii++)
+                {
+                    plotter->add_point(index++, c->num_value());
+                }
+            }
+
+            plotter->close_stream();
+        }
     }
     else
     {
 	string prefix, suffix;
 	get_index_surroundings(prefix, suffix);
 
-	plotter->start_plot(prefix + "x" + suffix, ndim);
+	PlotElement &eldata = plotter->start_plot(prefix + "x" + suffix);
+        eldata.plottype = PlotElement::DATA_2D;
+        plotter->open_stream(eldata);
 
 	for (int i = 0; i < nchildren(); i++)
 	{
@@ -1775,46 +1836,120 @@ void DispValue::plot2d(PlotAgent *plotter, int ndim) const
 	    string idx = c->index(prefix, suffix);
 	    plotter->add_point(atof(idx.chars()), c->num_value());
 	}
-    }
 
-    plotter->end_plot();
+        plotter->close_stream();
+    }
 }
 
-void DispValue::plot3d(PlotAgent *plotter, int ndim) const
+void DispValue::plot3d(PlotAgent *plotter) const
 {
-    plotter->start_plot(make_title(full_name()), ndim);
-
-    int index;
-    if (_have_index_base)
-	index = _index_base;
-    else
-	index = gdb->default_index_base();
-
-    for (int i = 0; i < nchildren(); i++)
+    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+    eldata.plottype = PlotElement::DATA_3D;
+    if (gdb->program_language()== LANGUAGE_C)
     {
-	DispValue *c = child(i);
-	int c_index;
-	if (c->_have_index_base)
-	    c_index = c->_index_base;
-	else
-	    c_index = gdb->default_index_base();
+        // get variable type and dimensions of array
+        string gdbtype;
+        string answer = gdb_question("whatis " + myfull_name);
+        gdbtype = answer.after("=");
+        strip_space(gdbtype);
+        string ydim = gdbtype.after('[');
+        string xdim = ydim.after('[');
+        ydim = ydim.before(']');
+        xdim = xdim.before(']');
+        gdbtype = gdbtype.before('[');
+        strip_space(gdbtype);
 
-	for (int ii = 0; ii < c->repeats(); ii++)
-	{
-	    for (int j = 0; j < c->nchildren(); j++)
-	    {
-		DispValue *cc = c->child(j);
-		for (int jj = 0; jj < cc->repeats(); jj++)
-		    plotter->add_point(index, c_index++, cc->num_value());
-	    }
+        // get starting address
+        answer = gdb_question("print /x  &" + myfull_name + "[0] ");
+        string address = answer.after("=");
+        strip_space(address);
 
-	    index++;
-	}
+        // get size of variable type
+        answer = gdb_question("print sizeof(" + gdbtype + ")");
+        string sizestr = answer.after("=");
+        strip_space(sizestr);
 
-	plotter->add_break();
+        // write memory block to file
+        string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + ydim + "*" + xdim + "*"  + sizestr;
+        printf("question %s\n", question.chars());
+        answer = gdb_question(question);
+
+        eldata.xdim = xdim;
+        eldata.ydim = ydim;
+        eldata.gdbtype = gdbtype;
+        eldata.binary = true;
     }
-    
-    plotter->end_plot();
+    else
+    {
+        plotter->open_stream(eldata);
+
+        int index;
+        if (_have_index_base)
+            index = _index_base;
+        else
+            index = gdb->default_index_base();
+
+        for (int i = 0; i < nchildren(); i++)
+        {
+            DispValue *c = child(i);
+            int c_index;
+            if (c->_have_index_base)
+                c_index = c->_index_base;
+            else
+                c_index = gdb->default_index_base();
+
+            for (int ii = 0; ii < c->repeats(); ii++)
+            {
+                for (int j = 0; j < c->nchildren(); j++)
+                {
+                    DispValue *cc = c->child(j);
+                    for (int jj = 0; jj < cc->repeats(); jj++)
+                        plotter->add_point(index, c_index++, cc->num_value());
+                }
+
+                index++;
+            }
+
+            plotter->add_break();
+        }
+
+        plotter->close_stream();
+    }
+}
+
+void DispValue::plotVector(PlotAgent *plotter) const
+{
+    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+    eldata.plottype = PlotElement::DATA_2D;
+
+    // get variable type
+    string gdbtype;
+    string answer = gdb_question("whatis " + myfull_name + "[0]");
+    gdbtype = answer.after("=");
+    strip_space(gdbtype);
+
+    // get size of variable type
+    answer = gdb_question("print sizeof(" + gdbtype + ")");
+    string sizestr = answer.after("=");
+    strip_space(sizestr);
+
+    // get starting address
+    answer = gdb_question("print /x  &" + myfull_name + "[0] ");
+    string address = answer.after("=");
+    strip_space(address);
+
+    // get length of vector
+    answer = gdb_question("print " + myfull_name + ".size()");
+    string length = answer.after("=");
+    strip_space(length);
+
+    // write memory block to file
+    string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
+    answer = gdb_question(question);
+
+    eldata.xdim = length;
+    eldata.gdbtype = gdbtype;
+    eldata.binary = true;
 }
 
 void DispValue::PlotterDiedHP(Agent *source, void *client_data, void *)

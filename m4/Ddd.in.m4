@@ -343,14 +343,10 @@ gnuplot -bg 'TEXT_BACKGROUND_COLOR' -font '@FONT@' -name '@NAME@' \
 Ddd*plotWindow: Gnuplot
 
 ! Gnuplot initialization commands.  Issued at the start of each Gnuplot
-Ddd*plotInitCommands: \
-set parametric\n\
-set urange \1330:1\135\n\
-set vrange \1330:1\135\n\
-set trange \1330:1\135\n
+Ddd*plotInitCommands:
 
 ! Gnuplot settings.  Issued for 2-D plots and 3-D plots, respectively.
-Ddd*plot2dSettings:   set noborder
+Ddd*plot2dSettings:   unset border; set autoscale fix
 Ddd*plot3dSettings:   set border
 
 ! Which plot window to choose.
@@ -5029,13 +5025,6 @@ Ddd*plot*command.mnemonic:       o
 Ddd*plot*command.documentationString:   \
 @rm Enter plotting command
 
-Ddd*plot*export.labelString:    Save Data As...
-Ddd*plot*export.mnemonic:       S
-Ddd*plot*export.accelerator:	~Shift ~Meta Ctrl<Key>S
-Ddd*plot*export.acceleratorText: Ctrl+S
-Ddd*plot*export.documentationString:   \
-@rm Write plotted data to file
-
 Ddd*plot*print.labelString: 	Print Plot...
 Ddd*plot*print.mnemonic:        P
 Ddd*plot*print.documentationString:   \
@@ -5061,7 +5050,7 @@ define(PLOT_VIEW_HELP, [\
 WIDGET(View Menu)\n\
 \n\
 DESC(Border, [display border])\n\
-DESC(Timestamp, [display time of plot])\n\
+DESC(Timestamp, [display timestamp of plot])\n\
 \n\
 DESC(Grid, [display grid])\n\
 DESC(X Zero Axis, [display X zero axis])\n\
@@ -5729,17 +5718,6 @@ DESC([The ptrace() call], [a system call to get a core file])\n\
 \n\
 Click on LBL(Save) to save the current DDD session.\n\
 Click on LBL(Delete) to delete the selected session.
-
-
-Ddd*export_data.dialogTitle:       DDD: Save Plot Data
-Ddd*export_data.okLabelString:	   Save
-Ddd*export_data.selectionLabelString: Data File
-Ddd*export_data*helpString:	   \
-@rm You can save the plot data in a file.\n\
-Enter the file name in the argument field.\n\
-\n\
-Click on LBL(Save) to save the plot data.\n\
-Click on LBL(Filter) to apply the given filter.
 
 
 !-----------------------------------------------------------------------------
@@ -6997,13 +6975,6 @@ Ddd*print_failed_error.dialogTitle: DDD: Printing Failed
 Ddd*print_failed_error*helpString:	\
 @rm The file holding the graph picture could not be written.\n\
 The printing has been cancelled.\n\
-\n\
-Please try another file name and try again.
-
-Ddd*export_failed_error.dialogTitle: DDD: Export Failed
-Ddd*export_failed_error*helpString:	\
-@rm The file holding the plot data could not be written.\n\
-The export has been cancelled.\n\
 \n\
 Please try another file name and try again.
 
