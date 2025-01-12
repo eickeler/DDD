@@ -82,6 +82,22 @@ char plotter_rcsid[] =
 #include <Xm/TextF.h>
 #include <Xm/ToggleB.h>
 
+extern "C" {
+#if HAVE_RANDOM && !HAVE_RANDOM_DECL && !defined(random)
+long int random();
+#endif
+#if HAVE_SRANDOM && !HAVE_SRANDOM_DECL && !defined(srandom)
+void srandom(unsigned int seed);
+#endif
+#if HAVE_RAND && !HAVE_RAND_DECL && !defined(rand)
+int rand();
+#endif
+#if HAVE_SRAND && !HAVE_SRAND_DECL && !defined(srand)
+void srand(unsigned int seed);
+#endif
+}
+
+
 static void TraceInputHP (Agent *source, void *, void *call_data);
 static void TraceOutputHP(Agent *source, void *, void *call_data);
 static void TraceErrorHP (Agent *source, void *, void *call_data);
@@ -465,6 +481,7 @@ static void popup_plot_shell(PlotWindowInfo *plot)
 static void SwallowTimeOutCB(XtPointer client_data, XtIntervalId *id)
 {
     (void) id;
+    static int numtries = 0;
 
     PlotWindowInfo *plot = (PlotWindowInfo *)client_data;
     assert(*id == plot->swallow_timer);
@@ -487,13 +504,20 @@ static void SwallowTimeOutCB(XtPointer client_data, XtIntervalId *id)
     if (window == None)
     {
 	// Try again later
-	plot->swallow_timer = 
-	    XtAppAddTimeOut(XtWidgetToApplicationContext(plot->swallower),
-			    app_data.plot_window_delay, 
-			    SwallowTimeOutCB, XtPointer(plot));
+        numtries++;
+
+        if (numtries<8)
+            plot->swallow_timer =
+                XtAppAddTimeOut(XtWidgetToApplicationContext(plot->swallower),
+                                app_data.plot_window_delay,
+                                SwallowTimeOutCB, XtPointer(plot));
+        else
+            numtries = 0;
+
         return;
     }
 
+    numtries = 0;
     XtVaSetValues(plot->swallower, XtNwindow, window, XtPointer(0));
 
     popup_plot_shell(plot);
@@ -789,7 +813,29 @@ void clear_plot_window_cache()
 // Create a new plot window
 PlotAgent *new_plotter(const string& name, DispValue *source)
 {
-    static int tics = 1;
+    static bool seed_initialized = false;
+
+    if (seed_initialized == false)
+    {
+        time_t tm;
+        time(&tm);
+
+#if HAVE_SRAND
+        srand((int)tm);
+#elif HAVE_SRANDOM
+        srandom((int)tm);
+#endif
+        seed_initialized = true;
+    }
+
+#if HAVE_RAND
+    int randomnumber = rand() % 0xffffff;
+#else /* HAVE_RANDOM */
+    int randomnumber = random() % 0xffffff;
+#endif
+
+    char hexid[20];
+    snprintf(hexid, sizeof(hexid), "%06x", randomnumber);
 
     string cmd = app_data.plot_command;
 #if HAVE_FREETYPE
@@ -798,16 +844,17 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     cmd.gsub("@FONT@", make_font(app_data, FixedWidthDDDFont));
 #endif
 
-    string window_name = ddd_NAME "plot" + itostring(tics++);
+    string window_name = ddd_NAME "plot";
+    window_name += hexid;
     if (cmd.contains("@NAME@"))
-	cmd.gsub("@NAME@", window_name);
+        cmd.gsub("@NAME@", window_name);
     else
-	cmd += " -name " + window_name;
+        cmd += " -name " + window_name;
 
     // Create shell
     PlotWindowInfo *plot = new_decoration(name);
     if (plot == 0)
-	return 0;
+        return 0;
 
     plot->source      = source;
     plot->window_name = window_name;
