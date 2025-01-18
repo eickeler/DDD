@@ -67,12 +67,8 @@ private:
     string init_commands;	// Initialization commands
     bool need_reset;		// Reset with next plot
 
-    bool getting_plot_data;	// True if getting plot data
-
 protected:
     void reset();
-
-    virtual void dispatch(int type, const char *data, int length);
 
     string getGnuplotType(string gdbtype);
 
@@ -85,7 +81,7 @@ public:
 	      unsigned nTypes = PlotAgent_NTypes)
 	: LiterateAgent(app_context, pth, nTypes),
 	  plot_os(), init_commands(""),
-	  need_reset(false), getting_plot_data(false)
+	  need_reset(false)
     {
 	reset();
     }

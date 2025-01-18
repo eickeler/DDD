@@ -58,7 +58,6 @@ char plotter_rcsid[] =
 #include "x11/DeleteWCB.h"
 #include "HelpCB.h"
 #include "motif/MakeMenu.h"
-#include "PlotArea.h"
 #include "x11/Swallower.h"
 #include "DispValue.h"
 #include "DataDisp.h"
@@ -105,8 +104,6 @@ static void SetStatusHP  (Agent *source, void *, void *call_data);
 static void PlotterNotFoundHP(Agent *source, void *, void *call_data);
 
 static void CancelPlotCB(Widget, XtPointer, XtPointer);
-static void ExposePlotAreaCB(Widget, XtPointer, XtPointer);
-static void ResizePlotAreaCB(Widget, XtPointer, XtPointer);
 
 static void SelectPlotCB(Widget, XtPointer, XtPointer);
 static void SelectAndPrintPlotCB(Widget, XtPointer, XtPointer);
@@ -123,7 +120,6 @@ struct PlotWindowInfo {
     DispValue *source;		// The source we depend upon
     string window_name;		// The window name
     PlotAgent *plotter;		// The current Gnuplot instance
-    PlotArea *area;		// The area we're drawing in
     Widget shell;		// The shell we're in
     Widget working_dialog;	// The working dialog
     Widget swallower;		// The Gnuplot window
@@ -143,7 +139,7 @@ struct PlotWindowInfo {
     // Constructor - just initialize
     PlotWindowInfo()
 	: source(0), window_name(""),
-	  plotter(0), area(0), shell(0), working_dialog(0), swallower(0),
+	  plotter(0), shell(0), working_dialog(0), swallower(0),
 	  command(0), command_dialog(0),
 	  export_dialog(0), active(false), swallow_timer(0),
 	  settings(""), settings_timer(0), settings_file(""), settings_delay(0)
@@ -251,9 +247,6 @@ static void send_and_replot(PlotWindowInfo *plot, string cmd)
 	cmd += "\n";		// Exit `help'
     else
 	cmd += "replot\n";
-
-    if (plot->area != 0)
-	plot->area->plot_pending();
 
     send(plot, cmd);
 }
@@ -641,19 +634,6 @@ static void DeletePlotterHP(Agent *plotter, void *client_data, void *)
     popdown_plot_shell(plot);
 }
 
-static void GetPlotHP(Agent *, void *client_data, void *call_data)
-{
-    // We got the plot commands
-    PlotWindowInfo *plot = (PlotWindowInfo *)client_data;
-
-    // Pass commands to the plot area
-    DataLength *dl = (DataLength *)call_data;
-    plot->area->plot(dl->data, dl->length);
-
-    // Popup shell
-    popup_plot_shell(plot);
-}
-
 static void PlotterNotFoundHP(Agent *plotter, void *client_data, void *)
 {
 #if !NDEBUG
@@ -684,7 +664,6 @@ static void PlotterNotFoundHP(Agent *plotter, void *client_data, void *)
 
 
 #define SWALLOWER_NAME "swallower"
-#define PLOT_AREA_NAME "area"
 
 static std::vector<PlotWindowInfo*> plot_infos;
 
@@ -863,14 +842,6 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     XtAddCallback(plot->shell, XtNpopdownCallback,
 		  CancelPlotCB, XtPointer(plot));
 
-    if (plot->area != 0)
-    {
-	XtAddCallback(plot->area->widget(), XmNexposeCallback,
-		      ExposePlotAreaCB, XtPointer(plot));
-	XtAddCallback(plot->area->widget(), XmNresizeCallback,
-		      ResizePlotAreaCB, XtPointer(plot));
-    }
-
     // Add trace handlers
     plotter->addHandler(Input,  TraceInputHP);     // Gnuplot => DDD
     plotter->addHandler(Output, TraceOutputHP);    // DDD => Gnuplot
@@ -882,9 +853,6 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     // Handle death
     plotter->addHandler(Died, PlotterNotFoundHP, (void *)plot);
     plotter->addHandler(Died, DeletePlotterHP,   (void *)plot);
-
-    if (plot->area != 0)
-	plotter->addHandler(Plot, GetPlotHP, (void *)plot);
 
     string init = "set term x11\n";
     init += app_data.plot_init_commands;
@@ -898,22 +866,6 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     return plotter;
 }
 
-
-//-------------------------------------------------------------------------
-// Drawing stuff
-//-------------------------------------------------------------------------
-
-static void ExposePlotAreaCB(Widget, XtPointer client_data, XtPointer)
-{
-    PlotWindowInfo *plot = (PlotWindowInfo *)client_data;
-    plot->area->replot(false);
-}
-
-static void ResizePlotAreaCB(Widget, XtPointer client_data, XtPointer)
-{
-    PlotWindowInfo *plot = (PlotWindowInfo *)client_data;
-    plot->area->replot(true);
-}
 
 
 //-------------------------------------------------------------------------

@@ -549,8 +549,6 @@ DDD_SRC = \
 	MinMaxA.h    \
 	PlotAgent.C  \
 	PlotAgent.h  \
-	PlotArea.C   \
-	PlotArea.h   \
 	PosBuffer.C  \
 	PosBuffer.h  \
 	ProgressM.C  \
@@ -1583,7 +1581,7 @@ CLEANFILES = ddd.au ddd.cm ddd.cms ddd.en ddd.fl ddd.fls ddd.lb ddd.lbs \
 	ddd-themes.pdf ../doc/ddd-themes.pdf
 
 # Have `make maintainer-clean' remove _all_ derived files.
-MAINTAINERCLEANFILES = Ddd.in ddd.vsl.h gfdl.texinfo \
+MAINTAINERCLEANFILES = x11/Ddd.in ddd.vsl.h gfdl.texinfo \
 	ddd.info \
 	ddd.info.txt tips.m4 gpl.texinfo vsl-lex.C \
 	config.h.in config.texi vsl-gramma.C \

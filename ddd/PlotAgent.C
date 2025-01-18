@@ -277,44 +277,6 @@ void PlotAgent::add_break()
     plot_os << '\n';
 }
 
-
-// Handle plot commands
-void PlotAgent::dispatch(int type, const char *data, int length)
-{
-    if (type != int(Input) || length < 2)
-    {
-	LiterateAgent::dispatch(type, data, length);
-	return;
-    }
-
-    if (data[0] == 'G' && data[1] == '\n')
-    {
-	// Enter graphics mode
-	getting_plot_data = true;
-    }
-
-    if (!getting_plot_data)
-    {
-	LiterateAgent::dispatch(type, data, length);
-	return;
-    }
-
-    // Call handlers
-    DataLength dl(data, length);
-    callHandlers(Plot, &dl);
-
-    if (length >= 2 && data[length - 1] == '\n')
-    {
-	char last_cmd = data[length - 2];
-
-	if (last_cmd == 'E' || last_cmd == 'R')
-	{
-	    // Leave graphics mode
-	    getting_plot_data = false;
-	}
-    }
-}
-
 // Show whether plot is active
 void PlotAgent::set_state(const string& state)
 {
