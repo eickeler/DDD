@@ -90,7 +90,6 @@ BASE_SRC = \
 	base/mutable.h    \
 	base/my-alloca.h  \
 	base/my-dirent.h  \
-	base/oldcxx.h     \
 	base/pi.h         \
 	base/rxclass.C    \
 	base/rxclass.h    \
@@ -545,7 +544,6 @@ DDD_SRC = \
 	HistoryD.C   \
 	HistoryD.h   \
 	HistoryF.h   \
-	IntArray.h   \
 	MinMaxA.h    \
 	PlotAgent.C  \
 	PlotAgent.h  \
