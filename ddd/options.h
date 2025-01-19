@@ -136,7 +136,6 @@ extern void dddSetPlotCommandCB             (Widget, XtPointer, XtPointer);
 extern void dddSetGetCoreCommandCB          (Widget, XtPointer, XtPointer);
 extern void dddSetPSCommandCB               (Widget, XtPointer, XtPointer);
 extern void dddSetTermCommandCB             (Widget, XtPointer, XtPointer);
-extern void dddSetBuiltinPlotWindowCB       (Widget, XtPointer, XtPointer);
 
 extern void DDDSaveOptionsCB                (Widget, XtPointer, XtPointer);
 extern void DDDSaveOptionsAsCB              (Widget, XtPointer, XtPointer);

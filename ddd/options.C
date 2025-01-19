@@ -671,17 +671,6 @@ void dddToggleWarnIfLockedCB (Widget, XtPointer, XtPointer call_data)
     update_options();
 }
 
-void dddSetBuiltinPlotWindowCB (Widget, XtPointer client_data, XtPointer)
-{
-    (void)client_data;
-
-    set_status("Next plot will be done in external " +
-                cook(app_data.plot_window_class) + " window.");
-
-    clear_plot_window_cache();
-    update_options();
-}
-
 void dddToggleButtonTipsCB (Widget, XtPointer, XtPointer call_data)
 {
     XmToggleButtonCallbackStruct *info = 

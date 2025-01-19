@@ -784,6 +784,13 @@ void clear_plot_window_cache()
     plot_infos.clear();
 }
 
+// Delete plot window
+void delete_plotter(PlotAgent *plotter)
+{
+    plotter->removeAllHandlers();
+    plotter->terminate();
+    delete plotter;
+}
 
 // Create a new plot window
 PlotAgent *new_plotter(const string& name, DispValue *source)
@@ -839,8 +846,7 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     PlotAgent *plotter = 
 	new PlotAgent(XtWidgetToApplicationContext(plot->shell), cmd);
 
-    XtAddCallback(plot->shell, XtNpopdownCallback,
-		  CancelPlotCB, XtPointer(plot));
+    XtAddCallback(plot->shell, XtNpopdownCallback, CancelPlotCB, XtPointer(plot));
 
     // Add trace handlers
     plotter->addHandler(Input,  TraceInputHP);     // Gnuplot => DDD

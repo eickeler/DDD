@@ -58,6 +58,7 @@ char DispValue_rcsid[] =
 #include "regexps.h"
 #include "string-fun.h"
 #include "value-read.h"
+#include "status.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -1742,52 +1743,43 @@ void DispValue::plot() const
     plotter()->plot_2d_settings = app_data.plot_2d_settings;
     plotter()->plot_3d_settings = app_data.plot_3d_settings;
 
-    _plot(plotter());
+    bool res = _plot(plotter());
+
+    if (res==false)
+    {
+        delete_plotter(plotter());
+        MUTABLE_THIS(DispValue *)->_plotter = nullptr;
+        return;
+    }
 
     plotter()->flush();
 }
 
-void DispValue::_plot(PlotAgent *plotter) const
+bool DispValue::_plot(PlotAgent *plotter) const
 {
     if (can_plotImage())
-    {
-        plotImage(plotter);
-        return;
-    }
+        return plotImage(plotter);
 
     if (can_plotCVMat())
-    {
-        plotCVMat(plotter);
-        return;
-    }
+        return plotCVMat(plotter);
 
     if (can_plot3d())
-    {
-	plot3d(plotter);
-	return;
-    }
+        return plot3d(plotter);
 
     if (can_plotVector())
-    {
-	plotVector(plotter);
-	return;
-    }
+	return plotVector(plotter);
 
     if (can_plot2d())
-    {
-	plot2d(plotter);
-	return;
-    }
+        return plot2d(plotter);
 
     if (can_plot1d())
-    {
-	plot1d(plotter);
-	return;
-    }
+        return plot1d(plotter);
 
     // Plot all array children into one window
     for (int i = 0; i < nchildren(); i++)
 	child(i)->_plot(plotter);
+
+    return true;
 }
 
 void DispValue::replot() const
@@ -1812,7 +1804,7 @@ string DispValue::num_value() const
 }
 
 
-void DispValue::plot1d(PlotAgent *plotter) const
+bool DispValue::plot1d(PlotAgent *plotter) const
 {
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::DATA_1D;
@@ -1822,9 +1814,11 @@ void DispValue::plot1d(PlotAgent *plotter) const
 
     eldata.value = num_value();
     plotter->close_stream();
+
+    return true;
 }
 
-void DispValue::plot2d(PlotAgent *plotter) const
+bool DispValue::plot2d(PlotAgent *plotter) const
 {
     if (type() == Array)
     {
@@ -1856,6 +1850,11 @@ void DispValue::plot2d(PlotAgent *plotter) const
             // write memory block to file
             string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
             answer = gdb_question(question);
+            if (answer.contains("Cannot") || answer.contains("Invalid"))
+            {
+                set_status(answer);
+                return false;
+            }
 
             eldata.gdbtype = gdbtype;
             eldata.xdim = length;
@@ -1903,9 +1902,11 @@ void DispValue::plot2d(PlotAgent *plotter) const
 
         plotter->close_stream();
     }
+
+    return true;
 }
 
-void DispValue::plot3d(PlotAgent *plotter) const
+bool DispValue::plot3d(PlotAgent *plotter) const
 {
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::DATA_3D;
@@ -1936,6 +1937,11 @@ void DispValue::plot3d(PlotAgent *plotter) const
         // write memory block to file
         string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + ydim + "*" + xdim + "*"  + sizestr;
         answer = gdb_question(question);
+        if (answer.contains("Cannot") || answer.contains("Invalid"))
+        {
+            set_status(answer);
+            return false;
+        }
 
         eldata.xdim = xdim;
         eldata.ydim = ydim;
@@ -1978,9 +1984,11 @@ void DispValue::plot3d(PlotAgent *plotter) const
 
         plotter->close_stream();
     }
+
+    return true;
 }
 
-void DispValue::plotVector(PlotAgent *plotter) const
+bool DispValue::plotVector(PlotAgent *plotter) const
 {
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::DATA_2D;
@@ -2009,30 +2017,37 @@ void DispValue::plotVector(PlotAgent *plotter) const
     // write memory block to file
     string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
     answer = gdb_question(question);
+    if (answer.contains("Cannot") || answer.contains("Invalid"))
+    {
+        set_status(answer);
+        return false;
+    }
 
     eldata.xdim = length;
     eldata.gdbtype = gdbtype;
     eldata.binary = true;
+
+    return true;
 }
 
-void DispValue::plotImage(PlotAgent *plotter) const
+bool DispValue::plotImage(PlotAgent *plotter) const
 {
     auto child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "cdim"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string cdimstr = (*child)->value();
     int cdim = atoi(cdimstr.chars());
 
     if (cdim!=1 && cdim!=3)
-        return; // cannot handle more than one colorchannel
+        return false; 
 
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "pixmap"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string address  = (*child)->value();
     int pos = address.index(rxwhite);
@@ -2041,13 +2056,13 @@ void DispValue::plotImage(PlotAgent *plotter) const
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "xdim"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string xdimstr = (*child)->value().chars();
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "ydim"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string ydimstr =(*child)->value().chars();
 
@@ -2061,6 +2076,11 @@ void DispValue::plotImage(PlotAgent *plotter) const
 
     string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + xdimstr + "*" + ydimstr + "*" + cdimstr + "*" + sizestr;
     answer = gdb_question(question);
+    if (answer.contains("Cannot") || answer.contains("Invalid"))
+    {
+        set_status(answer);
+        return false;
+    }
 
     eldata.xdim = xdimstr;
     eldata.ydim = ydimstr;
@@ -2084,7 +2104,7 @@ void DispValue::plotImage(PlotAgent *plotter) const
         if (read!=num)
         {
             delete [] filebuffer;
-            return;
+            return false;
         }
 
         fp = fopen(eldata.file.chars(), "wb");
@@ -2107,31 +2127,32 @@ void DispValue::plotImage(PlotAgent *plotter) const
         delete [] filebuffer;
     }
 
+    return true;
 }
 
-void DispValue::plotCVMat(PlotAgent *plotter) const
+bool DispValue::plotCVMat(PlotAgent *plotter) const
 {
     auto child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "dims"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string cdimstr = (*child)->value();
     int cdim = atoi(cdimstr.chars());
 
     if (cdim!=2)
-        return; // only 2 dimensional images
+        return false; // only 2 dimensional images
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "flags"; });
     if (child == _children.end())
-        return;
+        return false;
 
     int flags = atoi((*child)->value().chars());
     if (flags>>16 != 0x42FF)
-        return;
+        return false;
 
     int colorchannels =((flags &0xfff) >> 3) + 1;
     if (colorchannels != 1 && colorchannels!=3)
-        return;
+        return false;
 
     string gdbtype;
     switch (flags & 0x0007)
@@ -2158,7 +2179,7 @@ void DispValue::plotCVMat(PlotAgent *plotter) const
             gdbtype = "double";
             break;
         default:
-            return;
+            return false;
     }
 
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
@@ -2166,7 +2187,7 @@ void DispValue::plotCVMat(PlotAgent *plotter) const
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "data"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string startaddress  = (*child)->value();
     int pos = startaddress.index(rxwhite);
@@ -2175,7 +2196,7 @@ void DispValue::plotCVMat(PlotAgent *plotter) const
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "datalimit"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string endaddress  = (*child)->value();
     pos = endaddress.index(rxwhite);
@@ -2184,19 +2205,24 @@ void DispValue::plotCVMat(PlotAgent *plotter) const
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "cols"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string colsstr = (*child)->value();
 
     child = std::find_if(_children.begin(), _children.end(), [&](const DispValue *child) { return child->print_name == "rows"; });
     if (child == _children.end())
-        return;
+        return false;
 
     string rowsstr = (*child)->value();
 
 
     string question = "dump binary memory " + eldata.file + " " + startaddress + " " + endaddress;
     string answer = gdb_question(question);
+    if (answer.contains("Cannot") || answer.contains("Invalid"))
+    {
+        set_status(answer);
+        return false;
+    }
 
     if (colorchannels==3)
         eldata.plottype = PlotElement::BGRIMAGE;
@@ -2208,6 +2234,7 @@ void DispValue::plotCVMat(PlotAgent *plotter) const
     eldata.gdbtype = gdbtype;
     eldata.binary = true;
 
+    return true;
 }
 
 void DispValue::PlotterDiedHP(Agent *source, void *client_data, void *)
