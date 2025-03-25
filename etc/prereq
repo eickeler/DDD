@@ -57,6 +57,7 @@ done
 DEBIANPKGS=( \
   "binutils" "g++" "gcc" "make" "libmotif-dev" "libx11-dev" "libxpm-dev" \
   "libxt-dev" "libxaw7-dev" "libxpm-dev" "libncurses-dev" "gdb" "fonts-liberation" \
+  "libtinyxml2-dev" \
   )
 DEBIANDEVPKGS=( \
   "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" "fig2dev" \
@@ -67,7 +68,7 @@ FEDORAPKGS=( \
   "binutils" "gcc-c++" "gcc" "make" "motif-devel" "libX11-devel" "libXpm-devel" \
   "libXaw-devel" "libXt-devel" "ncurses-devel" "gdb" "liberation-fonts-common" \
   "liberation-sans-fonts" "liberation-mono-fonts" "liberation-serif-fonts" \
-  "netpbm-progs" \
+  "netpbm-progs" "tinyxml2-devel" \
   )
 FEDORADEVPKGS=( \
   "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" "transfig" \
@@ -77,7 +78,7 @@ FEDORADEVPKGS=( \
 SUSEPKGS=( \
   "binutils" "gcc-c++" "gcc" "make" "motif-devel" "libX11-devel" "libXpm-devel" \
   "libXaw-devel" "libXt-devel" "ncurses-devel" "gdb" "liberation-fonts" \
-  "netpbm" \
+  "netpbm" "tinyxml2-devel" \
   )
 SUSEDEVPKGS=( \
   "automake" "autoconf" "libtool" "bison" "flex" "texinfo" "netpbm" "transfig" \

@@ -76,6 +76,7 @@ extern int ptrace(int request, int pid, int addr, int data);
 #include "x11/verify.h"
 #include "windows.h"
 #include "wm.h"
+#include "config_manager.h"
 
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
@@ -93,6 +94,7 @@ extern int ptrace(int request, int pid, int addr, int data);
 #include <errno.h>
 #include <string.h>                // strerror
 #include <time.h>                // ctime
+#include <tinyxml2.h>
 
 #include <limits.h>
 #ifndef ARG_MAX
@@ -2313,21 +2315,12 @@ bool get_restart_commands(string& restart, unsigned long flags)
     return ok;
 }
 
-bool save_options(unsigned long flags)
+static bool save_options_init(unsigned long flags)
 {
     const bool create        = (flags & CREATE_OPTIONS);
     const bool save_session  = (flags & SAVE_SESSION);
     const bool save_geometry = (flags & SAVE_GEOMETRY);
     const bool interact      = (flags & MAY_INTERACT);
-
-    if (find_shell() == 0) {
-        // We cannot use *_app_value() because we have no shell
-        // available.  Presumably we have been called from an error
-        // handler very early in program startup.
-        if (interact)
-            post_error("Cannot save options", "options_save_error");
-        return false;
-    }
 
     string session = 
         (save_session ? app_data.session : DEFAULT_SESSION.chars());
@@ -2346,7 +2339,7 @@ bool save_options(unsigned long flags)
     string dddinit;
     {
         std::ifstream is(file.chars());
-        if (is.bad())
+        if (!is.is_open())
         {
             // File not found: create a new one
             dddinit = 
@@ -2856,15 +2849,13 @@ bool save_options(unsigned long flags)
         os << string_app_value(XtNrestartCommands, restart.chars()) << '\n';
     }
 
-    bool saved = true;
-
     os.close();
     if (os.bad())
     {
         if (interact)
             post_error("Cannot save " + options + " in " + quote(workfile),
                        "options_save_error");
-        ok = saved = false;
+        ok = false;
         unlink(workfile.chars());
     }
 
@@ -2874,18 +2865,81 @@ bool save_options(unsigned long flags)
             post_error("Cannot rename " + quote(workfile)
                        + " to " + quote(file) + ": " + strerror(errno),
                        "options_save_error");
-        ok = saved = false;
+        ok = false;
         unlink(workfile.chars());
     }
 
-    if (saved)
+    return ok;
+}
+
+static bool save_options_settings(unsigned long flags)
+{
+    const bool create        = (flags & CREATE_OPTIONS);
+    const bool save_session  = (flags & SAVE_SESSION);
+    const bool interact      = (flags & MAY_INTERACT);
+    bool saved = true;
+
+    string session = 
+        (save_session ? app_data.session : DEFAULT_SESSION.chars());
+
+    create_session_dir(session);
+    const string file = session_settings_file(session);
+
+    string options = (save_session ? "session" : "options");
+    string status = (create ? "Creating " : "Saving ") + options + " in ";
+
+    StatusDelay delay(status + quote(file));
+    
+    // Write settings file
+    string workfile = file + "#";
+    if (config_write_file(workfile.chars()) != 0)
+    {
+        if (interact)
+            post_error("Cannot save " + options + " in " + quote(workfile),
+                       "options_save_error");
+        saved = false;
+        unlink(workfile.chars());
+    }
+
+    if (workfile != file && rename(workfile.chars(), file.chars()) != 0)
+    {
+        if (interact)
+            post_error("Cannot rename " + quote(workfile)
+                       + " to " + quote(file) + ": " + strerror(errno),
+                       "options_save_error");
+        saved = false;
+        unlink(workfile.chars());
+    }
+
+    return saved;
+}
+
+bool save_options(unsigned long flags)
+{
+    const bool create        = (flags & CREATE_OPTIONS);
+    const bool interact      = (flags & MAY_INTERACT);
+
+    if (find_shell() == 0) {
+        // We cannot use *_app_value() because we have no shell
+        // available.  Presumably we have been called from an error
+        // handler very early in program startup.
+        if (interact)
+            post_error("Cannot save options", "options_save_error");
+        return false;
+    }
+
+    bool saved;
+
+    saved = save_options_init(flags) && save_options_settings(flags);
+
+    if (!create && saved)
     {
         save_option_state();
         save_settings_state();
         options_file_has_changed(ACCESS, true);
     }
-
-    return ok;
+    
+    return saved;    
 }
 
 // ---------------------------------------------------------------------------

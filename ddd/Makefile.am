@@ -376,6 +376,8 @@ DDD_SRC = \
 	comm-manag.h \
 	complete.C   \
 	complete.h   \
+	config_manager.C	 \
+	config_manager.h	 \
 	ctrl.C       \
 	ctrl.h       \
 	data.C       \

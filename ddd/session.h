@@ -84,6 +84,12 @@ inline string session_tmp_flag(const string& session)
     return session_file(session, "tmp");
 }
 
+inline string session_settings_file(const string& session)
+{
+    return session_file(session, "settings.xml");
+}
+
+
 // Create session directory for SESSION; leave messages in MSG
 void create_session_dir(const string& session, std::ostream& msg);
 

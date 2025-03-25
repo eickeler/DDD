@@ -37,6 +37,7 @@ char resources_rcsid[] =
 #include "config.h"
 #include "resolveP.h"
 #include "base/tabs.h"
+#include "config_manager.h"
 
 #include <Xm/Xm.h>
 
@@ -2302,7 +2303,6 @@ static void CopyArg(XtPointer src, XtPointer dest, Cardinal size)
     }
 }
 
-
 // This constructor is invoked before program start
 AppDataInitializer::AppDataInitializer()
 {
@@ -2316,6 +2316,10 @@ AppDataInitializer::AppDataInitializer()
 
         CopyArg(src, dest, size);
     }
+
+    // Set configuration defaults
+    // This should be moved to pre_main_loop();
+    config_set_defaults();
 }
 
 // Fallback resources

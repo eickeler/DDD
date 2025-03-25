@@ -789,6 +789,12 @@ fi
 AC_SUBST(XFT_LIBS)
 AC_SUBST(XFT_INCLUDE)
 dnl
+dnl Check for TinyXML2
+dnl
+AC_CHECK_HEADER([tinyxml2.h],
+    [LIBS="$LIBS -ltinyxml2"],
+    AC_MSG_ERROR([Cannot find tinyXML2 include files.]))
+dnl
 dnl
 dnl Setup library loading flags
 dnl

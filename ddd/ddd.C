@@ -270,6 +270,7 @@ char ddd_rcsid[] =
 #include "xconfig.h"
 #include "motif/ComboBox.h"
 #include "darkmode.h"
+#include "config_manager.h"
 
 // Standard stuff
 #include <stdlib.h>
@@ -2124,6 +2125,10 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     if (dddinit == 0)
         dddinit = XrmGetStringDatabase("");
 
+    // Read ~/.ddd/setting configuration
+    if (config_set_app_data(session_settings_file(DEFAULT_SESSION).chars()) != 0)
+	config_set_defaults();
+
     // Read ~/.ddd/tips resources
     XrmDatabase dddtips =
         XrmGetFileDatabase(session_tips_file().chars());
@@ -2280,6 +2285,13 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     XtVaGetApplicationResources(toplevel, (XtPointer)&app_data,
                                 ddd_resources, ddd_resources_size,
                                 XtPointer(0));
+
+    // Initialize APP_DATA from configuration file
+    int res;
+    res = config_set_app_data(session_settings_file(DEFAULT_SESSION).chars());
+    if (res == ERR_CONFIG_INCORRECT_VERSION)
+	messages << "Ignoring configuration settings file for " 
+		 << DDD_NAME " " << session_settings_file(DEFAULT_SESSION).chars() << "\n";
 
 #if XtSpecificationRelease >= 6
     // Synchronize SESSION_ID and APP_DATA.session

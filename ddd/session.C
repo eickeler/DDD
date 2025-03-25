@@ -304,12 +304,14 @@ void create_session_dir(const string& session, std::ostream& msg)
 	&& !is_directory(session_dir(session))
 	&& makedir(session_dir(session), msg) == 0)
     {
-	// Check for default session state and history files;
+	// Check for default session state, history, settings files;
 	// copy them to new location
 	copy(session_state_file(DEFAULT_SESSION), 
 	     session_state_file(session), msg);
 	copy(session_history_file(DEFAULT_SESSION), 
 	     session_history_file(session), msg);
+	copy(session_settings_file(DEFAULT_SESSION), 
+	     session_settings_file(session), msg);
     }
 }
 
@@ -622,6 +624,10 @@ void delete_session(const string& session, bool silent)
     }
     {
       const string s1 = session_tmp_flag(session);
+      unlink(s1.chars());
+    }
+    {
+      const string s1 = session_settings_file(session);
       unlink(s1.chars());
     }
 

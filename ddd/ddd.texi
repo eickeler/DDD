@@ -2766,8 +2766,12 @@ session defaults:
 @itemize @bullet
 @item
 User options will be saved in
-@file{~/.@value{ddd}/sessions/@var{session}/init} instead of
-@file{~/.@value{ddd}/init}.  @xref{Saving Options}, for details.
+@file{~/.@value{ddd}/sessions/@var{session}/init} and
+@file{~/.@value{ddd}/sessions/@var{session}/settings.xml} 
+instead of
+@file{~/.@value{ddd}/init} and  
+@file{~/.@value{ddd}/settings.xml}.  
+@xref{Saving Options}, for details.
 
 @item
 The @DDD{} command history will be saved in
