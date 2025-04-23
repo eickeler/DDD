@@ -41,6 +41,7 @@
 #ifndef _DDD_GDBAgent_h
 #define _DDD_GDBAgent_h
 
+#include "AppData.h"
 #include "agent/TTYAgent.h"
 #include "agent/HandlerL.h"
 #include "base/strclass.h"
@@ -846,6 +847,12 @@ public:
 	return false;
     }
     void set_exception_state(bool state);
+
+    // Return target init commands
+    virtual string init_commands() const { return ""; }
+
+    // Return target settings 
+    virtual string settings() const { return ""; }
 
     // Helpers
     string cmd() const;		// Actual command being executed

@@ -60,4 +60,8 @@ public:
     string attach_command(int pid, const string& file) const override;
     string detach_command(int pid) const override;
     string assign_command(const string& var, const string& expr) const override;
+    string init_commands() const override 
+        { return app_data.dbx_init_commands; }
+    string settings() const override 
+        { return app_data.dbx_settings; }
 };

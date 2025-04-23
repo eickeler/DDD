@@ -43,4 +43,8 @@ public:
 	{ return "condition " + bp + " " + expr; }
     string debug_command(const char *file = "", string args = "") const override;
     string assign_command(const string& var, const string& expr) const override;
+    string init_commands() const override 
+        { return app_data.pydb_init_commands; }
+    string settings() const override 
+        { return app_data.pydb_settings; }
 };

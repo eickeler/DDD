@@ -53,5 +53,9 @@ public:
     string detach_command(int pid) const override
 	{ /*UNUSED*/ (void (pid)); return "detach"; }
     string assign_command(const string& var, const string& expr) const override;
+    string init_commands() const override 
+        { return app_data.gdb_init_commands; }
+    string settings() const override 
+        { return app_data.gdb_settings; }
 };
 

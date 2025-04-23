@@ -57,4 +57,8 @@ public:
     string run_command(string args) const override;
     string rerun_command() const override { return "r"; }
     string assign_command(const string& var, const string& expr) const override;
+    string init_commands() const override 
+        { return app_data.xdb_init_commands; }
+    string settings() const override 
+        { return app_data.xdb_settings; }
 };

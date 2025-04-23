@@ -456,55 +456,8 @@ void start_gdb(bool config)
     VoidArray dummy;
 
     // Fetch initialization commands
-    string init;
-    string settings;
-    switch (gdb->type())
-    {
-    case BASH:
-	init     = str(app_data.bash_init_commands);
-	settings = str(app_data.bash_settings);
-	break;
-
-    case DBG:
-	init     = str(app_data.dbg_init_commands);
-	settings = str(app_data.dbg_settings);
-	break;
-
-    case DBX:
-	init     = str(app_data.dbx_init_commands);
-	settings = str(app_data.dbx_settings);
-	break;
-
-    case GDB:
-	init     = str(app_data.gdb_init_commands);
-	settings = str(app_data.gdb_settings);
-	break;
-
-    case JDB:
-	init     = str(app_data.jdb_init_commands);
-	settings = str(app_data.jdb_settings);
-	break;
-
-    case MAKE:
-	init     = str(app_data.make_init_commands);
-	settings = str(app_data.make_settings);
-	break;
-
-    case PERL:
-	init     = str(app_data.perl_init_commands);
-	settings = str(app_data.perl_settings);
-	break;
-
-    case PYDB:
-	init     = str(app_data.pydb_init_commands);
-	settings = str(app_data.pydb_settings);
-	break;
-
-    case XDB:
-	init     = str(app_data.xdb_init_commands);
-	settings = str(app_data.xdb_settings);
-	break;
-    }
+    string init = gdb->init_commands();
+    string settings = gdb->settings();
     string restart = str(app_data.restart_commands);
 
     // Place init commands in CMDS array
