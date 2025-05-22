@@ -51,6 +51,7 @@ char vsl_rcsid[] =
 #include "AppData.h"
 // this is a workaround to allow access to app_data in MakeMenu.C
 AppData app_data;
+Widget toplevel;
 
 #if !HAVE_ATHENA
 int main(void)

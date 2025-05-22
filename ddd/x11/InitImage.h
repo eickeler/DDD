@@ -31,18 +31,17 @@
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 
-// Initialize IMAGE
-extern void InitImage(XImage *image);
-
 // Create IMAGE from bitmap source
 extern XImage *CreateImageFromBitmapData(unsigned char *bits,
 					 int width, int height);
 
-// Install IMAGE in Motif cache
-Boolean InstallImage(XImage *image, const char *name);
-
 // Install bitmap in Motif cache
 Boolean InstallBitmap(unsigned char *bits, int width, int height, const char *name);
+
+// Install bitmap as Pixmap in Motif cache
+Boolean InstallBitmapAsXImage(Widget w, unsigned char *bits, int width, int height, const char *name, int scalefactor);
+
+
 
 #endif // _DDD_InitImage_h
 // DON'T ADD ANYTHING BEHIND THIS #endif

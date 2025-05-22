@@ -30,9 +30,12 @@ char InitImage_rcsid[] =
 
 #include "InitImage.h"
 
+#include "ddd.h"
+
 #include "config.h"
 #include "base/assert.h"
 #include "base/casts.h"
+#include "AppData.h"
 
 // These three are required for #including <X11/Xlibint.h>
 #include <string.h>		// bcopy()
@@ -44,145 +47,6 @@ char InitImage_rcsid[] =
 
 #include <Xm/Xm.h>		// XmInstallImage()
 
-#if XlibSpecificationRelease < 6
-
-// We're stuck with X11R5 or earlier, so we Provide a simple
-// XInitImage() replacement.  These GetPixel, PutPixel, and SubImage
-// functions only work for Bitmap data.
-// 
-// These functions were adapted from X11R6 `ImUtil.c', for which the
-// following copyright applies:
-//
-// Copyright (c) 1986 X Consortium
-// 
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use, copy,
-// modify, merge, publish, distribute, sublicense, and/or sell copies
-// of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT.  IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR
-// ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// 
-// Except as contained in this notice, the name of the X Consortium
-// shall not be used in advertising or otherwise to promote the sale,
-// use or other dealings in this Software without prior written
-// authorization from the X Consortium.
-
-
-// The ROUNDUP macro rounds up a quantity to the specified boundary,
-// then truncates to bytes.
-#define ROUNDUP(nbytes, pad) ((((nbytes) + ((pad)-1)) / (pad)) * ((pad)>>3))
-
-// Read a pixel from an 1-bit image data structure
-static unsigned long GetPixel (XImage *image, int x, int y)
-{
-    int xoff = x;
-    int yoff = y * image->bytes_per_line + (xoff >> 3);
-    xoff &= 7;
-    unsigned char bit = 1 << xoff;
-    return (image->data[yoff] & bit) ? 1 : 0;
-}
-
-// Write a pixel into an 1-bit image data structure
-static int PutPixel (XImage *image, int x, int y, unsigned long pixel)
-{
-
-    int xoff = x;
-    int yoff = y * image->bytes_per_line + (xoff >> 3);
-    xoff &= 7;
-    unsigned char bit = 1 << xoff;
-    if (pixel & 1)
-	image->data[yoff] |= bit;
-    else
-	image->data[yoff] &= ~bit;
-
-    return 1;
-}
-
-// Clone a new (sub)image from an existing one
-static XImage *SubImage (XImage *image, int x, int y, 
-			 unsigned int width, unsigned int height)
-{
-    XImage *subimage = (XImage *) Xcalloc (1, sizeof (XImage));
-    if (subimage == 0)
-	return subimage;
-
-    subimage->width            = width;
-    subimage->height           = height;
-    subimage->xoffset          = 0;
-    subimage->format           = image->format;
-    subimage->byte_order       = image->byte_order;
-    subimage->bitmap_unit      = image->bitmap_unit;
-    subimage->bitmap_bit_order = image->bitmap_bit_order;
-    subimage->bitmap_pad       = image->bitmap_pad;
-    subimage->bits_per_pixel   = image->bits_per_pixel;
-    subimage->depth            = image->depth;
-    subimage->bytes_per_line   = ROUNDUP(width, subimage->bitmap_pad);
-    subimage->obdata           = 0;
-
-    InitImage(subimage);
-
-    unsigned int dsize = subimage->bytes_per_line * height;
-
-    char *data = (char *)Xcalloc (1, dsize);
-    if (data == 0)
-    {
-	Xfree((char *) subimage);
-	return 0;
-    }
-    subimage->data = data;
-
-    if (int(height) > image->height - y)
-	height = image->height - y;
-    if (int(width) > image->width - x)
-	width = image->width - x;
-
-    for (unsigned int row = y; row < (y + height); row++)
-    {
-	for (unsigned int col = x; col < (x + width); col++)
-	{
-	    unsigned long pixel = XGetPixel(image, col, row);
-	    XPutPixel(subimage, (col - x), (row - y), pixel);
-	}
-    }
-
-    return subimage;
-}
-
-#endif // XlibSpecificationRelease
-
-
-
-void InitImage(XImage *image)
-{
-#if XlibSpecificationRelease >= 6
-    XInitImage(image);
-#else
-    assert(image->xoffset          == 0);
-    assert(image->format           == XYBitmap);
-    assert(image->byte_order       == MSBFirst);
-    assert(image->bitmap_unit      == 8);
-    assert(image->bitmap_bit_order == LSBFirst);
-    assert(image->bitmap_pad       == 8);
-    assert(image->depth            == 1);
-    assert(image->bytes_per_line   == (image->width + 7) / 8);
-
-    image->f.get_pixel = GetPixel;
-    image->f.put_pixel = PutPixel;
-    image->f.sub_image = SubImage;
-#endif
-}
 
 XImage *CreateImageFromBitmapData(unsigned char *bits, int width, int height)
 {
@@ -199,34 +63,91 @@ XImage *CreateImageFromBitmapData(unsigned char *bits, int width, int height)
     image->depth            = 1;
     image->bytes_per_line   = (width + 7) / 8;
 
-    InitImage(image);
+    XInitImage(image);
 
     return image;
-}
-
-Boolean InstallImage(XImage *image, const char *image_name)
-{
-    // Dave Larson <davlarso@plains.nodak.edu> writes: DDD doesn't
-    // work with the Motif 2.1 libraries shipped w/ Solaris 7: the
-    // pixmap cache is not being seached for the pixmaps.
-    //
-    // I did discover a very simple fix and I have to clue why it
-    // works. I was digging through the headers for Motif 2.1 and
-    // discovered many of the functions such as XmInstallImage have
-    // Xm21InstallImage equivalents that take the exact same
-    // arguments.  If I simply change the three calls to
-    // XmInstallImage to Xm21InstallImage, the problem is solved.
-
-#if HAVE_XM21INSTALLIMAGE
-    return Xm21InstallImage(image, XMST(image_name));
-#else
-    return XmInstallImage(image, XMST(image_name));
-#endif
 }
 
 // Install the given X bitmap as NAME
 Boolean InstallBitmap(unsigned char *bits, int width, int height, const char *name)
 {
     XImage *image = CreateImageFromBitmapData(bits, width, height);
-    return InstallImage(image, name);
+    return XmInstallImage(image, XMST(name));
+}
+
+
+// Install the given X bitmap as full color image to prevent color changes
+Boolean InstallBitmapAsXImage(Widget w, unsigned char *bits, int width, int height, const char *name, int scalefactor)
+{
+    Display *display = XtDisplay(toplevel);
+    XrmDatabase db = XtDatabase(display);
+    string resource = string(name) + ".foreground";
+
+    string str_name  = "ddd*" + resource;
+    string str_class = "Ddd*" + resource;
+
+    char *type;
+    XrmValue xrmvalue;
+    Bool ok = XrmGetResource(db, str_name.chars(), str_class.chars(), &type, &xrmvalue);
+    string fg;
+    if (ok)
+    {
+        const char *str = (const char *)xrmvalue.addr;
+        int len   = xrmvalue.size - 1; // includes the final `\0'
+        fg = string(str, len);
+        printf("%s.foreground: %s\n", name, fg.chars());
+    }
+
+    ok = XrmGetResource(db, "ddd*XmText.background", "Ddd*XmText.background", &type, &xrmvalue);
+    string bg;
+    if (ok)
+    {
+        const char *str = (const char *)xrmvalue.addr;
+        int len   = xrmvalue.size - 1; // includes the final `\0'
+        bg = string(str, len);
+        printf("XmText.background: %s\n", bg.chars());
+    }
+
+    Colormap colormap = DefaultColormap(display, DefaultScreen(display));
+
+    XColor colorfg, colorfgx;
+    XAllocNamedColor(display, colormap, fg.chars(), &colorfg, &colorfgx);
+
+    XColor colorbg, colorbgx;
+    XAllocNamedColor(display, colormap, bg.chars(), &colorbg, &colorbgx);
+
+    if (app_data.dark_mode)
+    {
+        // brighten color of glyphs in dark mode
+        colorfgx.pixel += 0x00202020;
+
+        // invert background
+        colorbgx.pixel ^= 0xffffff;
+    }
+
+    Visual *visual = XDefaultVisual(display, XDefaultScreen(display));
+    int depth = XDefaultDepth(display, XDefaultScreen(display));
+
+    int scaledwidth = scalefactor * width;
+    int scaledheight = scalefactor * height;
+    XImage *image = XCreateImage(XtDisplay(w), visual, depth, ZPixmap, 0, nullptr,
+                                    scaledwidth, scaledheight, 32, 0);
+    image->data = (char *)malloc(image->height * image->bytes_per_line);
+
+    int bytes_per_line = (width + 7) / 8;
+    for (int y = 0; y < image->height; y++)
+    {
+        for (int x = 0; x < image->width; x++)
+        {
+            int xi = x / scalefactor;
+            int yi = y / scalefactor;
+            int pixel = (bits[yi*bytes_per_line + xi/8]>>(xi&0x7)) & 0x01;
+            if (pixel)
+                XPutPixel(image, x, y, colorfgx.pixel);
+            else
+                XPutPixel(image, x, y, colorbgx.pixel);
+        }
+    }
+
+    return XmInstallImage(image, XMST(name));
 }

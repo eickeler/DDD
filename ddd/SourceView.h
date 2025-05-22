@@ -436,12 +436,8 @@ class SourceView {
     // Glyphs
     //-----------------------------------------------------------------------
 
-    // Create a pixmap from BITS suitable for the widget W
-    static Pixmap pixmap(Widget w, unsigned char *bits, int width, int height);
-
-    // Create glyph in FORM_W named NAME from given BITS
-    static Widget create_glyph(Widget form_w, const _XtString name, 
-                               unsigned char *bits, int width, int height);
+    // Create glyph in FORM_W named NAME
+    static Widget create_glyph(Widget form_w, const _XtString name);
 
     // Map glyph W in (X, Y)
     static void map_glyph(Widget& w, Position x, Position y);
@@ -476,6 +472,8 @@ public:
 
     // Additional offset for multiple breakpoints (pixels)
     static Position multiple_stop_x_offset;
+
+    static int glyph_scalefactor;
 
 private:
     // Glyph locations: X[0] is source, X[1] is code
@@ -711,9 +709,6 @@ public:
 
     // Set the max number of glyphs
     static void set_max_glyphs(int max_glyphs);
-
-    // Whether to cache glyph images
-    static bool cache_glyph_images;
 
     // Maximum length of expr in source popup
     static int max_popup_expr_length;

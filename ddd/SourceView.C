@@ -2862,10 +2862,10 @@ string SourceView::get_word_at_pos(Widget text_w,
 //----------------------------------------------------------------------------
 
 // Install the given X bitmap as NAME
-static void InstallBitmapAsImage(unsigned char *bits, int width, int height, 
-                                 const char *name)
+static void InstallBitmapAsImage(Widget w, unsigned char *bits, int width, int height,
+                                 int scalefactor, const char *name)
 {
-    Boolean ok = InstallBitmap(bits, width, height, name);
+    Boolean ok = InstallBitmapAsXImage(w, bits, width, height, name, scalefactor);
     if (!ok)
         std::cerr << "Could not install " << quote(name) << " bitmap\n";
 }
@@ -2880,38 +2880,46 @@ SourceView::SourceView(Widget parent)
     while (toplevel_w != 0 && !XtIsWMShell(toplevel_w))
         toplevel_w = XtParent(toplevel_w);
 
+    if (app_data.fixed_width_font_size>=16)
+    {
+        glyph_scalefactor = 2;
+        arrow_x_offset *= 2;
+        stop_x_offset *= 2;
+        multiple_stop_x_offset *=2;
+    }
+
     // Install glyph images
-    InstallBitmapAsImage(arrow_bits, arrow_width, arrow_height, 
-                         "plain_arrow");
-    InstallBitmapAsImage(grey_arrow_bits, grey_arrow_width, grey_arrow_height, 
-                         "grey_arrow");
-    InstallBitmapAsImage(past_arrow_bits, past_arrow_width, past_arrow_height, 
-                         "past_arrow");
-    InstallBitmapAsImage(signal_arrow_bits, signal_arrow_width, 
-                         signal_arrow_height, "signal_arrow");
-    InstallBitmapAsImage(drag_arrow_bits, drag_arrow_width, drag_arrow_height, 
-                         "drag_arrow");
+    InstallBitmapAsImage(parent, arrow_bits, arrow_width, arrow_height,
+                         glyph_scalefactor, "plain_arrow");
+    InstallBitmapAsImage(parent, grey_arrow_bits, grey_arrow_width, grey_arrow_height,
+                         glyph_scalefactor, "grey_arrow");
+    InstallBitmapAsImage(parent, past_arrow_bits, past_arrow_width, past_arrow_height,
+                         glyph_scalefactor, "past_arrow");
+    InstallBitmapAsImage(parent, signal_arrow_bits, signal_arrow_width,
+                         signal_arrow_height, glyph_scalefactor, "signal_arrow");
+    InstallBitmapAsImage(parent, drag_arrow_bits, drag_arrow_width, drag_arrow_height,
+                         glyph_scalefactor, "drag_arrow");
 
-    InstallBitmapAsImage(stop_bits, stop_width, stop_height, 
-                         "plain_stop");
-    InstallBitmapAsImage(cond_bits, cond_width, cond_height, 
-                         "plain_cond");
-    InstallBitmapAsImage(temp_bits, temp_width, temp_height, 
-                         "plain_temp");
+    InstallBitmapAsImage(parent, stop_bits, stop_width, stop_height,
+                         glyph_scalefactor, "plain_stop");
+    InstallBitmapAsImage(parent, cond_bits, cond_width, cond_height,
+                         glyph_scalefactor, "plain_cond");
+    InstallBitmapAsImage(parent, temp_bits, temp_width, temp_height,
+                         glyph_scalefactor, "plain_temp");
 
-    InstallBitmapAsImage(grey_stop_bits, grey_stop_width, grey_stop_height, 
-                         "grey_stop");
-    InstallBitmapAsImage(grey_cond_bits, grey_cond_width, grey_cond_height, 
-                         "grey_cond");
-    InstallBitmapAsImage(grey_temp_bits, grey_temp_width, grey_temp_height, 
-                         "grey_temp");
+    InstallBitmapAsImage(parent, grey_stop_bits, grey_stop_width, grey_stop_height,
+                         glyph_scalefactor, "grey_stop");
+    InstallBitmapAsImage(parent, grey_cond_bits, grey_cond_width, grey_cond_height,
+                         glyph_scalefactor, "grey_cond");
+    InstallBitmapAsImage(parent, grey_temp_bits, grey_temp_width, grey_temp_height,
+                         glyph_scalefactor, "grey_temp");
 
-    InstallBitmapAsImage(drag_stop_bits, drag_stop_width, drag_stop_height, 
-                         "drag_stop");
-    InstallBitmapAsImage(drag_cond_bits, drag_cond_width, drag_cond_height, 
-                         "drag_cond");
-    InstallBitmapAsImage(drag_temp_bits, drag_temp_width, drag_temp_height, 
-                         "drag_temp");
+    InstallBitmapAsImage(parent, drag_stop_bits, drag_stop_width, drag_stop_height,
+                         glyph_scalefactor, "drag_stop");
+    InstallBitmapAsImage(parent, drag_cond_bits, drag_cond_width, drag_cond_height,
+                         glyph_scalefactor, "drag_cond");
+    InstallBitmapAsImage(parent, drag_temp_bits, drag_temp_width, drag_temp_height,
+                         glyph_scalefactor, "drag_temp");
 
     // Setup actions
     XtAppAddActions (app_context, actions, XtNumber (actions));
@@ -7136,9 +7144,6 @@ string SourceView::get_line(string position)
 //----------------------------------------------------------------------------
 
 
-// Whether to cache glyph images
-bool SourceView::cache_glyph_images = true;
-
 static
 void DestroyOldWidgets(WidgetArray& Array)
 {
@@ -7215,29 +7220,8 @@ void SourceView::ActivateGlyphCB(Widget glyph, XtPointer, XtPointer call_data)
 }
 
 
-// Create a pixmap from BITS suitable for the widget W
-Pixmap SourceView::pixmap(Widget w, unsigned char *bits, int width, int height)
-{
-    Pixel foreground, background;
-
-    XtVaGetValues(w,
-                  XmNforeground, &foreground,
-                  XmNbackground, &background,
-                  XtPointer(0));
-
-    int depth = PlanesOfScreen(XtScreen(w));
-    Pixmap pix = XCreatePixmapFromBitmapData(XtDisplay(w), XtWindow(w), 
-                                             (char *)bits, width, height, 
-                                             foreground, background, depth);
-    return pix;
-}
-
-
 // Create glyph in FORM_W named NAME from given BITS
-Widget SourceView::create_glyph(Widget form_w,
-                                const _XtString name,
-                                unsigned char *bits,
-                                int width, int height)
+Widget SourceView::create_glyph(Widget form_w, const _XtString name)
 {
     // Get background color from text
     Pixel background;
@@ -7273,29 +7257,20 @@ Widget SourceView::create_glyph(Widget form_w,
     XtSetArg(args[arg], XmNbackground,         background);    arg++;
     Widget w = verify(XmCreatePushButton(form_w, XMST(name), args, arg));
 
-    if (app_data.dark_mode)
-    {
-        Pixel foreground;
-        XtVaGetValues(w, XmNforeground, &foreground, XtPointer(0));
-	// brighten color of glyphs in dark mode
-        foreground += 0x00202020;
-        XtVaSetValues(w, XmNforeground, foreground, XtPointer(0));
-    }
-
     if (XtIsRealized(form_w))
         XtRealizeWidget(w);
 
     XtManageChild(w);
 
-    arg = 0;
-    if (!cache_glyph_images)
-    {
-        Pixmap pix = pixmap(w, bits, width, height);
-        XtSetArg(args[arg], XmNlabelPixmap, pix); arg++;
-    }
-    XtSetArg(args[arg], XmNwidth,  width);  arg++;
-    XtSetArg(args[arg], XmNheight, height); arg++;
-    XtSetValues(w, args, arg);
+    // arg = 0;
+    // if (!cache_glyph_images)
+    // {
+    //     Pixmap pix = pixmap(w, bits, width, height);
+    //     XtSetArg(args[arg], XmNlabelPixmap, pix); arg++;
+    // }
+    // XtSetArg(args[arg], XmNwidth,  width);  arg++;
+    // XtSetArg(args[arg], XmNheight, height); arg++;
+    // XtSetValues(w, args, arg);
 
     XtAddCallback(w, XmNactivateCallback, ActivateGlyphCB, 0);
 
@@ -7561,6 +7536,9 @@ Position SourceView::stop_x_offset = +6;
 // Additional offset for multiple breakpoints (pixels)
 Position SourceView::multiple_stop_x_offset = stop_width;
 
+// Scaling factor to adjust glyph size
+int SourceView::glyph_scalefactor = 1;
+
 
 // Glyph locations: x[0] is source, x[1] is code
 Widget SourceView::plain_arrows[2]  = {0, 0};
@@ -7604,51 +7582,31 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
 
         if (past_arrows[k] == 0)
         {
-            past_arrows[k] = 
-                create_glyph(form_w, "past_arrow",
-                             past_arrow_bits, 
-                             past_arrow_width, 
-                             past_arrow_height);
+            past_arrows[k] = create_glyph(form_w, "past_arrow");
             return False;
         }
 
         if (plain_arrows[k] == 0)
         {
-            plain_arrows[k] = 
-                create_glyph(form_w, "plain_arrow",
-                             arrow_bits, 
-                             arrow_width,
-                             arrow_height);
+            plain_arrows[k] = create_glyph(form_w, "plain_arrow");
             return False;
         }
 
         if (grey_arrows[k] == 0)
         {
-            grey_arrows[k] = 
-                create_glyph(form_w, "grey_arrow",
-                             grey_arrow_bits, 
-                             grey_arrow_width, 
-                             grey_arrow_height);
+            grey_arrows[k] = create_glyph(form_w, "grey_arrow");
             return False;
         }
 
         if (signal_arrows[k] == 0)
         {
-            signal_arrows[k] = 
-                create_glyph(form_w, "signal_arrow",
-                             signal_arrow_bits, 
-                             signal_arrow_width,
-                             signal_arrow_height);
+            signal_arrows[k] = create_glyph(form_w, "signal_arrow");
             return False;
         }
 
         if (drag_arrows[k] == 0)
         {
-            drag_arrows[k] = 
-                create_glyph(form_w, "drag_arrow",
-                             drag_arrow_bits, 
-                             drag_arrow_width,
-                             drag_arrow_height);
+            drag_arrows[k] = create_glyph(form_w, "drag_arrow");
             return False;
         }
     }
@@ -7666,11 +7624,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (plain_stops[k][i] == 0)
             {
-                plain_stops[k][i] = 
-                    create_glyph(form_w, "plain_stop",
-                                 stop_bits, 
-                                 stop_width,
-                                 stop_height);
+                plain_stops[k][i] = create_glyph(form_w, "plain_stop");
                 return False;
             }
         }
@@ -7679,11 +7633,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (plain_temps[k][i] == 0)
             {
-                plain_temps[k][i] = 
-                    create_glyph(form_w, "plain_temp",
-                                 temp_bits, 
-                                 temp_width,
-                                 temp_height);
+                plain_temps[k][i] = create_glyph(form_w, "plain_temp");
                 return False;
             }
         }
@@ -7692,11 +7642,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (plain_conds[k][i] == 0)
             {
-                plain_conds[k][i] = 
-                    create_glyph(form_w, "plain_cond",
-                                 cond_bits, 
-                                 cond_width,
-                                 cond_height);
+                plain_conds[k][i] = create_glyph(form_w, "plain_cond");
                 return False;
             }
         }
@@ -7704,11 +7650,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (multi_stops[k][i] == 0)
             {
-                multi_stops[k][i] = 
-                    create_glyph(form_w, "multi_stop",
-                                 stop_bits, 
-                                 stop_width,
-                                 stop_height);
+                multi_stops[k][i] = create_glyph(form_w, "multi_stop");
                 return False;
             }
         }
@@ -7716,11 +7658,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (grey_stops[k][i] == 0)
             {
-                grey_stops[k][i] = 
-                    create_glyph(form_w, "grey_stop",
-                                 grey_stop_bits, 
-                                 grey_stop_width,
-                                 grey_stop_height);
+                grey_stops[k][i] = create_glyph(form_w, "grey_stop");
                 return False;
             }
         }
@@ -7729,11 +7667,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (multi_temps[k][i] == 0)
             {
-                multi_temps[k][i] = 
-                    create_glyph(form_w, "multi_temp",
-                                 temp_bits, 
-                                 temp_width,
-                                 temp_height);
+                multi_temps[k][i] = create_glyph(form_w, "multi_temp");
                 return False;
             }
         }
@@ -7741,11 +7675,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (grey_temps[k][i] == 0)
             {
-                grey_temps[k][i] = 
-                    create_glyph(form_w, "grey_temp",
-                                 grey_temp_bits, 
-                                 grey_temp_width,
-                                 grey_temp_height);
+                grey_temps[k][i] = create_glyph(form_w, "grey_temp");
                 return False;
             }
         }
@@ -7754,11 +7684,7 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (multi_conds[k][i] == 0)
             {
-                multi_conds[k][i] = 
-                    create_glyph(form_w, "multi_cond",
-                                 cond_bits, 
-                                 cond_width,
-                                 cond_height);
+                multi_conds[k][i] = create_glyph(form_w, "multi_cond");
                 return False;
             }
         }
@@ -7766,42 +7692,26 @@ Boolean SourceView::CreateGlyphsWorkProc(XtPointer)
         {
             if (grey_conds[k][i] == 0)
             {
-                grey_conds[k][i] = 
-                    create_glyph(form_w, "grey_cond",
-                                 grey_cond_bits, 
-                                 grey_cond_width,
-                                 grey_cond_height);
+                grey_conds[k][i] = create_glyph(form_w, "grey_cond");
                 return False;
             }
         }
 
         if (drag_stops[k] == 0)
         {
-            drag_stops[k] = 
-                create_glyph(form_w, "drag_stop",
-                             drag_stop_bits, 
-                             drag_stop_width,
-                             drag_stop_height);
+            drag_stops[k] = create_glyph(form_w, "drag_stop");
             return False;
         }
 
         if (drag_temps[k] == 0)
         {
-            drag_temps[k] = 
-                create_glyph(form_w, "drag_temp",
-                             drag_temp_bits, 
-                             drag_temp_width,
-                             drag_temp_height);
+            drag_temps[k] = create_glyph(form_w, "drag_temp");
             return False;
         }
 
         if (drag_conds[k] == 0)
         {
-            drag_conds[k] = 
-                create_glyph(form_w, "drag_cond",
-                             drag_cond_bits, 
-                             drag_cond_width,
-                             drag_cond_height);
+            drag_conds[k] = create_glyph(form_w, "drag_cond");
             return False;
         }
     }
