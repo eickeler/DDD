@@ -6762,6 +6762,7 @@ static void popup_splash_screen(Widget parent, const string& color_key)
 
     if (splash_pixmap == None)
         return;
+    usleep(5000);
 
     XtVaSetValues(splash,
                   XmNbackgroundPixmap, splash_pixmap,

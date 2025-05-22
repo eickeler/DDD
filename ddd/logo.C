@@ -30,6 +30,8 @@
 char logo_rcsid[] = 
     "$Id$";
 
+#define LOGO3_5
+
 #include "logo.h"
 #include "config.h"
 
@@ -41,17 +43,30 @@ char logo_rcsid[] =
 #include "x11/InitImage.h"
 
 // X bitmaps
+#ifdef  LOGO3_5
+#include "icons/ddd3_5.xbm"
+#include "icons/ddd3_5-mask.xbm"
+#include "icons/dddsplash3_5.xbm"
+#else
 #include "icons/ddd.xbm"
 #include "icons/dddmask.xbm"
 #include "icons/dddsplash.xbm"
+#endif
 
 // X pixmaps
 #ifdef XpmVersion
 
+#ifdef  LOGO3_5
+#define char const char
+#include "icons/ddd3_5.xpm"
+#include "icons/dddsplash3_5.xpm"
+#undef char
+#else
 #include "icons/ddd.xpm"
 #define char const char
 #include "icons/dddsplash.xpm"
 #undef char
+#endif
 
 #else
 static const char **ddd_xpm = 0;
@@ -175,12 +190,20 @@ static Pixmap _iconlogo(Widget w)
 	attr.colormap = root_attr.colormap;
 	attr.depth    = root_attr.depth;
 	add_closeness(attr);
+#ifdef LOGO3_5
+	int ret = xpm("ddd3_5.xpm",
+		      XpmCreatePixmapFromData(XtDisplay(w), root,
+					      (char **)ddd3_5_xpm,
+					      &icon, 
+					      (Pixmap *)0, &attr));
+#else
 
 	int ret = xpm("ddd.xpm", 
 		      XpmCreatePixmapFromData(XtDisplay(w), root,
 					      (char **)ddd_xpm, 
 					      &icon, 
 					      (Pixmap *)0, &attr));
+#endif
 	XpmFreeAttributes(&attr);
 
 	if (ret == XpmSuccess)
@@ -199,20 +222,34 @@ static Pixmap _iconlogo(Widget w)
 		      
     int depth = PlanesOfScreen(XtScreen(w));
 
+#ifdef LOGO3_5
     icon = XCreatePixmapFromBitmapData(XtDisplay(w), root,
+				       (char *)ddd3_5_bits, ddd3_5_width, ddd3_5_height,
+				       gcv.foreground, gcv.background,
+				       depth);
+#else
+     icon = XCreatePixmapFromBitmapData(XtDisplay(w), root,
 				       (char *)ddd_bits, ddd_width, ddd_height,
 				       gcv.foreground, gcv.background,
 				       depth);
+#endif
     return icon;
 }
 
 static Pixmap _iconmask(Widget w)
 {
     // The bitmap mask is used for both the XPM and the XBM version.
+#ifdef LOGO3_5
+    return XCreateBitmapFromData(XtDisplay(w),
+				 RootWindowOfScreen(XtScreen(w)),
+				 (char *)ddd3_5_mask_bits,
+				 ddd3_5_mask_width, ddd3_5_mask_height);
+#else
     return XCreateBitmapFromData(XtDisplay(w),
 				 RootWindowOfScreen(XtScreen(w)),
 				 (char *)dddmask_bits,
 				 dddmask_width, dddmask_height);
+#endif
 }
 
 Pixmap iconlogo(Widget w)
@@ -245,8 +282,13 @@ static Pixel color(Widget w, const _XtString name, Pixel pixel)
 Pixmap dddsplash(Widget w, const string& color_key,
 		 Dimension& width, Dimension& height)
 {
+#ifdef LOGO3_5
+    width  = dddsplash3_5_width;
+    height = dddsplash3_5_height;
+#else
     width  = dddsplash_width;
     height = dddsplash_height;
+#endif
 
     Pixmap logo = 0;
     int depth = PlanesOfScreen(XtScreen(w));
@@ -273,10 +315,17 @@ Pixmap dddsplash(Widget w, const string& color_key,
 	add_color_key(attr, color_key);
 	add_closeness(attr);
 
+#ifdef LOGO3_5
+	int ret = xpm("splash3_5.xpm",
+		      XpmCreatePixmapFromData(XtDisplay(w), window,
+					      (char **)dddsplash3_5_xpm, &logo,
+					      (Pixmap *)0, &attr));
+#else
 	int ret = xpm("dddsplash.xpm",
 		      XpmCreatePixmapFromData(XtDisplay(w), window,
-					      (char **)dddsplash_xpm, &logo, 
+					      (char **)dddsplash_xpm, &logo,
 					      (Pixmap *)0, &attr));
+#endif
 	XpmFreeAttributes(&attr);
 
 	if (ret == XpmSuccess)
@@ -290,6 +339,16 @@ Pixmap dddsplash(Widget w, const string& color_key,
     (void) color_key;		// Use it
 #endif // defined(XpmVersion)
 
+#ifdef LOGO3_5
+    logo = XCreatePixmapFromBitmapData(XtDisplay(w), window,
+				       (char *)dddsplash3_5_bits,
+				       dddsplash3_5_width, dddsplash3_5_height,
+				       color(w, "black", 
+					     BlackPixelOfScreen(XtScreen(w))),
+				       color(w, "white", 
+					     WhitePixelOfScreen(XtScreen(w))),
+				       depth);
+#else
     logo = XCreatePixmapFromBitmapData(XtDisplay(w), window,
 				       (char *)dddsplash_bits,
 				       dddsplash_width, dddsplash_height,
@@ -298,6 +357,7 @@ Pixmap dddsplash(Widget w, const string& color_key,
 				       color(w, "white", 
 					     WhitePixelOfScreen(XtScreen(w))),
 				       depth);
+#endif
 
     return logo;
 }
@@ -814,12 +874,19 @@ void install_icons(Widget shell,
     Pixel arm_background = select;
 
     // DDD icon (always in color)
+#ifdef LOGO3_5
+    install_icon(shell, DDD_ICON,
+		 ddd3_5_xpm,
+		 ddd3_5_bits,
+		 ddd3_5_width, ddd3_5_height,
+		 "best", background, win_attr);
+#else
     install_icon(shell, DDD_ICON, 
 		 ddd_xpm,
 		 ddd_bits,
 		 ddd_width, ddd_height,
 		 "best", background, win_attr);
-
+#endif
     // Toolbar icons
     install_button_icon(shell, BREAK_AT_ICON, 
       		        breakat_xpm, breakat_xx_xpm,
