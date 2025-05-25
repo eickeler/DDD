@@ -2907,6 +2907,14 @@ SourceView::SourceView(Widget parent)
     InstallBitmapAsImage(parent, temp_bits, temp_width, temp_height,
                          glyph_scalefactor, "plain_temp");
 
+    // use the same bitmaps for multi_stops
+    InstallBitmapAsImage(parent, stop_bits, stop_width, stop_height,
+                         glyph_scalefactor, "multi_stop");
+    InstallBitmapAsImage(parent, cond_bits, cond_width, cond_height,
+                         glyph_scalefactor, "multi_cond");
+    InstallBitmapAsImage(parent, temp_bits, temp_width, temp_height,
+                         glyph_scalefactor, "multi_temp");
+
     InstallBitmapAsImage(parent, grey_stop_bits, grey_stop_width, grey_stop_height,
                          glyph_scalefactor, "grey_stop");
     InstallBitmapAsImage(parent, grey_cond_bits, grey_cond_width, grey_cond_height,

@@ -213,7 +213,7 @@ void ddd_cleanup()
 	    save_history(session_history_file(app_data.session));
     }
 
-    clear_plot_window_cache();
+//    clear_plot_window_cache();
     delete source_view;
 
     // Famous last words
