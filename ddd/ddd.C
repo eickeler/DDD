@@ -1463,39 +1463,6 @@ static MMDesc window_mode_menu [] =
     MMEnd
 };
 
-// Color theme
-static Widget set_light_mode_w;
-static Widget set_dark_mode_w;
-static MMDesc color_theme_menu [] =
-{
-    { "lightmode",  MMToggle, { dddColorModeCB, XtPointer(False) },
-      0, &set_light_mode_w, 0, 0 },
-    { "darkmode",  MMToggle, { dddColorModeCB, XtPointer(True) },
-      0, &set_dark_mode_w, 0, 0 },
-    MMEnd
-};
-
-
-static Widget set_button_images_w;
-static Widget set_button_captions_w;
-static Widget set_flat_buttons_w;
-static Widget set_color_buttons_w;
-static Widget set_toolbars_at_bottom_w;
-static MMDesc button_appearance_menu [] = 
-{
-    { "images",   MMToggle, { dddToggleButtonImagesCB, 0 },
-      0, &set_button_images_w, 0, 0 },
-    { "captions", MMToggle, { dddToggleButtonCaptionsCB, 0 },
-      0, &set_button_captions_w, 0, 0 },
-    { "flat", MMToggle, { dddToggleFlatButtonsCB, 0 },
-      0, &set_flat_buttons_w, 0, 0 },
-    { "color", MMToggle, { dddToggleColorButtonsCB, 0 },
-      0, &set_color_buttons_w, 0, 0 },
-    { "bottom", MMToggle, { dddToggleToolbarsAtBottomCB, 0 },
-      0, &set_toolbars_at_bottom_w, 0, 0 },
-    MMEnd
-};
-
 static Widget set_focus_pointer_w;
 static Widget set_focus_explicit_w;
 static MMDesc keyboard_focus_menu [] = 
@@ -1601,11 +1568,8 @@ static MMDesc select_all_menu [] =
 static MMDesc startup_preferences_menu [] =
 {
     { "windows",         MMRadioPanel,  MMNoCB, window_mode_menu, 0, 0, 0 },
-    { "colortheme",     MMRadioPanel,  MMNoCB, color_theme_menu, 0, 0, 0 },
     { "cutCopyPaste",    MMRadioPanel,  MMNoCB, cut_copy_paste_menu, 0, 0, 0 },
     { "selectAll",       MMRadioPanel,  MMNoCB, select_all_menu, 0, 0, 0 },
-    { "buttons",         MMButtonPanel, MMNoCB, 
-                                        button_appearance_menu, 0, 0, 0 },
     { "keyboardFocus",   MMRadioPanel,  MMNoCB, keyboard_focus_menu, 0, 0, 0 },
     { "dataScrolling",   MMRadioPanel,  MMNoCB, data_scrolling_menu, 0, 0, 0 },
     { "autoDebugger",    MMButtonPanel, MMNoCB,
@@ -1660,7 +1624,53 @@ const char * font_menu_notes =
     DDD_NAME " only supports ISO8859-1 encoding.\n" ;
 #endif
 
-static MMDesc font_preferences_menu [] =
+// Color theme
+static Widget set_light_mode_w;
+static Widget set_dark_mode_w;
+static MMDesc color_theme_menu [] =
+{
+    { "lightmode",  MMToggle, { dddColorModeCB, XtPointer(False) },
+      0, &set_light_mode_w, 0, 0 },
+    { "darkmode",  MMToggle, { dddColorModeCB, XtPointer(True) },
+      0, &set_dark_mode_w, 0, 0 },
+    MMEnd
+};
+
+
+static Widget set_button_images_w;
+static Widget set_button_captions_w;
+static Widget set_flat_buttons_w;
+static Widget set_color_buttons_w;
+static Widget set_toolbars_at_bottom_w;
+static MMDesc button_appearance_menu [] =
+{
+    { "images",   MMToggle, { dddToggleButtonImagesCB, 0 },
+      0, &set_button_images_w, 0, 0 },
+    { "captions", MMToggle, { dddToggleButtonCaptionsCB, 0 },
+      0, &set_button_captions_w, 0, 0 },
+    { "flat", MMToggle, { dddToggleFlatButtonsCB, 0 },
+      0, &set_flat_buttons_w, 0, 0 },
+    { "color", MMToggle, { dddToggleColorButtonsCB, 0 },
+      0, &set_color_buttons_w, 0, 0 },
+    { "bottom", MMToggle, { dddToggleToolbarsAtBottomCB, 0 },
+      0, &set_toolbars_at_bottom_w, 0, 0 },
+    MMEnd
+};
+
+static Widget toolbar_scaling_w;
+static Widget glyph_scaling_w;
+
+static MMDesc iconscaling_menu [] =
+{
+    { "toolbarscaling", MMToggle, { dddSetToolbarScalingCB, 0 },
+      0, &toolbar_scaling_w, 0, 0 },
+    { "glyphscaling",  MMToggle, { dddSetGlyphScalingCB, 0 },
+      0, &glyph_scaling_w, 0, 0 },
+    MMEnd
+};
+
+
+static MMDesc appearance_menu [] =
 {
  #if !HAVE_FREETYPE
     { "default",         MMPanel,  MMNoCB, default_font_menu, 0, 0, 0 },
@@ -1671,6 +1681,10 @@ static MMDesc font_preferences_menu [] =
 #if !HAVE_FREETYPE
     { font_menu_notes,          MMLabel,  MMNoCB, 0, 0, 0, 0 },
 #endif
+    { "colortheme",     MMRadioPanel,  MMNoCB, color_theme_menu, 0, 0, 0 },
+    { "buttons",         MMButtonPanel, MMNoCB, button_appearance_menu, 0, 0, 0 },
+    { "iconscaling",  MMButtonPanel, MMNoCB, iconscaling_menu, 0, 0, 0 },
+
     MMEnd
 };
 
@@ -2021,8 +2035,8 @@ bool gdb_initialized;
 static XtErrorHandler ddd_original_xt_warning_handler;
 
 // Initial delays
-static StatusMsg *init_delay = 0;
-static Delay *setup_delay = 0;
+static StatusMsg *init_delay = nullptr;
+static Delay *setup_delay = nullptr;
 
 // Events to note for window visibility
 const int STRUCTURE_MASK = StructureNotifyMask | VisibilityChangeMask;
@@ -3762,7 +3776,7 @@ static Boolean session_setup_done(XtPointer)
     {
         // Delete initialization delay, if any
         delete init_delay;
-        init_delay = 0;
+        init_delay = nullptr;
 
         // Say hello
         set_status_mstring(rm("Welcome to " DDD_NAME " " DDD_VERSION 
@@ -3820,7 +3834,7 @@ Boolean ddd_setup_done(XtPointer)
         DispBox::init_vsllib(process_pending_events);
         DataDisp::refresh_graph_edit();
 
-        if (init_delay != 0 || app_data.initial_session != 0)
+        if (init_delay != nullptr || app_data.initial_session != 0)
         {
             // Restoring session may still take time
             XtAppAddWorkProc(XtWidgetToApplicationContext(command_shell),
@@ -4090,6 +4104,8 @@ void update_options()
 
     set_toggle(set_light_mode_w, !app_data.dark_mode);
     set_toggle(set_dark_mode_w, app_data.dark_mode);
+    set_toggle(toolbar_scaling_w, app_data.scale_toolbar);
+    set_toggle(glyph_scaling_w, app_data.scale_glyphs);
 
     DebuggerType debugger_type = DebuggerType(-1);
     get_debugger_type(app_data.debugger, debugger_type);
@@ -4729,6 +4745,12 @@ static bool startup_preferences_changed()
     if (app_data.dark_mode != initial_app_data.dark_mode)
         return true;
 
+    if (app_data.scale_toolbar != initial_app_data.scale_toolbar)
+        return true;
+
+    if (app_data.scale_glyphs != initial_app_data.scale_glyphs)
+        return true;
+
     if (app_data.button_images != initial_app_data.button_images)
         return true;
 
@@ -5085,7 +5107,7 @@ static void make_preferences(Widget parent)
               max_width, max_height, false);
     add_panel(change, buttons, "startup", startup_preferences_menu, 
               max_width, max_height, false);
-    add_panel(change, buttons, "fonts", font_preferences_menu,
+    add_panel(change, buttons, "appearance", appearance_menu,
               max_width, max_height, false);
 
 #if HAVE_FREETYPE

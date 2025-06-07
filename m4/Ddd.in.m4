@@ -3279,7 +3279,7 @@ Ddd*preferences*buttons*general.labelString:	\ \ \ \ General\ \ \ \
 Ddd*preferences*buttons*source.labelString:	Source
 Ddd*preferences*buttons*data.labelString:	Data
 Ddd*preferences*buttons*startup.labelString:	Startup
-Ddd*preferences*buttons*fonts.labelString:	Fonts
+Ddd*preferences*buttons*appearance.labelString:	Appearance
 Ddd*preferences*buttons*helpers.labelString:	Helpers
 Ddd*preferences*buttons*packing:                XmPACK_COLUMN
 
@@ -3557,6 +3557,10 @@ Ddd*preferences*colortheme.labelString:		Color Theme
 Ddd*colorthemeMenu*lightmode.labelString:		Light Mode
 Ddd*colorthemeMenu*darkmode.labelString:		Dark Mode
 
+Ddd*preferences*iconscaling.labelString:	Large Icons
+Ddd*iconscalingMenu*toolbarscaling.labelString:	Tool Bar
+Ddd*iconscalingMenu*glyphscaling.labelString:	Glyphs
+
 Ddd*preferences*cutCopyPaste.labelString:	Ctrl+C is
 Ddd*cutCopyPasteMenu*kde.labelString:		Copy
 Ddd*cutCopyPasteMenu*motif.labelString:		Interrupt
@@ -3620,15 +3624,15 @@ Use the buttons above to view and change other preferences.\n\
 Click on LBL(Reset) to restore the saved preferences.
 
 
-Ddd*preferences*fonts*default.labelString:	 Default Font
-Ddd*preferences*fonts*variableWidth.labelString: Variable Width
-Ddd*preferences*fonts*fixedWidth.labelString:	 Fixed Width
-Ddd*preferences*fonts*data.labelString:	         Data
+Ddd*preferences*appearance*default.labelString:	 Default Font
+Ddd*preferences*appearance*variableWidth.labelString: Variable Width Font
+Ddd*preferences*appearance*fixedWidth.labelString:	 Fixed Width Font
+Ddd*preferences*appearance*data.labelString:	         Data Font
 
-Ddd*preferences*fonts*name.text.columns:	 30
-Ddd*preferences*fonts*size.label.labelString:	 Size
-Ddd*preferences*fonts*size.text.columns:	 3
-Ddd*preferences*fonts*browse.labelString:	 Browse...
+Ddd*preferences*appearance*name.text.columns:	 20
+Ddd*preferences*appearance*size.label.labelString:	 Size
+Ddd*preferences*appearance*size.text.columns:	 3
+Ddd*preferences*appearance*browse.labelString:	 Browse...
 
 
 Ddd*preferences*helpers*helpString: \

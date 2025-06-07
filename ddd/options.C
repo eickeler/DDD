@@ -862,6 +862,28 @@ void dddColorModeCB(Widget w, XtPointer client_data, XtPointer)
     post_startup_warning(w);
 }
 
+void dddSetToolbarScalingCB(Widget w, XtPointer, XtPointer call_data)
+{
+    XmToggleButtonCallbackStruct *info =
+        (XmToggleButtonCallbackStruct *)call_data;
+
+    app_data.scale_toolbar = info->set;
+
+    update_options();
+    post_startup_warning(w);
+}
+
+void dddSetGlyphScalingCB(Widget w, XtPointer, XtPointer call_data)
+{
+    XmToggleButtonCallbackStruct *info =
+        (XmToggleButtonCallbackStruct *)call_data;
+
+    app_data.scale_glyphs = info->set;
+
+    update_options();
+    post_startup_warning(w);
+}
+
 void dddSetStatusAtBottomCB (Widget w, XtPointer client_data, XtPointer)
 {
     Boolean state = (int)(long)client_data;
@@ -2754,6 +2776,8 @@ static bool save_options_init(unsigned long flags)
         os << bool_app_value(XtNseparateDataWindow, app_data.separate_data_window) << '\n';
     }
     os << bool_app_value(XtNdarkMode, app_data.dark_mode) << '\n';
+    os << bool_app_value(XtNscaleToolbar, app_data.scale_toolbar) << '\n';
+    os << bool_app_value(XtNscaleGlyphs, app_data.scale_glyphs) << '\n';
     os << bool_app_value(XtNseparateExecWindow, app_data.separate_exec_window) << '\n';
     os << bool_app_value(XtNgroupIconify, app_data.group_iconify) << '\n';
     os << bool_app_value(XtNuniconifyWhenReady, app_data.uniconify_when_ready) << '\n';

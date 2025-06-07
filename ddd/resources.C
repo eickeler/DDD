@@ -1813,6 +1813,26 @@ XtResource ddd_resources[] = {
     },
 
     {
+        XTRESSTR(XtNscaleToolbar),
+        XTRESSTR(XtCScaleToolbar),
+        XmRBoolean,
+        sizeof(Boolean),
+        XtOffsetOf(AppData, scale_toolbar),
+        XmRImmediate,
+        XtPointer(False)
+    },
+
+    {
+        XTRESSTR(XtNscaleGlyphs),
+        XTRESSTR(XtCScaleGlyphs),
+        XmRBoolean,
+        sizeof(Boolean),
+        XtOffsetOf(AppData, scale_glyphs),
+        XmRImmediate,
+        XtPointer(False)
+    },
+
+    {
         XTRESSTR(XtNbuttonCaptionGeometry),
         XTRESSTR(XtCButtonCaptionGeometry),
         XmRString,

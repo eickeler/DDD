@@ -2882,7 +2882,7 @@ SourceView::SourceView(Widget parent)
     while (toplevel_w != 0 && !XtIsWMShell(toplevel_w))
         toplevel_w = XtParent(toplevel_w);
 
-    if (app_data.fixed_width_font_size>=16)
+    if (app_data.scale_glyphs)
     {
         glyph_scalefactor = 2;
         arrow_x_offset *= 2;

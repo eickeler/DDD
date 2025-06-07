@@ -357,6 +357,10 @@
 #define XtCToolOffset            "ToolOffset"
 #define XtNbuttonImages          "buttonImages"
 #define XtCButtonImages          "ButtonImages"
+#define XtNscaleToolbar          "scaleToolbar"
+#define XtCScaleToolbar          "ScaleToolbar"
+#define XtNscaleGlyphs           "scaleGlyphs"
+#define XtCScaleGlyphs           "ScaleGlyphs"
 #define XtNbuttonCaptions        "buttonCaptions"
 #define XtCButtonCaptions        "ButtonCaptions"
 #define XtNbuttonCaptionGeometry "buttonCaptionGeometry"
@@ -577,6 +581,8 @@ struct AppData {
     Position  tool_top_offset;
     Boolean   button_captions;
     Boolean   button_images;
+    Boolean   scale_toolbar;
+    Boolean   scale_glyphs;
     const _XtString    button_caption_geometry;
     const _XtString    button_image_geometry;
     Boolean   flat_toolbar_buttons;

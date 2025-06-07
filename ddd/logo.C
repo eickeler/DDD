@@ -742,7 +742,7 @@ static void install_icon(Widget w, const _XtString name,
                     invert_colors(image, background);
 	    }
 
-            if (app_data.variable_width_font_size>=16)
+            if (app_data.scale_toolbar)
             {
                 XImage *scaledimage = scale_image(w, win_attr.visual, image, 2);
                 XDestroyImage(image);
@@ -785,7 +785,7 @@ static void install_icon(Widget w, const _XtString name,
             invert_colors(image, background);
     }
 
-    if (app_data.variable_width_font_size>=16)
+    if (app_data.scale_toolbar)
     {
         XImage *scaledimage = scale_image(w, win_attr.visual, image, 2);
         XDestroyImage(image);
