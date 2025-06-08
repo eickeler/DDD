@@ -68,5 +68,9 @@ public:
         { return GDBAgent_DBX_init_commands; }
     string settings() const override 
         { return GDBAgent_DBX_settings; }
-    virtual void clean_frame_line(string &value) override;
+    void clean_frame_line(string &value) override;
+    string rewrite_examine_format (string &format, string &size) override;
+    string rewrite_examine_address (string &address, string &fmt)
+	{ // x /FMT ADDRESS
+	  return "x " + fmt + " " + address; }
 };

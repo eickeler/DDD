@@ -111,78 +111,6 @@ static MMDesc examine_menu[] = {
     MMEnd
 };
 
-static string format(const string& format, const string& size)
-{
-    switch (gdb->type())
-    {
-    case GDB:
-	return format + size;
-
-    case DBX:
-	// Translate GDB spec to DBX spec.
-	//
-	// Legal values for FORMAT are:
-	//
-	// i     instruction (disassembly)
-	// d,D   decimal (2 or 4 bytes)
-	// o,O   octal (2 or 4 bytes)
-	// x,X   hexadecimal (2 or 4 bytes)
-	// b     octal (1 byte)
-	// c     character
-	// w     wide character
-	// s     string
-	// W     wide character string
-	// f     hex and float (4 bytes, 6 digit prec.)
-	// F     hex and float (8 bytes, 14 digit prec.)
-	// g     same as `F'
-	// E     hex and float (16 bytes, 14 digit prec.)
-	// ld,lD decimal (4 bytes, same as D)
-	// lo,lO octal (4 bytes, same as O)
-	// lx,LX hexadecimal (4 bytes, same as X)
-	// Ld,LD decimal (8 bytes)
-
-	// Handle bytes
-	if (format == 'o' && size == 'b')
-	    return "b";
-
-	// Handle wide characters
-	if (format == "C")
-	    return "w";
-
-	// Handle float lengths
-	if (format == 'f' && size == 'w')
-	    return "f";
-	if (format == 'f' && size == 'g')
-	    return "g";
-	if (format == 'f' && size == 'G')
-	    return "E";
-
-	// Handle size
-	if (format == 'd' || format == 'o' || format == 'x')
-	{
-	    if (size == 'w')
-		return "l" + format;
-	    if (size == 'g')
-		return "L" + format;
-	}
-
-	// Ignore size in all other cases
-	return format;
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PYDB:
-    case PERL:
-    case XDB:
-	// No way
-	break;
-    }
-
-    return "";
-}
-
 static string examine_command()
 {
     String s_repeat = XmTextFieldGetString(repeat_w);
@@ -272,28 +200,8 @@ static string examine_command()
       //ZARKO - displaying the memory of the opsteg addressing format
     }
     
-    string fmt = "/" + repeat + format(the_format, the_size);
-    switch (gdb->type())
-    {
-    case DBX:
-	// x ADDRESS /FMT
-	return "x " + address + " " + fmt;
-
-    case GDB:
-	// x /FMT ADDRESS
-	return "x " + fmt + " " + address;
-
-    case BASH:
-    case DBG:
-    case JDB:
-    case MAKE:
-    case PYDB:
-    case PERL:
-    case XDB:
-	break;			// No way
-    }
-
-    return "";
+    string fmt = "/" + repeat + gdb->rewrite_examine_format(the_format, the_size);
+    return gdb->rewrite_examine_address (address, fmt);
 }
 
 static void DisplayExaminedCB(Widget w, XtPointer, XtPointer)

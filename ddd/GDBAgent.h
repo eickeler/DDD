@@ -873,6 +873,18 @@ public:
 	/* Unused */ (void (line));
     }
 
+    // Rewrite examine command format string
+    virtual string rewrite_examine_format (string &format, string &size) {
+	/* Unused */ (void (format)); (void (size));
+        return "";
+    }
+
+    // Rewrite examine command address string
+    virtual string rewrite_examine_address (string &address, string &fmt) {
+	/* Unused */ (void (address)); (void (fmt));
+        return "";
+    }
+
     // Helpers
     string cmd() const;		// Actual command being executed
     string debugger() const;	// Debugger of command

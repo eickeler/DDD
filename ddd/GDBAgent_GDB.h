@@ -62,5 +62,10 @@ public:
         { return GDBAgent_GDB_init_commands; }
     string settings() const override 
         { return GDBAgent_GDB_settings; }
+    string rewrite_examine_format (string &format, string &size)
+        { return format + size; }
+    string rewrite_examine_address (string &address, string &fmt)
+	{ // x /FMT ADDRESS
+	  return "x " + fmt + " " + address; }
 };
 
