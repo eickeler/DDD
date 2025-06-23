@@ -897,6 +897,13 @@ public:
         /* Unused */ (void (bp)); (void (info));
     }
 
+    virtual void restore_breakpoint_command (std::ostream& os, 
+                    BreakPoint *bp, string pos, string num,
+                    string cond, bool as_dummy) {
+        /* Unused */ (void (os)); (void (bp)); ((void) pos); 
+                     (void (num)); (void (cond)); (void (as_dummy));
+    }
+
     // Helpers
     string cmd() const;		// Actual command being executed
     string debugger() const;	// Debugger of command

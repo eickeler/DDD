@@ -444,3 +444,63 @@ void GDBAgent_DBX::parse_break_info (BreakPoint *bp, string &info)
     // Actual parsing code is in BreakPoint
     bp->process_dbx (info);
 }
+//
+// Command to restore breakpoint
+// Return commands to restore this breakpoint, using the dummy number
+// NR.  If AS_DUMMY is set, delete the breakpoint immediately in order
+// to increase the breakpoint number.  If ADDR is set, use ADDR as
+// (fake) address.  If COND is set, use COND as (fake) condition.
+// Return true iff successful.
+void GDBAgent_DBX::restore_breakpoint_command (std::ostream& os, 
+                        BreakPoint *bp, string pos, string num,
+                        string cond, bool as_dummy)
+{
+    string cond_suffix = "";
+    if (!cond.empty())
+    {
+        if (has_handler_command())
+            cond_suffix = " -if " + cond;
+        else
+    	    cond_suffix = " if " + cond;
+    }
+
+    switch (bp->type())
+    {
+    case BREAKPOINT:
+        if (bp->get_location(0).func().empty())
+        {
+	    os << "stop in " << bp->get_location(0).func() << "\n";
+	}
+	else if (pos.contains('*', 0))
+	{
+	    os << "stop at " << pos.after('*') << cond_suffix << '\n';
+	}
+	else
+	{
+	    os << "file "    << pos.before(':') << "\n";
+	    os << "stop at " << pos.after(':')  << cond_suffix << "\n";
+	}
+	break;
+
+    case WATCHPOINT:
+        os << "stop " << bp->expr() << cond_suffix << '\n';
+        break;
+
+    case TRACEPOINT:
+    case ACTIONPOINT:
+    {
+        // Not handled - FIXME
+        break;
+    }
+    }
+
+    if (!as_dummy)
+    {
+        // Extra infos
+        if (!bp->enabled() && has_disable_command())
+    	    os << disable_command(num) << "\n";
+        int ignore = bp->ignore_count();
+        if (ignore > 0 && has_ignore_command())
+	    os << ignore_command(num, ignore) << "\n";
+    }
+}

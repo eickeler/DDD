@@ -51,4 +51,8 @@ public:
         { return GDBAgent_DBG_settings; }
     string clean_member_name (string member_name,
                               bool &strip_qualifiers) override;
+    void parse_break_info (BreakPoint *bp, string &info) override;
+    void restore_breakpoint_command (std::ostream& os, BreakPoint *bp,
+                                     string pos, string num, string cond,
+                                     bool as_dummy) override;
 };

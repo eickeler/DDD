@@ -52,4 +52,7 @@ public:
     string settings() const override 
         { return GDBAgent_MAKE_settings; }
     void parse_break_info (BreakPoint *bp, string &info) override;
+    void restore_breakpoint_command (std::ostream& os, BreakPoint *bp,
+                                     string pos, string num, string cond,
+                                     bool as_dummy) override;
 };

@@ -221,3 +221,18 @@ void GDBAgent_JDB::parse_break_info (BreakPoint *bp, string &info)
     // Actual parsing code is in BreakPoint
     bp->process_jdb (info);
 }
+
+// Command to restore breakpoint
+// Return commands to restore this breakpoint, using the dummy number
+// NR.  If AS_DUMMY is set, delete the breakpoint immediately in order
+// to increase the breakpoint number.  If ADDR is set, use ADDR as
+// (fake) address.  If COND is set, use COND as (fake) condition.
+// Return true iff successful.
+void GDBAgent_JDB::restore_breakpoint_command (std::ostream& os, 
+                        BreakPoint *bp, string pos, string num,
+                        string cond, bool as_dummy)
+{
+    /* Unused */ (void (bp)); (void (num)); (void (cond)); (void (as_dummy));
+    os << "stop at " << pos << "\n";
+}
+

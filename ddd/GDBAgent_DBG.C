@@ -176,3 +176,60 @@ void GDBAgent_DBG::parse_break_info (BreakPoint *bp, string &info)
     // Actual parsing code is in BreakPoint
     bp->process_dbg (info);
 }
+
+// Same as GDBAgent_GDB::restore_breakpoint_command()
+void GDBAgent_DBG::restore_breakpoint_command (std::ostream& os, 
+                        BreakPoint *bp, string pos, string num,
+                        string cond, bool as_dummy)
+{
+    switch (bp->type())
+    {
+    case BREAKPOINT:
+    {
+        switch (bp->dispo())
+        {
+        case BPKEEP:
+	case BPDIS:
+	    os << "break " << pos << "\n";
+	    break;
+
+	case BPDEL:
+	    os << "tbreak " << pos << "\n";
+	    break;
+	}
+        break;
+    }
+
+    case WATCHPOINT:
+    {
+        os << watch_command(bp->expr(), bp->watch_mode()) << "\n";
+        break;
+    }
+
+    case TRACEPOINT:
+    case ACTIONPOINT:
+    {
+        // Not handled - FIXME
+        break;
+    }
+    }
+
+    if (!as_dummy)
+    {
+        // Extra infos
+	if (!bp->enabled() && has_disable_command())
+	    os << disable_command(num) << "\n";
+	int ignore = bp->ignore_count();
+	if (ignore > 0 && has_ignore_command())
+	    os << ignore_command(num, ignore) << "\n";
+	if (!cond.empty() && has_condition_command())
+	    os << condition_command(num, cond.chars()) << "\n";
+	if (bp->commands().size() != 0)
+	{
+	    os << "commands " << num << "\n";
+	    for (int i = 0; i < int(bp->commands().size()); i++)
+	        os << bp->commands()[i] << "\n";
+	    os << "end\n";
+	}
+    }
+}

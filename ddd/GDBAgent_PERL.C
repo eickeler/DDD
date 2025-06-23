@@ -243,3 +243,31 @@ void GDBAgent_PERL::parse_break_info (BreakPoint *bp, string &info)
     bp->process_perl (info);
 }
 
+// Command to restore breakpoint
+// Return commands to restore this breakpoint, using the dummy number
+// NR.  If AS_DUMMY is set, delete the breakpoint immediately in order
+// to increase the breakpoint number.  If ADDR is set, use ADDR as
+// (fake) address.  If COND is set, use COND as (fake) condition.
+// Return true iff successful.
+void GDBAgent_PERL::restore_breakpoint_command (std::ostream& os, 
+                        BreakPoint *bp, string pos, string num,
+                        string cond, bool as_dummy)
+{
+    /* Unused */ (void (num)); (void (as_dummy));
+    string cond_suffix;
+    if (!cond.empty())
+        cond_suffix = " " + cond;
+
+    os << "f " << pos.before(':') << "\n";
+
+    if (bp->type() == BREAKPOINT)
+        os << "b " << pos.after(':')  << cond_suffix << "\n";
+
+    if (bp->commands().size() != 0)
+    {
+        os << "a " << pos.after(':') << " ";
+        for (int i = 0; i < int(bp->commands().size()); i++)
+    	    os << bp->commands()[i] << ";";
+	os << "\n";
+    }
+}
