@@ -48,6 +48,7 @@ GDBAgent_PERL::GDBAgent_PERL (XtAppContext app_context,
     _has_err_redirection = false;
     _has_examine_command = false;
     _has_attach_command = false;
+    _info_break_strip = false;
     _program_language = LANGUAGE_PERL;
 }
 

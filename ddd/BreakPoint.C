@@ -93,7 +93,7 @@ BreakPoint::BreakPoint(string& info_output, const string& arg,
 	mynumber = number;
     }
 
-    if (gdb->type() != PERL)
+    if (gdb->info_break_strip())
 	strip_leading_space(info_output);
 
     gdb->parse_break_info (this, info_output);

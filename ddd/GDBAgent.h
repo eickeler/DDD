@@ -198,6 +198,7 @@ protected:
     bool _break_info_has_address;
     bool _break_info_has_function;
     bool _has_info_multiple_breakpoint;
+    bool _info_break_strip;
 
     ProgramLanguage _program_language; // Current program language
 
@@ -459,6 +460,10 @@ public:
     // True if info break command lists multiple breakpoints
     bool has_info_multiple_breakpoint() const { return _has_info_multiple_breakpoint; }
     bool has_info_multiple_breakpoint(bool val) { return _has_info_multiple_breakpoint = val; }
+
+    // True if info break command should have leading spaces stripped
+    bool info_break_strip() const { return _info_break_strip; }
+    bool info_break_strip(bool val) { return _info_break_strip = val; }
 
     // Current program language
     ProgramLanguage program_language() const   { return _program_language; }
