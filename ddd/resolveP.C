@@ -89,12 +89,14 @@ string resolvePath(const string& file, bool include_user)
 	sys_index = prefixes.size();
 
 	string prefix = myPrefix();
-
-	prefixes.push_back(prefix + "/share/" ddd_NAME "-" DDD_VERSION);
-	prefixes.push_back(prefix + "/share/" ddd_NAME);
-
 	prefixes.push_back(prefix + "/" ddd_NAME "-" DDD_VERSION);
 	prefixes.push_back(prefix + "/" ddd_NAME);
+
+	prefixes.push_back("/usr/local/share/" ddd_NAME "-" DDD_VERSION);
+	prefixes.push_back("/usr/local/share/" ddd_NAME);
+
+	prefixes.push_back("/usr/share/" ddd_NAME "-" DDD_VERSION);
+	prefixes.push_back("/usr/share/" ddd_NAME);
     }
 
     StatusDelay delay("Searching " + quote(file));

@@ -7697,7 +7697,7 @@ static void setup_theme_manager()
             if (strcmp(theme, "rednil.vsl") == 0) {
                 p.active() = true;
                 p.add("*");
-            //ZARKO - automatsko aktiviranje flags i regs tema
+            //ZARKO - Automatic activation of the CPU flags and registers theme
             } else if (strcmp(theme, "x86.vsl") == 0) {
                 p.active() = true;
                 p.add("$eax*;$ebx*;$ecx*;$edx*");
