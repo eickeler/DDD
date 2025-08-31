@@ -638,7 +638,12 @@ string read_simple_value(string& value, int depth, bool ignore_repeats)
 // Read a pointer value.
 string read_pointer_value (string& value, bool ignore_repeats)
 {
-    return read_simple_value(value, 1, ignore_repeats);
+    string txt = read_simple_value(value, 1, ignore_repeats);
+
+    // restrict the length of the output
+    if (txt.length()>80)
+        txt = txt.at(0, 80);
+    return txt;
 }
 
 // Read the beginning of an array from VALUE.  Return false iff failure.
