@@ -35,6 +35,10 @@
 
 // DDD logos
 
+// use new icon ans splash screen
+#define LOGO3_5
+
+
 // Return a pixmap suitable for icons on the root window
 extern Pixmap iconlogo(Widget shell);
 extern Pixmap iconmask(Widget shell);

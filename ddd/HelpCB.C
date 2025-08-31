@@ -89,6 +89,8 @@ char HelpCB_rcsid[] =
 #include "post.h"
 #include "mydialogs.h"
 #include "ArgField.h"
+#include "logo.h"
+#include "AppData.h"
 
 #include <vector>
 
@@ -563,9 +565,50 @@ static void _MStringHelpCB(Widget widget,
 	// Build help_dialog
 	XtSetArg(args[arg], XmNdeleteResponse, XmUNMAP); arg++;
 
-	help_dialog = 
-	    verify(XmCreateInformationDialog(shell, 
-					     XMST("help"), args, arg));
+        help_dialog = 
+        verify(XmCreateInformationDialog(shell, 
+                                         XMST("help"), args, arg));
+
+#ifdef  LOGO3_5
+        // cheat transparency by setting background of icon to background of dialog
+        Pixmap logo = iconlogo(shell);
+        Pixmap mask = iconmask(shell);
+        if (mask != None &&  logo != None)
+        {
+            Display *display = XtDisplay(widget);
+            Window win = XtWindow(widget);
+            Pixel bg;
+            XtVaGetValues(help_dialog, XmNbackground, &bg, NULL);
+            if (app_data.dark_mode)
+                bg ^= 0x00ffffff;
+
+            Window root;
+            int x, y;
+            unsigned int w, h, border, depth;
+            XGetGeometry(display, logo, &root, &x, &y, &w, &h, &border, &depth);
+
+            Pixmap dst = XCreatePixmap(display, win, w, h, depth);
+
+            GC gc = XCreateGC(display, dst, 0, NULL);
+
+            // Fill with background color
+            XSetForeground(display, gc, bg);
+            XFillRectangle(display, dst, gc, 0, 0, w, h);
+
+            // Copy the logo, clipped by mask
+            if (mask != None)
+            {
+                XSetClipMask(display, gc, mask);
+                XSetClipOrigin(display, gc, 0, 0);
+            }
+            XCopyArea(display, logo, dst, gc, 0, 0, w, h, 0, 0);
+
+            // Clean up
+            XSetClipMask(display, gc, None);
+            XFreeGC(display, gc);
+            XtVaSetValues(help_dialog, XmNsymbolPixmap, dst, NULL);
+        }
+#endif
 	Delay::register_shell(help_dialog);
 	XtAddCallback(help_dialog, XmNhelpCallback,
 		      HelpOnHelpCB, 0);

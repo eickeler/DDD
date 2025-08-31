@@ -44,6 +44,9 @@ char tips_rcsid[] =
 #include "string-fun.h"
 #include "x11/verify.h"
 #include "wm.h"
+#include "logo.h"
+#include "x11/findParent.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -180,6 +183,48 @@ void TipOfTheDayCB(Widget w, XtPointer, XtPointer)
 	    verify(XmCreateInformationDialog(find_shell(w), 
 					     XMST("tip_dialog"), 
 					     args, arg));
+
+#ifdef  LOGO3_5
+        // cheat transparency by setting background of icon to background of dialog
+        Widget shell = findTopLevelShellParent(w);
+        Pixmap logo = iconlogo(shell);
+        Pixmap mask = iconmask(shell);
+        if (mask != None &&  logo != None)
+        {
+            Display *display = XtDisplay(w);
+            Window win = XtWindow(w);
+            Pixel bg;
+            XtVaGetValues(tip_dialog, XmNbackground, &bg, NULL);
+            if (app_data.dark_mode)
+                bg ^= 0x00ffffff;
+
+            Window root;
+            int x, y;
+            unsigned int w, h, border, depth;
+            XGetGeometry(display, logo, &root, &x, &y, &w, &h, &border, &depth);
+
+            Pixmap dst = XCreatePixmap(display, win, w, h, depth);
+
+            GC gc = XCreateGC(display, dst, 0, NULL);
+
+            // Fill with background color
+            XSetForeground(display, gc, bg);
+            XFillRectangle(display, dst, gc, 0, 0, w, h);
+
+            // Copy the logo, clipped by mask
+            if (mask != None)
+            {
+                XSetClipMask(display, gc, mask);
+                XSetClipOrigin(display, gc, 0, 0);
+            }
+            XCopyArea(display, logo, dst, gc, 0, 0, w, h, 0, 0);
+
+            // Clean up
+            XSetClipMask(display, gc, None);
+            XFreeGC(display, gc);
+            XtVaSetValues(tip_dialog, XmNsymbolPixmap, dst, NULL);
+        }
+#endif
 
 #if XmVersion >= 1002
 	arg = 0;

@@ -30,8 +30,6 @@
 char logo_rcsid[] = 
     "$Id$";
 
-#define LOGO3_5
-
 #include "logo.h"
 #include "config.h"
 
