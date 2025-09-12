@@ -389,8 +389,6 @@ bool SourceView::signal_received = false;
 
 int SourceView::max_popup_expr_length = 20;
 
-int SourceView::max_breakpoint_number_seen = 0;
-
 static void DestroyOldWidgets(WidgetArray& Array);
 
 
@@ -537,187 +535,6 @@ void SourceView::line_popup_set_tempCB (Widget,
     create_temp_bp(address);
 }
 
-// Create or clear a breakpoint at position A.  If SET, create a
-// breakpoint; if not SET, delete it.  If TEMP, make the breakpoint
-// temporary.  If COND is given, break only iff COND evals to true. W
-// is the origin.
-void SourceView::set_bp(const string& a, bool set, bool temp, const char *cond)
-{
-    CommandGroup cg;
-
-    int new_bps = max_breakpoint_number_seen + 1;
-    string address = a;
-
-    if (address.contains('0', 0) && !address.contains(":"))
-        address.prepend("*");        // Machine code address given
-
-    if (!set)
-    {
-        // Clear bp
-        gdb_command(clear_command(address));
-    }
-    else
-    {
-        // Set bp
-        switch (gdb->type())
-        {
-        case DBG:
-        case GDB:
-        case BASH:
-        case MAKE:
-        case PYDB:
-            if (temp)
-                gdb_command("tbreak " + address);
-            else
-                gdb_command("break " + address);
-            break;
-
-        case DBX:
-        {
-            string cond_suffix = "";
-            if (strlen(cond) != 0)
-            {
-                if (gdb->has_handler_command())
-                    cond_suffix = string(" -if ") + cond;
-                else
-                    cond_suffix = string(" if ") + cond;
-            }
-
-            if (address.contains('*', 0))
-            {
-                // Address given
-                address = address.after('*');
-                gdb_command("stopi at " + address + cond_suffix);
-
-                if (temp)
-                {
-                    syncCommandQueue();
-                    gdb_command("when $pc == " + address + " "
-                                + command_list(clear_command(address, true, 
-                                                             new_bps)));
-                }
-            }
-            else
-            {
-                string line = "";
-                if (address.matches(rxint))
-                {
-                    // Line number given
-                    line = address;
-                    gdb_command("stop at " + address + cond_suffix);
-                }
-                else if (is_file_pos(address))
-                {
-                    // FILE:LINE given
-                    int colon_index = address.index(':', -1);
-                    assert(colon_index >= 0);
-                    string file = address.before(colon_index);
-                    line = address.after(colon_index);
-
-                    gdb_command("file " + file);
-                    gdb_command("stop at " + line + cond_suffix);
-                }
-                else
-                {
-                    // Function given
-                    string pos = dbx_lookup(address);
-
-                    if (pos.contains(':'))
-                    {
-                        string file = pos.before(':');
-                        line = pos.after(':');
-
-                        gdb_command("file " + file);
-                        gdb_command("stop at " + line + cond_suffix);
-                    }
-                    else
-                    {
-                        // Cannot determine function position - try this one
-                        gdb_command("stop in " + address + cond_suffix);
-                    }
-                }
-
-                if (temp && !line.empty())
-                {
-                    syncCommandQueue();
-                    const string clear_cmd = clear_command(line, true, new_bps);
-                    gdb_command("when at " + line + " " + command_list(clear_cmd));
-                }
-            }
-            break;
-        }
-
-        case JDB:
-        {
-            if (is_file_pos(address))
-                gdb_command("stop at " + address);
-            else
-                gdb_command("stop in " + address);
-            break;
-        }
-
-        case XDB:
-        {
-            string command;
-            if (address.contains('*', 0))
-                command = "ba " + address.after('*');
-            else
-                command = "b " + address;
-
-            if (temp)
-                command += " \\1t";
-
-            if (strlen(cond) != 0 && !gdb->has_condition_command())
-                command += " {if " + string(cond) + " {} {Q;c}}";
-
-            gdb_command(command);
-            break;
-        }
-
-        case PERL:
-        {
-            if (is_file_pos(address))
-            {
-                string file = address.before(':');
-                address = address.after(':');
-
-                if (!file_matches(file, sourcecode.get_filename()))
-                    gdb_command("f " + file);
-            }
-
-            string command = "b " + address;
-            if (strlen(cond) != 0 && !gdb->has_condition_command()) {
-                command += ' ';
-                command += cond;
-            }
-
-            gdb_command(command);
-
-            if (temp)
-            {
-                // Perl actions include Perl commands, but not
-                // debugger commands.  Use an auto-command instead.
-                string del = "d " + address;
-                add_auto_command_prefix(del);
-                string clear = "a " + address;
-                add_auto_command_prefix(clear);
-
-                command = "a " + address + " " + del + "; " + clear;
-                gdb_command(command);
-            }
-
-            break;
-        }
-        }
-
-        if (strlen(cond) != 0 && gdb->has_condition_command())
-        {
-            // Add condition
-            gdb_command(gdb->condition_command(itostring(new_bps), cond));
-        }
-    }
-}
-
 // ***************************************************************************
 //
 void SourceView::clearBP(XtPointer client_data, XtIntervalId *)
@@ -744,7 +561,7 @@ void SourceView::clearJumpBP(const string& msg, void *data)
     int old_max_breakpoint_number_seen = (int)(long)data;
 
     for (int i = old_max_breakpoint_number_seen + 1;
-         i <= max_breakpoint_number_seen; i++)
+         i <= gdb->max_breakpoint_number_seen; i++)
     {
         // Delete all recently created breakpoints
         XtAppAddTimeOut(XtWidgetToApplicationContext(source_text_w),
@@ -781,7 +598,7 @@ void SourceView::temp_n_cont(const string& a)
     case JDB:
     case PYDB:
     {
-        int old_max_breakpoint_number_seen = max_breakpoint_number_seen;
+        int old_max_breakpoint_number_seen = gdb->max_breakpoint_number_seen;
 
         // Create a temporary breakpoint
         create_temp_bp(address);
@@ -841,7 +658,7 @@ bool SourceView::move_pc(const string& a)
 
     if (gdb->has_jump_command())
     {
-        int old_max_breakpoint_number_seen = max_breakpoint_number_seen;
+        int old_max_breakpoint_number_seen = gdb->max_breakpoint_number_seen;
 
         // We prefer the GDB `jump' command to setting `$pc'
         // immediately since `jump' requires confirmation when jumping
@@ -1163,7 +980,7 @@ void SourceView::delete_bps(const std::vector<int>& nrs)
             BreakPoint *bp = bp_map.get(nrs[i]);
             if (bp != 0)
                 for (int j = 0; j < bp->n_locations(); j++)
-                    gdb_command(clear_command(bp->get_location(j).pos()));
+                    gdb_command(gdb->clear_command(bp->get_location(j).pos()));
         }
     }
     else if (gdb->has_delete_command())
@@ -1193,145 +1010,11 @@ std::vector<string> SourceView::delete_commands(int bp_nr)
         BreakPoint *bp = bp_map.get(bp_nr);
         if (bp != 0) {
             for (int j = 0; j < bp->n_locations(); j++)
-                cmds.push_back(clear_command(bp->get_location(j).pos()));
+                cmds.push_back(gdb->clear_command(bp->get_location(j).pos()));
         }
     }
     return cmds;
 }
-
-// Return `clear ARG' command.  If CLEAR_NEXT is set, attempt to guess
-// the next event number and clear this one as well.  (This is useful
-// for setting temporary breakpoints, as `delete' must also clear the
-// event handler we're about to install.)  Consider only breakpoints
-// whose number is >= FIRST_BP.
-string SourceView::clear_command(string pos, bool clear_next, int first_bp)
-{
-    string file = sourcecode.get_filename();
-    string line = pos;
-    MapRef ref;
-
-    if (gdb->type() == DBX && !pos.contains(':') && !pos.matches(rxint))
-        pos = dbx_lookup(pos);
-
-    if (pos.contains(':'))
-    {
-        file = pos.before(':');
-        line = pos.after(':');
-    }
-
-    int line_no = atoi(line.chars());
-
-    if (!clear_next && gdb->has_clear_command())
-    {
-        switch (gdb->type())
-        {
-        case BASH:
-        case GDB:
-        case JDB:
-        case PYDB:
-            return "clear " + pos;
-
-        case PERL:
-            if (line_no > 0 && file_matches(file, sourcecode.get_filename()))
-            {
-                // Clear the breakpoint
-                string command = "B " + line;
-
-                // Check whether there are any other breakpoints with actions
-                bool have_other_actions = false;
-                bool need_clear_actions = false;
-                BreakPoint *bp;
-                for (bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
-                {
-                    if (bp->type() == ACTIONPOINT)
-                    {
-                        // We have an action without associated breakpoint.
-                        // Be sure to clear this as soon as possible.
-                        need_clear_actions = true;
-                    }
-
-                    if (!bp->is_match(file, line_no) &&
-                        bp->type() == BREAKPOINT &&
-                        bp->commands().size() > 0)
-                    {
-                        // We have other breakpoints with actions.
-                        have_other_actions = true;
-                    }
-                }
-
-                for (bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
-                {
-                    // If we have any associated actions, clear them all
-                    if (bp->is_match(file, line_no) &&
-                        bp->commands().size() > 0)
-                    {
-                        // This breakpoint has actions that must be cleared
-
-                        if (have_other_actions)
-                        {
-                            // Clear only this action
-                            command += "\na " + line;
-                        }
-                        else
-                        {
-                            // Clear all actions (including this one)
-                            need_clear_actions = true;
-                        }
-                        break;
-                    }
-                }
-
-                if (!have_other_actions && need_clear_actions)
-                {
-                    // Clear all actions
-                    command += "\nA";
-                }
-
-                return command;
-            }
-            break;
-
-        case DBX:
-            if (line_no > 0 && file_matches(file, sourcecode.get_filename()))
-                return "clear " + line;
-            break;
-
-        case DBG:
-        case MAKE:
-        case XDB:
-            break;
-        }
-    }
-
-    // Delete all matching breakpoints
-    int max_bp_nr = -1;
-    string bps = "";
-    for (BreakPoint* bp = bp_map.first(ref);
-         bp != 0;
-         bp = bp_map.next(ref))
-    {
-        if (bp->number() >= first_bp
-            && bp->is_match(file, line_no))
-            {
-                if (!bps.empty())
-                    bps += gdb->wants_delete_comma() ? ", " : " ";
-                bps += itostring(bp->number());
-                max_bp_nr = max(max_bp_nr, bp->number());
-            }
-    }
-
-    if (bps.empty())
-        return "";
-
-    if (clear_next && max_bp_nr >= 0)
-    {
-        bps += (gdb->wants_delete_comma() ? ", " : " ");
-        bps += itostring(max_bp_nr + 1);
-    }
-
-    return gdb->delete_command(bps);
-}
-
 
 // ***************************************************************************
 //
@@ -3572,7 +3255,7 @@ void SourceView::process_info_bp (string& info_output,
             // Check if we already have a breakpoint at this location.
             bp_nr = breakpoint_number(info_output, file);
             if (bp_nr == 0)
-                bp_nr = max_breakpoint_number_seen + 1;        // new breakpoint
+                bp_nr = gdb->max_breakpoint_number_seen + 1;        // new breakpoint
             if (bp_nr < 0)
             {
                 // Not a breakpoint
@@ -3668,7 +3351,7 @@ void SourceView::process_info_bp (string& info_output,
             new_bp->selected() = true;
         }
 
-        max_breakpoint_number_seen = max(max_breakpoint_number_seen, bp_nr);
+        gdb->max_breakpoint_number_seen = max(gdb->max_breakpoint_number_seen, bp_nr);
     }
 
     // Keep this stuff for further processing
@@ -3705,7 +3388,7 @@ void SourceView::process_info_bp (string& info_output,
 
 int SourceView::next_breakpoint_number()
 {
-    return max_breakpoint_number_seen + 1;
+    return gdb->max_breakpoint_number_seen + 1;
 }
 
 
@@ -9163,16 +8846,6 @@ void SourceView::set_all_registers(bool set)
     }
 }
 
-
-// Some DBXes require `{ COMMAND; }', others `{ COMMAND }'.
-string SourceView::command_list(const string& cmd)
-{
-    if (gdb->has_when_semicolon())
-        return "{ " + cmd + "; }";
-    else
-        return "{ " + cmd + " }";
-}
-
 // Get the position of breakpoint NUM
 string SourceView::bp_pos(int num)
 {
@@ -9326,7 +8999,7 @@ void SourceView::reset()
         {
             // For gdb we use the delete command.
             // So if we get here this is a simple breakpoint.
-            Command c(clear_command(bp->pos()));
+            Command c(gdb->clear_command(bp->pos()));
             c.verbose  = false;
             c.prompt   = false;
             c.check    = true;

@@ -28,6 +28,8 @@
 #include "GDBAgent_DBG.h"
 #include "base/cook.h"
 #include "BreakPoint.h"
+#include "Command.h"
+#include "string-fun.h"
 
 char *GDBAgent_DBG_init_commands;
 char *GDBAgent_DBG_settings;
@@ -231,5 +233,39 @@ void GDBAgent_DBG::restore_breakpoint_command (std::ostream& os,
 	        os << bp->commands()[i] << "\n";
 	    os << "end\n";
 	}
+    }
+}
+
+// Create or clear a breakpoint at position A.  If SET, create a
+// breakpoint; if not SET, delete it.  If TEMP, make the breakpoint
+// temporary.  If COND is given, break only iff COND evals to true. W
+// is the origin.
+void GDBAgent_DBG::set_bp(const string& a, bool set, bool temp, const char *cond)
+{
+    CommandGroup cg;
+
+    int new_bps = max_breakpoint_number_seen + 1;
+    string address = a;
+
+    if (address.contains('0', 0) && !address.contains(":"))
+        address.prepend("*");        // Machine code address given
+
+    if (!set)
+    {
+        // Clear bp
+        gdb_command(clear_command(address));
+    }
+    else
+    {
+        if (temp)
+            gdb_command("tbreak " + address);
+        else
+            gdb_command("break " + address);
+    }
+
+    if (strlen(cond) != 0 && gdb->has_condition_command())
+    {
+        // Add condition
+        gdb_command(gdb->condition_command(itostring(new_bps), cond));
     }
 }

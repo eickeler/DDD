@@ -516,8 +516,6 @@ private:
     // Callback when state has been reset
     static void reset_done(const string& answer, void *data);
 
-    static int max_breakpoint_number_seen;
-
     // Return breakpoint number of BP_INFO; 0 if new; -1 if none
     static int breakpoint_number(const string& bp_info, string& file);
 
@@ -699,12 +697,6 @@ public:
     // The next breakpoint number (the highest last seen + 1)
     static int next_breakpoint_number();
 
-    // Create or clear a breakpoint at position A.  If SET, create a
-    // breakpoint; if not SET, delete it.  If TEMP, make the
-    // breakpoint temporary.  If COND is given, break only iff COND
-    // evals to true.  ORIGIN is the origin.
-    static void set_bp(const string& a, bool set, bool temp, const char *cond = "");
-
     // Custom calls
     static void create_bp(const string& a);
     static void create_temp_bp(const string& a);
@@ -764,11 +756,6 @@ public:
     // Move PC to ADDRESS; return true if changed.
     static bool move_pc(const string& address);
 
-    // Return `clear ARG' command.  If CLEAR_NEXT is set, attempt to
-    // guess the next event number and clear this one as well.
-    // Consider only breakpoints whose number is >= FIRST_BP.
-    static string clear_command(string arg, bool clear_next = false,
-                                int first_bp = 0);
     // Return `delete N' command.
     static std::vector<string> delete_commands(int bp_nr);
 
@@ -879,17 +866,17 @@ public:
 
 inline void SourceView::create_bp(const string& a)
 {
-    set_bp(a, true, false, "");
+    gdb->set_bp(a, true, false, "");
 }
 
 inline void SourceView::create_temp_bp(const string& a)
 {
-    set_bp(a, true, true, "");
+    gdb->set_bp(a, true, true, "");
 }
 
 inline void SourceView::clear_bp(const string& a)
 {
-    set_bp(a, false, false, "");
+    gdb->set_bp(a, false, false, "");
 }
 
 #endif // _DDD_SourceView_h

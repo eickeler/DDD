@@ -31,6 +31,10 @@
 #include "string-fun.h"
 #include "index.h"
 #include "BreakPoint.h"
+#include "Command.h"
+#include "string-fun.h"
+#include "dbx-lookup.h"
+#include "disp-read.h"
 
 char *GDBAgent_DBX_init_commands;
 char *GDBAgent_DBX_settings;
@@ -38,6 +42,15 @@ char *GDBAgent_DBX_settings;
 static bool ends_in(const string& answer, const char *prompt)
 {
     return answer.contains(prompt, answer.length() - strlen(prompt));
+}
+
+// Some DBXes require `{ COMMAND; }', others `{ COMMAND }'.
+string GDBAgent_DBX::command_list(const string& cmd)
+{
+    if (gdb->has_when_semicolon())
+        return "{ " + cmd + "; }";
+    else
+        return "{ " + cmd + " }";
 }
 
 GDBAgent_DBX::GDBAgent_DBX (XtAppContext app_context,
@@ -502,5 +515,105 @@ void GDBAgent_DBX::restore_breakpoint_command (std::ostream& os,
         int ignore = bp->ignore_count();
         if (ignore > 0 && has_ignore_command())
 	    os << ignore_command(num, ignore) << "\n";
+    }
+}
+
+// Create or clear a breakpoint at position A.  If SET, create a
+// breakpoint; if not SET, delete it.  If TEMP, make the breakpoint
+// temporary.  If COND is given, break only iff COND evals to true. W
+// is the origin.
+void GDBAgent_DBX::set_bp(const string& a, bool set, bool temp, const char *cond)
+{
+    CommandGroup cg;
+
+    int new_bps = max_breakpoint_number_seen + 1;
+    string address = a;
+
+    if (address.contains('0', 0) && !address.contains(":"))
+        address.prepend("*");        // Machine code address given
+
+    if (!set)
+    {
+        // Clear bp
+        gdb_command(clear_command(address));
+    }
+    else
+    {
+        string cond_suffix = "";
+        if (strlen(cond) != 0)
+        {
+            if (gdb->has_handler_command())
+                cond_suffix = string(" -if ") + cond;
+            else
+                cond_suffix = string(" if ") + cond;
+        }
+
+        if (address.contains('*', 0))
+        {
+            // Address given
+            address = address.after('*');
+            gdb_command("stopi at " + address + cond_suffix);
+
+            if (temp)
+            {
+                syncCommandQueue();
+                gdb_command("when $pc == " + address + " "
+                            + command_list(clear_command(address, true, 
+                                                         new_bps)));
+            }
+        }
+        else
+        {
+            string line = "";
+            if (address.matches(rxint))
+            {
+                // Line number given
+                line = address;
+                gdb_command("stop at " + address + cond_suffix);
+            }
+            else if (is_file_pos(address))
+            {
+                // FILE:LINE given
+                int colon_index = address.index(':', -1);
+                assert(colon_index >= 0);
+                string file = address.before(colon_index);
+                line = address.after(colon_index);
+
+                gdb_command("file " + file);
+                gdb_command("stop at " + line + cond_suffix);
+            }
+            else
+            {
+                // Function given
+                string pos = dbx_lookup(address);
+
+                if (pos.contains(':'))
+                {
+                    string file = pos.before(':');
+                    line = pos.after(':');
+
+                    gdb_command("file " + file);
+                    gdb_command("stop at " + line + cond_suffix);
+                }
+                else
+                {
+                    // Cannot determine function position - try this one
+                    gdb_command("stop in " + address + cond_suffix);
+                }
+            }
+
+            if (temp && !line.empty())
+            {
+                 syncCommandQueue();
+                 const string clear_cmd = clear_command(line, true, new_bps);
+                 gdb_command("when at " + line + " " + command_list(clear_cmd));
+            }
+        }
+    }
+
+    if (strlen(cond) != 0 && gdb->has_condition_command())
+    {
+        // Add condition
+        gdb_command(gdb->condition_command(itostring(new_bps), cond));
     }
 }

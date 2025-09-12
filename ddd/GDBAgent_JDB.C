@@ -28,6 +28,9 @@
 #include "GDBAgent_JDB.h"
 #include "regexps.h"
 #include "BreakPoint.h"
+#include "Command.h"
+#include "string-fun.h"
+#include "disp-read.h"
 
 char *GDBAgent_JDB_init_commands;
 char *GDBAgent_JDB_settings;
@@ -236,3 +239,38 @@ void GDBAgent_JDB::restore_breakpoint_command (std::ostream& os,
     os << "stop at " << pos << "\n";
 }
 
+// Create or clear a breakpoint at position A.  If SET, create a
+// breakpoint; if not SET, delete it.  If TEMP, make the breakpoint
+// temporary.  If COND is given, break only iff COND evals to true. W
+// is the origin.
+void GDBAgent_JDB::set_bp(const string& a, bool set, bool temp, const char *cond)
+{
+    (void) temp;
+
+    CommandGroup cg;
+
+    int new_bps = max_breakpoint_number_seen + 1;
+    string address = a;
+
+    if (address.contains('0', 0) && !address.contains(":"))
+        address.prepend("*");        // Machine code address given
+
+    if (!set)
+    {
+        // Clear bp
+        gdb_command(clear_command(address));
+    }
+    else
+    {
+        if (is_file_pos(address))
+            gdb_command("stop at " + address);
+        else
+            gdb_command("stop in " + address);
+    }
+
+    if (strlen(cond) != 0 && gdb->has_condition_command())
+    {
+        // Add condition
+        gdb_command(gdb->condition_command(itostring(new_bps), cond));
+    }
+}

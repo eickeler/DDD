@@ -31,6 +31,9 @@
 #include "string-fun.h"
 #include "base/isid.h"
 #include "BreakPoint.h"
+#include "Command.h"
+#include "string-fun.h"
+#include "disp-read.h"
 
 char *GDBAgent_PERL_init_commands;
 char *GDBAgent_PERL_settings;
@@ -270,5 +273,62 @@ void GDBAgent_PERL::restore_breakpoint_command (std::ostream& os,
         for (int i = 0; i < int(bp->commands().size()); i++)
     	    os << bp->commands()[i] << ";";
 	os << "\n";
+    }
+}
+
+// Create or clear a breakpoint at position A.  If SET, create a
+// breakpoint; if not SET, delete it.  If TEMP, make the breakpoint
+// temporary.  If COND is given, break only iff COND evals to true. W
+// is the origin.
+void GDBAgent_PERL::set_bp(const string& a, bool set, bool temp, const char *cond)
+{
+    int new_bps = max_breakpoint_number_seen + 1;
+    string address = a;
+
+    if (address.contains('0', 0) && !address.contains(":"))
+        address.prepend("*");        // Machine code address given
+
+    if (!set)
+    {
+        // Clear bp
+        gdb_command(clear_command(address));
+    }
+    else
+    {
+        if (is_file_pos(address))
+        {
+            string file = address.before(':');
+            address = address.after(':');
+
+            if (!source_view->file_matches(file, source_view->name_of_file()))
+                gdb_command("f " + file);
+        }
+
+        string command = "b " + address;
+        if (strlen(cond) != 0 && !gdb->has_condition_command()) {
+            command += ' ';
+            command += cond;
+        }
+
+        gdb_command(command);
+
+        if (temp)
+        {
+            // Perl actions include Perl commands, but not
+            // debugger commands.  Use an auto-command instead.
+            string del = "d " + address;
+            add_auto_command_prefix(del);
+            string clear = "a " + address;
+            add_auto_command_prefix(clear);
+
+            command = "a " + address + " " + del + "; " + clear;
+            gdb_command(command);
+        }
+    }
+
+    if (strlen(cond) != 0 && gdb->has_condition_command())
+    {
+        // Add condition
+        gdb_command(gdb->condition_command(itostring(new_bps), cond));
     }
 }

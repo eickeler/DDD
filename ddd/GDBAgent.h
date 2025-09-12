@@ -150,6 +150,7 @@ class GDBAgent: public TTYAgent {
 public:
     DECLARE_TYPE_INFO
     DebuggerCPU cpu;
+    int max_breakpoint_number_seen;     // TODO: Move to protected
 
 protected:
     enum State {
@@ -924,6 +925,17 @@ public:
                      (void (num)); (void (cond)); (void (as_dummy));
     }
 
+    // Create or clear a breakpoint at position A.  If SET, create a
+    // breakpoint; if not SET, delete it.  If TEMP, make the
+    // breakpoint temporary.  If COND is given, break only iff COND
+    // evals to true.
+    virtual void set_bp(const string& a, bool set, bool temp, const char *cond = "");
+
+    // Return `clear ARG' command.  If CLEAR_NEXT is set, attempt to
+    // guess the next event number and clear this one as well.
+    // Consider only breakpoints whose number is >= FIRST_BP.
+    string clear_command(string arg, bool clear_next = false,
+                                int first_bp = 0);
     // Helpers
     string cmd() const;		// Actual command being executed
     string debugger() const;	// Debugger of command

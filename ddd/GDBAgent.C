@@ -164,6 +164,9 @@ char GDBAgent_rcsid[] =
 #include "base/home.h"
 #include "value-read.h"		// read_token
 #include "base/casts.h"
+#include "BreakPoint.h"
+#include "SourceView.h"
+#include "dbx-lookup.h"
 
 #include <stdlib.h>
 #include <iostream>
@@ -2080,4 +2083,143 @@ void GDBAgent::abort()
     complete_answer   = "";
 
     set_exception_state(false);
+}
+
+// Return `clear ARG' command.  If CLEAR_NEXT is set, attempt to guess
+// the next event number and clear this one as well.  (This is useful
+// for setting temporary breakpoints, as `delete' must also clear the
+// event handler we're about to install.)  Consider only breakpoints
+// whose number is >= FIRST_BP.
+string GDBAgent::clear_command(string pos, bool clear_next, int first_bp)
+{
+    string file = source_view->name_of_file();
+    string line = pos;
+    MapRef ref;
+
+    if (type() == DBX && !pos.contains(':') && !pos.matches(rxint))
+        pos = dbx_lookup(pos);
+
+    if (pos.contains(':'))
+    {
+        file = pos.before(':');
+        line = pos.after(':');
+    }
+
+    int line_no = atoi(line.chars());
+
+    if (!clear_next && has_clear_command())
+    {
+        switch (type())
+        {
+        case BASH:
+        case GDB:
+        case JDB:
+        case PYDB:
+            return "clear " + pos;
+
+        case PERL:
+            if (line_no > 0 && source_view->file_matches(file, source_view->name_of_file()))
+            {
+                // Clear the breakpoint
+                string command = "B " + line;
+
+                // Check whether there are any other breakpoints with actions
+                bool have_other_actions = false;
+                bool need_clear_actions = false;
+                BreakPoint *bp;
+                for (bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
+                {
+                    if (bp->type() == ACTIONPOINT)
+                    {
+                        // We have an action without associated breakpoint.
+                        // Be sure to clear this as soon as possible.
+                        need_clear_actions = true;
+                    }
+
+                    if (!bp->is_match(file, line_no) &&
+                        bp->type() == BREAKPOINT &&
+                        bp->commands().size() > 0)
+                    {
+                        // We have other breakpoints with actions.
+                        have_other_actions = true;
+                    }
+                }
+
+                for (bp = bp_map.first(ref); bp != 0; bp = bp_map.next(ref))
+                {
+                    // If we have any associated actions, clear them all
+                    if (bp->is_match(file, line_no) &&
+                        bp->commands().size() > 0)
+                    {
+                        // This breakpoint has actions that must be cleared
+
+                        if (have_other_actions)
+                        {
+                            // Clear only this action
+                            command += "\na " + line;
+                        }
+                        else
+                        {
+                            // Clear all actions (including this one)
+                            need_clear_actions = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (!have_other_actions && need_clear_actions)
+                {
+                    // Clear all actions
+                    command += "\nA";
+                }
+
+                return command;
+            }
+            break;
+
+        case DBX:
+            if (line_no > 0 && source_view->file_matches(file, source_view->name_of_file()))
+                return "clear " + line;
+            break;
+
+        case DBG:
+        case MAKE:
+        case XDB:
+            break;
+        }
+    }
+
+    // Delete all matching breakpoints
+    int max_bp_nr = -1;
+    string bps = "";
+    for (BreakPoint* bp = bp_map.first(ref);
+         bp != 0;
+         bp = bp_map.next(ref))
+    {
+        if (bp->number() >= first_bp
+            && bp->is_match(file, line_no))
+            {
+                if (!bps.empty())
+                    bps += wants_delete_comma() ? ", " : " ";
+                bps += itostring(bp->number());
+                max_bp_nr = std::max(max_bp_nr, bp->number());
+            }
+    }
+
+    if (bps.empty())
+        return "";
+
+    if (clear_next && max_bp_nr >= 0)
+    {
+        bps += (wants_delete_comma() ? ", " : " ");
+        bps += itostring(max_bp_nr + 1);
+    }
+
+    return delete_command(bps);
+}
+
+void GDBAgent::set_bp(const string& a, bool set, bool temp, const char *cond)
+{
+    (void) a; (void) set; (void) temp; (void) cond;
+    abort();
 }
