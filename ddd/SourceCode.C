@@ -654,68 +654,6 @@ String SourceCode::read_indented(string& file_name, long& length,
     // At this point, we have a source text.
     file_name = full_file_name;
 
-#if !HAVE_FREETYPE
-
-    // determine utf-8 encoding
-    bool utf8 = true;
-    // simple test
-    for (t = 0; t < length; t++)
-    {
-        if (((unsigned char)text[t]) == 0xc0 || ((unsigned char)text[t]) == 0xc1 || ((unsigned char)text[t]) >= 0xf5)
-        {
-            utf8 = false;
-            break;
-        }
-    }
-
-    // determine new length and check encoding
-    if (utf8 == true)
-    {
-        int newlength = 0;
-        int pos = 0;
-        wchar_t unicode;
-        while (pos<length)
-        {
-            bool res = utf8toUnicode(unicode, text, pos, length);
-            if (res==false)
-                break;
-
-            newlength ++;
-        }
-
-        if (pos==length)
-        {
-            // map utf-8 to latin1
-            // undisplayable characters (unicode > 255) are mapped to "_"
-            // This should be ok for source code, since only the display
-            // of non-latin1 comments and string literals is affected.
-            char* newtext = XtMalloc(unsigned(newlength + 1));
-
-            int pos = 0;
-            wchar_t unicode;
-            int newpos = 0;
-            while (pos<length)
-            {
-                bool res = utf8toUnicode(unicode, text, pos, length);
-                if (res==false)
-                    break;
-
-                if (unicode<=255)
-                    newtext[newpos] = unicode;
-                else
-                    newtext[newpos] = '_';
-
-                newpos++;
-            }
-
-            XtFree(text);
-
-            length = newlength;
-            text = newtext;
-        }
-    }
-#endif
-
     // Determine text length and number of lines
     int lines = 0;
     for (t = 0; t < length; t++)
@@ -886,17 +824,6 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
     bytepos_of_line.clear();
     bytepos_of_line.reserve(line_count + 2);
     bytepos_of_line.push_back((XmTextPosition(0)));
-#if !HAVE_FREETYPE
-    char_count = current_source.length();
-    for (int i = 0; i < int(current_source.length()); i++)
-    {
-        if (current_source[i] == '\n')
-        {
-            textpos_of_line.push_back((XmTextPosition(i + 1)));
-            bytepos_of_line.push_back(i + 1);
-        }
-    }
-#else
     int length = int(current_source.length());
     char_count = 0;
     int bytepos = 0;
@@ -915,7 +842,6 @@ int SourceCode::read_current(string& file_name, bool force_reload, bool silent, 
         }
     }
 
-#endif
     assert(int( textpos_of_line.size()) == line_count + 1);
 
     if (current_source.length() == 0)

@@ -135,28 +135,6 @@ static string userfont(const AppData& ad, DDDFont font)
     return "";			// Never reached
 }
 
-#ifndef HAVE_FREETYPE
-// Return a symbolic name for FONT
-static string font_type(DDDFont font)
-{
-    switch (font)
-    {
-    case DefaultDDDFont:
-	return "default font";
-    case VariableWidthDDDFont:
- 	return "variable width font";
-    case FixedWidthDDDFont:
- 	return "fixed width font";
-    case DataDDDFont:
- 	return "data font";
-    }
-
-    assert(0);
-    ::abort();
-    return "";			// Never reached
-}
-#endif
-
 // defaults to use if nothing is specified
 static string fallbackfont(DDDFont font)
 {
@@ -218,24 +196,6 @@ static string component(const AppData& ad, DDDFont font, FontComponent n)
 //-----------------------------------------------------------------------------
 // Create an X font name
 //-----------------------------------------------------------------------------
-#ifndef HAVE_FREETYPE
-static string override(FontComponent new_n, 
-		       const string& new_value, const string& font = "")
-{
-    string new_font;
-    for (FontComponent n = Foundry; n <= AllComponents; n++)
-    {
-	new_font += '-';
-	new_font +=
-	  (n == new_n) ?
-	  new_value :
-	  component(font, n);
-    }
-
-    return new_font;
-}
-#endif
-
 string make_font(const AppData& ad, DDDFont base, const string& override)
 {
     string font;
@@ -255,116 +215,6 @@ string make_font(const AppData& ad, DDDFont base, const string& override)
 
     return font;
 }
-
-
-#ifndef HAVE_FREETYPE
-//-----------------------------------------------------------------------------
-// Setup X fonts
-//-----------------------------------------------------------------------------
-
-static StringStringAssoc font_defs;
-
-static void define_font(const AppData& ad,
-			const string& name, DDDFont base, 
-			const string& override = "")
-{
-    string font = make_font(ad, base, override);
-    const string s1 = upcase(name);
-    defineConversionMacro(s1.chars(), font.chars());
-    font_defs[name] = font;
-
-    if (ad.show_fonts)
-    {
-	const string sym =
-	  (name == MSTRING_DEFAULT_CHARSET) ?
-	  "default" :
-	  "@" + name;
-	std::cout << sym << "\t" << font << "\n";
-    }
-}
-
-static void set_db_font(const AppData& ad, XrmDatabase& db,
-			const string& line)
-{
-    XrmPutLineResource(&db, line.chars());
-
-    if (ad.show_fonts)
-    {
-	string s = line;
-	s.gsub(":", ": \\\n   ");
-	s.gsub(",", ",\\\n    ");
-	std::cout << s << "\n\n";
-    }
-}
-
-static string define_default_font(const string& font_def)
-{
-    string s;
-
-    // The canonical way of doing it.
-    s += font_def + "=" + MSTRING_DEFAULT_CHARSET + ",";
-
-    // Special cases
-    if (string(MSTRING_DEFAULT_CHARSET) != "charset")
-    {
-	// This happens in Motif 1.1 and LessTif.  Ensure
-	// compatibility with other Motif versions.
-	s += font_def;
-	s += "=charset,";
-    }
-
-    return s;
-}
-	    
-
-static void setup_font_db(const AppData& ad, XrmDatabase& db)
-{
-    // Default fonts
-    string special_fontlist = 
-	font_defs[CHARSET_SMALL] + "=" + CHARSET_SMALL + "," +
-	font_defs[CHARSET_TT] + "=" + CHARSET_TT + "," +
-	font_defs[CHARSET_TB] + "=" + CHARSET_TB + "," +
-	font_defs[CHARSET_KEY] + "=" + CHARSET_KEY + "," +
-	font_defs[CHARSET_RM] + "=" + CHARSET_RM + "," +
-	font_defs[CHARSET_SL] + "=" + CHARSET_SL + "," +
-	font_defs[CHARSET_BF] + "=" + CHARSET_BF + "," +
-	font_defs[CHARSET_BS] + "=" + CHARSET_BS + "," +
-	font_defs[CHARSET_LOGO] + "=" + CHARSET_LOGO + "," +
-	font_defs[CHARSET_LLOGO] + "=" + CHARSET_LLOGO + ",";
-
-
-    string default_fontlist = 
-	define_default_font(font_defs[CHARSET_DEFAULT]) + special_fontlist;
-
-    set_db_font(ad, db, string(DDD_CLASS_NAME "*") + 
-		XmCFontList + ": " + default_fontlist);
-
-    // Text fonts
-    string text_fontlist = 
-	define_default_font(font_defs[CHARSET_TEXT]) + special_fontlist;
-
-    set_db_font(ad, db, string(DDD_CLASS_NAME "*XmTextField.") + 
-		XmCFontList + ": " + text_fontlist);
-    set_db_font(ad, db, string(DDD_CLASS_NAME "*XmText.") + 
-		XmCFontList + ": " + text_fontlist);
-    set_db_font(ad, db, string(DDD_CLASS_NAME "*XmCommand*XmList.") + 
-		XmCFontList + ": " + text_fontlist);
-
-    // Command tool fonts
-    string tool_fontlist = 
-	define_default_font(font_defs[CHARSET_LIGHT]) + special_fontlist;
-
-    set_db_font(ad, db, 
-		string(DDD_CLASS_NAME "*tool_buttons.run.") + 
-		XmCFontList + ": " + default_fontlist);
-    set_db_font(ad, db, 
-		string(DDD_CLASS_NAME "*tool_buttons.break.") +
-		XmCFontList + ": " + default_fontlist);
-    set_db_font(ad, db, 
-		string(DDD_CLASS_NAME "*tool_buttons*") +
-		XmCFontList + ": " + tool_fontlist);
-}
-#endif
 
 static void title(const AppData& ad, const string& s)
 {
@@ -403,84 +253,9 @@ static void get_derived_sizes(Dimension size,
     }
 }
 
-#ifndef HAVE_FREETYPE
-void setup_x_fonts(const AppData& ad, XrmDatabase& db)
-{
-    Dimension small_size, tiny_size, llogo_size;
-    get_derived_sizes(ad.default_font_size, small_size, tiny_size, llogo_size);
-
-    if (small_size < 80)
-	small_size = ad.default_font_size;
-
-    string small_size_s = itostring(small_size);
-    string llogo_size_s = itostring(llogo_size);
-
-    // Clear old font defs
-    static StringStringAssoc empty;
-    font_defs = empty;
-
-    title(ad, "Symbolic font names");
-
-    // Default font
-    define_font(ad, CHARSET_DEFAULT, DefaultDDDFont);
-
-    define_font(ad, CHARSET_SMALL, DefaultDDDFont,
-		override(PointSize, small_size_s));
-
-    define_font(ad, CHARSET_LIGHT, DefaultDDDFont,
-		override(Weight, "medium",
-			 override(PointSize, small_size_s)));
-
-    // Text fonts
-    define_font(ad, CHARSET_TEXT, FixedWidthDDDFont);
-
-    // Text fonts
-    define_font(ad, CHARSET_LOGO, VariableWidthDDDFont,
-		override(Weight, "bold"));
-
-    define_font(ad, CHARSET_LLOGO, VariableWidthDDDFont,
-		override(Weight, "bold",
-			 override(PointSize, llogo_size_s)));
-
-    define_font(ad, CHARSET_RM, VariableWidthDDDFont,
-		override(Slant, "r"));
-
-    define_font(ad, CHARSET_SL, VariableWidthDDDFont,
-		override(Slant, "*")); // matches `i' and `o'
-
-    define_font(ad, CHARSET_BF, VariableWidthDDDFont,
-		override(Weight, "bold",
-			 override(Slant, "r")));
-
-    define_font(ad, CHARSET_BS, VariableWidthDDDFont,
-		override(Weight, "bold",
-			 override(Slant, "*")));
-
-    define_font(ad, CHARSET_TT, FixedWidthDDDFont);
-
-    define_font(ad, CHARSET_TB, FixedWidthDDDFont,
-		override(Weight, "bold"));
-
-    define_font(ad, CHARSET_TS, FixedWidthDDDFont,
-		override(Slant, "*"));
-
-    define_font(ad, CHARSET_TBS, FixedWidthDDDFont,
-		override(Weight, "bold",
-			 override(Slant, "*")));
-
-    define_font(ad, CHARSET_KEY, VariableWidthDDDFont,
-		override(Weight, "bold"));
-
-    title(ad, "Font resources");
-
-    setup_font_db(ad, db);
-}
-#endif
-
 //-----------------------------------------------------------------------------
 // Setup XFT fonts
 //-----------------------------------------------------------------------------
-#if HAVE_FREETYPE
 
 static void setup_xft_fonts(AppData& ad, XrmDatabase& db)
 {
@@ -562,8 +337,6 @@ string make_xftfont(const AppData& ad, DDDFont base)
     }
 }
 
-#endif
-
 //-----------------------------------------------------------------------------
 // Set VSL font resources
 //-----------------------------------------------------------------------------
@@ -588,7 +361,6 @@ void replace_vsl_font(string& defs, const string& func,
 static void setup_vsl_fonts(AppData& ad)
 {
     Dimension small_size, tiny_size, llogo_size;
-#if HAVE_FREETYPE
     if (ad.data_font_size >=80)
         ad.data_font_size = 11;
 
@@ -613,55 +385,6 @@ static void setup_vsl_fonts(AppData& ad)
     replace_vsl_xftfont(defs, "tiny_bf", ad.data_font, tiny_size, ":weight=bold");
     replace_vsl_xftfont(defs, "tiny_it", ad.data_font, tiny_size, ":slant=italic");
     replace_vsl_xftfont(defs, "tiny_bf", ad.data_font, tiny_size, ":weight=bold:slant=italic");
-#else
-    get_derived_sizes(ad.data_font_size, small_size, tiny_size, llogo_size);
-
-    string small_size_s = itostring(small_size);
-    string tiny_size_s  = itostring(tiny_size);
-
-    static string defs;
-    defs = "";
-
-    title(ad, "VSL defs");
-
-    replace_vsl_font(defs, "rm", ad);
-    replace_vsl_font(defs, "bf", ad, 
-		     override(Weight, "bold"));
-    replace_vsl_font(defs, "it", ad, 
-		     override(Slant, "*"));
-    replace_vsl_font(defs, "bf", ad, 
-		     override(Weight, "bold",
-			      override(Slant, "*")));
-
-    replace_vsl_font(defs, "small_rm", ad, 
-		     override(PointSize, small_size_s));
-    replace_vsl_font(defs, "small_bf", ad, 
-		     override(Weight, "bold", 
-			      override(PointSize, small_size_s)));
-    replace_vsl_font(defs, "small_it", ad, 
-		     override(Slant, "*", 
-			      override(PointSize, small_size_s)));
-    replace_vsl_font(defs, "small_bf", ad, 
-		     override(Weight, "bold", 
-			      override(Slant, "*", 
-				       override(PointSize, small_size_s))));
-
-    replace_vsl_font(defs, "tiny_rm", ad, 
-		     override(PointSize, tiny_size_s), VariableWidthDDDFont);
-    replace_vsl_font(defs, "tiny_bf", ad, 
-		     override(Weight, "bold", 
-			      override(PointSize, tiny_size_s)), 
-		     VariableWidthDDDFont);
-    replace_vsl_font(defs, "tiny_it", ad, 
-		     override(Slant, "*", 
-			      override(PointSize, tiny_size_s)),
-		     VariableWidthDDDFont);
-    replace_vsl_font(defs, "tiny_bf", ad, 
-		     override(Weight, "bold", 
-			      override(Slant, "*", 
-				       override(PointSize, tiny_size_s))),
-		     VariableWidthDDDFont);
-#endif
 
     if (ad.show_fonts)
 	std::cout << defs;
@@ -673,11 +396,7 @@ static void setup_vsl_fonts(AppData& ad)
 void setup_fonts(AppData& ad, XrmDatabase db)
 {
     XrmDatabase db2 = db;
-#if HAVE_FREETYPE
     setup_xft_fonts(ad, db2);
-#else
-    setup_x_fonts(ad, db2);
-#endif
     assert(db == db2);
 
     setup_vsl_fonts(ad);
@@ -688,45 +407,6 @@ void setup_fonts(AppData& ad, XrmDatabase db)
 //-----------------------------------------------------------------------------
 // Handle font resources
 //-----------------------------------------------------------------------------
-#ifndef HAVE_FREETYPE
-
-// Simplify font specs
-static string simplify_font(const AppData& ad, DDDFont font, 
-			    const string& source)
-{
-    string s;
-
-    for (FontComponent n = AllComponents; n >= Foundry; n--)
-    {
-	string c = component(source, n);
-	if (s.empty() && c == component(ad, font, n))
-	{
-	    // Default setting -- ignore
-	}
-	else
-	{
-	    s.prepend("-" + c);
-	}
-    }
-
-    if (s.contains("-*-", 0))
-	s = s.after("-*-");
-
-    if (s.empty())
-	s = component(ad, font, Family);
-    if (!s.contains('-')) {
-	s += '-';
-	s += component(ad, font, Weight);
-    }
-
-#if 0
-    std::clog << "simplify_font(" << font_type(font) << ", " 
-	      << quote(source) << ") = " << quote(s) << "\n";
-#endif
-
-    return s;
-}
-#endif
 
 // Set a new font resource
 void set_font(DDDFont font, const string& name)
@@ -815,7 +495,6 @@ void SetFontSizeCB(Widget w, XtPointer client_data, XtPointer)
     update_reset_preferences();
 }
 
-#if HAVE_FREETYPE
 std::vector<string> GetFixedWithFonts()
 {
     std::vector<string> fontlist;
@@ -905,188 +584,3 @@ std::vector<string> GetVariableWithFonts()
     return fontlist;
 }
 
-#endif
-
-#ifndef HAVE_FREETYPE
-//-----------------------------------------------------------------------------
-// Font browser
-//-----------------------------------------------------------------------------
-
-struct FontSelectInfo {
-    DDDFont font;
-    Widget text;
-};
-
-static void gdbDeleteFontSelectAgent(XtPointer client_data, XtIntervalId *)
-{
-    // Delete agent after use
-    Agent *font_select_agent = (Agent *)client_data;
-    delete font_select_agent;
-}
-
-static string output_buffer;
-
-static void FontSelectionErrorHP(Agent *, void *, void *call_data)
-{
-    DataLength *input = (DataLength *)call_data;
-    output_buffer += string(input->data, input->length);
-    while (output_buffer.contains('\n'))
-    {
-	set_status(output_buffer.before('\n'));
-	output_buffer = output_buffer.after('\n');
-    }
-    if (!output_buffer.empty())
-	set_status(output_buffer);
-}
-
-static void DeleteAgentHP(Agent *agent, void *client_data, void *)
-{
-    FontSelectInfo *info = (FontSelectInfo *)client_data;
-
-    // Agent has died -- delete it
-    XtAppAddTimeOut(XtWidgetToApplicationContext(gdb_w), 0, 
-		    gdbDeleteFontSelectAgent, 
-		    XtPointer(agent));
-
-    // Destroy the text
-    DestroyWhenIdle(info->text);
-
-    if (!output_buffer.empty())
-	set_status("");
-}
-
-static void process_font(DDDFont font, string fontspec)
-{
-    string sz = component(fontspec, PointSize);
-    if (sz != "*" && sz != "0")
-	set_font_size(font, atoi(sz.chars()));
-
-    fontspec.gsub('*', ' ');
-    set_font(font, simplify_font(app_data, font, 
-				 make_font(app_data, font, fontspec)));
-
-    update_options();
-}
-
-// Handle `Quit' button in xfontsel
-static void FontSelectionDoneHP(Agent *agent, void *client_data, 
-				void *call_data)
-{
-    FontSelectInfo *info = (FontSelectInfo *)client_data;
-
-    // Fetch string from font selector
-    DataLength *d = (DataLength *)call_data;
-    string fontspec(d->data, d->length);
-    strip_space(fontspec);
-
-    if (!fontspec.contains('-', 0))
-    {
-	// Treat as error
-	FontSelectionErrorHP(agent, client_data, call_data);
-	return;
-    }
-
-    process_font(info->font, fontspec);
-}
-
-
-static void GotSelectionCB(Widget w, XtPointer client_data,
-			   Atom *, Atom *type, XtPointer value,
-			   unsigned long *length, int *format)
-{
-    FontSelectInfo *info = (FontSelectInfo *)client_data;
-
-    if (*type == None)
-	return;			// Could not fetch selection
-
-    if (*type != XA_STRING)
-    {
-	XtFree((char *)value);
-	return;			// Not a string
-    }
-
-    if (*format != 8)
-    {
-	XtFree((char *)value);
-	return;			// No 8-bit-string
-    }
-
-    string s((String)value, *length);
-    if (s.contains('\0'))
-	s = s.before('\0');
-    XtFree((char *)value);
-
-    if (s.contains("-", 0) && !s.contains('\n') && 
-	s.freq('-') == AllComponents)
-    {
-	process_font(info->font, s);
-    }
-
-    XmTextSetString(w, XMST(s.chars()));
-
-    // Get the selection again.
-    // This will fail if we have multiple font selectors (FIXME).
-    TextSetSelection(w, 0, s.length(), 
-		     XtLastTimestampProcessed(XtDisplay(w)));
-}
-
-// Handle `Select' button in xfontsel
-static void SelectionLostCB(Widget w, XtPointer client_data, XtPointer)
-{
-    FontSelectInfo *info = (FontSelectInfo *)client_data;
-    assert(info->text == w);
-
-    XtGetSelectionValue(w, XA_PRIMARY, XA_STRING, GotSelectionCB,
-			XtPointer(info), 
-			XtLastTimestampProcessed(XtDisplay(w)));
-}
-
-
-// Browse fonts
-void BrowseFontCB(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Time tm = CurrentTime;
-    XmPushButtonCallbackStruct *cbs = (XmPushButtonCallbackStruct *)call_data;
-    if (cbs && cbs->event)
-	tm = time(cbs->event);
-
-    DDDFont font = (DDDFont) (long) client_data;
-
-    StatusDelay delay("Invoking " + font_type(font) + " selector");
-
-    string cmd = app_data.font_select_command;
-    cmd.gsub("@FONT@", make_font(app_data, DefaultDDDFont));
-    string type = font_type(font);
-    type[0] = toupper(type[0]);
-    cmd.gsub("@TYPE@", type);
-    cmd = sh_command(cmd, true);
-
-    // Create a TextField to fetch the selection
-    FontSelectInfo *info = new FontSelectInfo;
-    info->text = XmCreateText(XtParent(w), XMST("text"), 0, 0);
-    info->font = font;
-
-    XtRealizeWidget(info->text);
-
-    const string text = "dummy";
-    XmTextSetString(info->text, XMST(text.chars()));
-    TextSetSelection(info->text, 0, text.length(), tm);
-    XtAddCallback(info->text, XmNlosePrimaryCallback, 
-		  SelectionLostCB, XtPointer(info));
-
-    // Invoke a font selector
-    LiterateAgent *font_select_agent = 
-	new LiterateAgent(XtWidgetToApplicationContext(w), cmd);
-
-    output_buffer = "";
-
-    font_select_agent->removeAllHandlers(Died);
-    font_select_agent->addHandler(Died,
-				  DeleteAgentHP, (void *)info);
-    font_select_agent->addHandler(Input,
-				  FontSelectionDoneHP, (void *)info);
-    font_select_agent->addHandler(Error,
-				  FontSelectionErrorHP, (void *)info);
-    font_select_agent->start();
-}
-#endif

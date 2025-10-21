@@ -1642,7 +1642,7 @@ void SourceView::set_source_argCB(Widget text_w,
     Boolean have_selection = 
         XmTextGetSelectionPosition(text_w, &startPos, &endPos);
 
-    if (!have_selection || (app_data.source_editing && startPos == endPos))
+    if (!have_selection)
     {
         // No selection?  If the current motion was caused by a mouse
         // click, fetch word at current cursor position instead.
@@ -2932,12 +2932,11 @@ SourceView::SourceView(Widget parent)
     XtAppAddActions (app_context, actions, XtNumber (actions));
 
     // Create source code window
-    create_text(parent, "source", app_data.source_editing,
-                source_form_w, source_text_w);
+    create_text(parent, "source", source_form_w, source_text_w);
     XtManageChild(source_form_w);
 
     // Create machine code window
-    create_text(parent, "code", false, code_form_w, code_text_w);
+    create_text(parent, "code", code_form_w, code_text_w);
     if (disassemble)
         XtManageChild(code_form_w);
 }
@@ -3216,23 +3215,8 @@ void SourceView::create_shells()
     XtAppAddWorkProc (app_context, CreateGlyphsWorkProc, XtPointer(0));
 }
 
-// Check for modifications
-void SourceView::CheckModificationCB(Widget, XtPointer client_data, 
-                                     XtPointer call_data)
-{
-    bool editable = bool((int)(long)client_data);
-    XmTextVerifyCallbackStruct *cbs = (XmTextVerifyCallbackStruct *)call_data;
-    if (!editable && cbs != 0 && cbs->event != 0)
-    {
-        cbs->doit = False;
-        return;
-    }
-
-    // Follow text modifications here... (FIXME)
-}
-
 // Create source or code window
-void SourceView::create_text(Widget parent, const char *base, bool editable,
+void SourceView::create_text(Widget parent, const char *base,
                              Widget& form, Widget& text)
 {
     Arg args[15];
@@ -3258,8 +3242,6 @@ void SourceView::create_text(Widget parent, const char *base, bool editable,
 
     XtSetArg(args[arg], XmNautoShowCursorPosition, True);     arg++;
 
-    XtSetArg(args[arg], XmNeditable, editable); arg++;
-
     const string text_name = string(base) + "_text_w";
     text = verify(XmCreateScrolledText(form, XMST(text_name.chars()), args, arg));
     XtManageChild(text);
@@ -3281,8 +3263,6 @@ void SourceView::create_text(Widget parent, const char *base, bool editable,
                   set_source_argCB, XtPointer(true));
     XtAddCallback(text, XmNmotionVerifyCallback, 
                   CheckScrollCB, XtPointer(0));
-    XtAddCallback(text, XmNmodifyVerifyCallback,
-                  CheckModificationCB, XtPointer(editable));
     InstallTextTips(text);
 
     // Fetch scrollbar ID and add callbacks
@@ -4468,10 +4448,7 @@ void SourceView::startSelectWordAct (Widget text_w, XEvent* e,
     XmTextPosition pos = XmTextXYToPos (text_w, event->x, event->y);
 
     XmTextPosition startpos, endpos;
-    if (app_data.source_editing)
-        startpos = endpos = pos;
-    else
-        find_word_bounds(text_w, pos, startpos, endpos);
+    find_word_bounds(text_w, pos, startpos, endpos);
 
     selection_click    = true;
     selection_startpos = startpos;

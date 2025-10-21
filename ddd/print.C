@@ -239,7 +239,7 @@ enum PrintTarget { TARGET_FILE, TARGET_PRINTER };
 
 static bool            print_selected_only = false;
 static bool            print_displays      = true;
-static bool            print_target = TARGET_PRINTER;
+static PrintTarget     print_target = TARGET_PRINTER;
 static PostScriptPrintGC print_postscript_gc;
 static FigPrintGC        print_xfig_gc;
 static PrintType       print_type = PRINT_POSTSCRIPT;

@@ -180,11 +180,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, default_font),
         XtRString, 
-#if HAVE_FREETYPE
         XtPointer("Liberation Sans")
-#else
-        XtPointer("-*-liberation sans-bold-r-*")
-#endif
     },
 
     { 
@@ -194,11 +190,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, variable_width_font),
         XtRString,
-#if HAVE_FREETYPE
         XtPointer("Liberation Sans")
-#else
-        XtPointer("-*-liberation sans-medium-r-*")
-#endif
     },
 
     { 
@@ -208,11 +200,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, fixed_width_font),
         XtRString,
-#if HAVE_FREETYPE
         XtPointer("Liberation Mono")
-#else
-        XtPointer("-*-liberation mono-medium-r-*")
-#endif
     },
 
     { 
@@ -222,11 +210,7 @@ XtResource ddd_resources[] = {
         sizeof(String),
         XtOffsetOf(AppData, data_font),
         XtRString,
-#if HAVE_FREETYPE
         XtPointer("Liberation Mono")
-#else
-        XtPointer("-*-liberation mono-medium-r-*")
-#endif
     },
 
     {
@@ -236,11 +220,7 @@ XtResource ddd_resources[] = {
         sizeof(Cardinal),
         XtOffsetOf(AppData, default_font_size),
         XmRImmediate,
-#if HAVE_FREETYPE
         XtPointer(12)
-#else
-        XtPointer(120)
-#endif
     },
 
     {
@@ -250,11 +230,7 @@ XtResource ddd_resources[] = {
         sizeof(Cardinal),
         XtOffsetOf(AppData, variable_width_font_size),
         XmRImmediate,
-#if HAVE_FREETYPE
         XtPointer(12)
-#else
-        XtPointer(120)
-#endif
     },
 
     {
@@ -264,11 +240,7 @@ XtResource ddd_resources[] = {
         sizeof(Cardinal),
         XtOffsetOf(AppData, fixed_width_font_size),
         XmRImmediate,
-#if HAVE_FREETYPE
         XtPointer(12)
-#else
-        XtPointer(120)
-#endif
     },
 
     {
@@ -278,11 +250,7 @@ XtResource ddd_resources[] = {
         sizeof(Cardinal),
         XtOffsetOf(AppData, data_font_size),
         XmRImmediate,
-#if HAVE_FREETYPE
         XtPointer(12)
-#else
-        XtPointer(120)
-#endif
     },
 
     { 
@@ -373,16 +341,6 @@ XtResource ddd_resources[] = {
         XtOffsetOf(AppData, indent_code),
         XmRImmediate,
         XtPointer(4)
-    },
-
-    {
-        XTRESSTR(XtNsourceEditing),
-        XTRESSTR(XtCSourceEditing),
-        XtRBoolean,
-        sizeof(Boolean),
-        XtOffsetOf(AppData, source_editing),
-        XtRImmediate,
-        XtPointer(False)
     },
 
     {
@@ -660,16 +618,6 @@ XtResource ddd_resources[] = {
         XtOffsetOf(AppData, plot_command),
         XtRString,
         XtPointer("gnuplot -e \"set terminal x11 title '@NAME@'\" -")
-    },
-
-    {
-        XTRESSTR(XtNplotWindowClass),
-        XTRESSTR(XtCPlotWindowClass),
-        XtRString,
-        sizeof(String),
-        XtOffsetOf(AppData, plot_window_class),
-        XtRString,
-        XtPointer("Gnuplot")
     },
 
     {

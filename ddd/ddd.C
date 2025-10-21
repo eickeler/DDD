@@ -1584,7 +1584,6 @@ static MMDesc startup_preferences_menu [] =
 static Widget font_names[5] = {};
 static Widget font_sizes[5] = {};
 
-#if HAVE_FREETYPE
 #define FONT_MENU(font) \
 { \
     { "name",   MMDropDownList | MMUnmanagedLabel, { SetFontNameCB, XtPointer(font) }, 0, &font_names[int(font)], 0, 0 }, \
@@ -1595,34 +1594,6 @@ static Widget font_sizes[5] = {};
 static MMDesc variable_width_font_menu [] = FONT_MENU(VariableWidthDDDFont);
 static MMDesc fixed_width_font_menu    [] = FONT_MENU(FixedWidthDDDFont);
 static MMDesc data_font_menu           [] = FONT_MENU(DataDDDFont);
-
-#else
-
-#define FONT_MENU(font) \
-{ \
-    { "name",   MMTextField | MMUnmanagedLabel, \
-    { SetFontNameCB, XtPointer(font) }, 0, \
-    &font_names[int(font)], 0, 0 }, \
-    { "size",   MMTextField, \
-    { SetFontSizeCB, XtPointer(font) }, 0, \
-    &font_sizes[int(font)], 0, 0 }, \
-    { "browse", MMPush, { BrowseFontCB, XtPointer(font) }, 0, 0, 0, 0 }, \
-    MMEnd \
-}
-
-static MMDesc default_font_menu        [] = FONT_MENU(DefaultDDDFont);
-static MMDesc variable_width_font_menu [] = FONT_MENU(VariableWidthDDDFont);
-static MMDesc fixed_width_font_menu    [] = FONT_MENU(FixedWidthDDDFont);
-static MMDesc data_font_menu           [] = FONT_MENU(DataDDDFont);
-
-const char * font_menu_notes = 
-    " \n"
-    "Selecting fonts with xfontsel:\n"
-    "Only scalable fonts should be selected (ptSz=0).\n"
-    "Default and Variable fonts must be proportional (spc=p),\n"
-    "Fixed and Data fonts must be monospaced (spc=m).\n"
-    DDD_NAME " only supports ISO8859-1 encoding.\n" ;
-#endif
 
 // Color theme
 static Widget set_light_mode_w;
@@ -1672,15 +1643,9 @@ static MMDesc iconscaling_menu [] =
 
 static MMDesc appearance_menu [] =
 {
- #if !HAVE_FREETYPE
-    { "default",         MMPanel,  MMNoCB, default_font_menu, 0, 0, 0 },
-#endif
     { "variableWidth",   MMPanel,  MMNoCB, variable_width_font_menu, 0, 0, 0 },
     { "fixedWidth",      MMPanel,  MMNoCB, fixed_width_font_menu, 0, 0, 0 },
     { "data",            MMPanel,  MMNoCB, data_font_menu, 0, 0, 0 },
-#if !HAVE_FREETYPE
-    { font_menu_notes,          MMLabel,  MMNoCB, 0, 0, 0, 0 },
-#endif
     { "colortheme",     MMRadioPanel,  MMNoCB, color_theme_menu, 0, 0, 0 },
     { "buttons",         MMButtonPanel, MMNoCB, button_appearance_menu, 0, 0, 0 },
     { "iconscaling",  MMButtonPanel, MMNoCB, iconscaling_menu, 0, 0, 0 },
@@ -1998,7 +1963,7 @@ SourceView*   source_view;
 ArgField*     source_arg;
 
 // Argument toolbar
-static Widget arg_cmd_w;
+static Widget arg_cmd_w = nullptr;
 
 // GDB input/output widget
 Widget gdb_w;
@@ -2016,10 +1981,10 @@ XmTextPosition promptPosition;
 XmTextPosition messagePosition;
 
 // Buttons
-static Widget console_buttons_w;
-static Widget source_buttons_w;
-static Widget data_buttons_w;
-static Widget command_toolbar_w;
+static Widget console_buttons_w = nullptr;
+static Widget source_buttons_w = nullptr;
+static Widget data_buttons_w = nullptr;
+static Widget command_toolbar_w = nullptr;
 
 // Strings to be ignored in GDB output
 string gdb_out_ignore = "";
@@ -2062,15 +2027,8 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 #ifdef LC_ALL
     // Let DDD locales be controlled by the locale-specific
     // environment variables -- especially $LANG.
-#if !HAVE_FREETYPE
-    // ddd cannot handle UTF-8. As workaround we use the latin1 charset 
-    // and try to map UTF-8 characters on this set.
-    setlocale(LC_ALL, "C.ISO-8859-1");
-    //XtSetLanguageProc(NULL, NULL, NULL); // do not call XtSetLanguageProc, the default seems to be latin1
-#else
     setlocale(LC_ALL, "C.UTF-8");
     XtSetLanguageProc(NULL, NULL, NULL);
-#endif
 #endif
 
     // Save environment for restart.
@@ -5110,7 +5068,6 @@ static void make_preferences(Widget parent)
     add_panel(change, buttons, "appearance", appearance_menu,
               max_width, max_height, false);
 
-#if HAVE_FREETYPE
     std::vector<string> varwidthlist =  GetVariableWithFonts();
     std::vector<string> fixedwidthlist = GetFixedWithFonts();
     std::vector<string> combinedlist;
@@ -5121,7 +5078,6 @@ static void make_preferences(Widget parent)
     ComboBoxSetList(font_names[int(VariableWidthDDDFont)], varwidthlist);
     ComboBoxSetList(font_names[int(FixedWidthDDDFont)], fixedwidthlist);
     ComboBoxSetList(font_names[int(DataDDDFont)], combinedlist);
-#endif
 
     add_panel(change, buttons, "helpers", helpers_preferences_menu, 
               max_width, max_height, false);
@@ -7100,11 +7056,7 @@ static void setup_version_info()
     std::ostringstream os;
     show_configuration(os);
     string cinfo(os);
-#if HAVE_FREETYPE
     cinfo.gsub("(C)", "\302\251"); //0xC2 0xA9
-#else
-    cinfo.gsub("(C)", "\251");
-#endif
 
     // Set e-mail address in @tt; the remainder in @rm
     int cinfo_lt = cinfo.index('<', -1);
@@ -7196,7 +7148,6 @@ static void setup_version_info()
     s += "To start, select `Help->What Now?'.";
     XmTextSetString(SourceView::source(), s);
 #else
-#if HAVE_FREETYPE
     XmTextSetString(gdb_w, XMST(
                     "GNU " DDD_NAME " " DDD_VERSION " (" DDD_HOST "), "
                     "by Dorothea L\303\274tkehaus and Andreas Zeller,\n"
@@ -7209,19 +7160,6 @@ static void setup_version_info()
                     "Universit\303\244t des Saarlandes, Germany.\n"
                     "Copyright \302\251 2001-2023 "
                     "Free Software Foundation, Inc.\n"));
-#else
-    XmTextSetString(gdb_w, XMST(
-                    "GNU " DDD_NAME " " DDD_VERSION " (" DDD_HOST "), "
-                    "by Dorothea L\374tkehaus and Andreas Zeller.\n"
-                    "Copyright \251 1995-1999 "
-                    "Technische Universit\344t Braunschweig, Germany.\n"
-                    "Copyright \251 1999-2001 "
-                    "Universit\344t Passau, Germany.\n"
-                    "Copyright \251 2001 "
-                    "Universit\344t des Saarlandes, Germany.\n"
-                    "Copyright \251 2001-2023 "
-                    "Free Software Foundation, Inc.\n"));
-#endif
 #endif
 }
 
@@ -7288,11 +7226,7 @@ static void setup_environment()
     {
         case GDB:
             // reset the internationalization in gdb to allow the correct interpretation of the answers from gdg
-#if HAVE_FREETYPE
             put_environment("LANG", "C.UTF-8");
-#else
-            put_environment("LANG", "");
-#endif
         // fallthrough
         case BASH:
         case DBG:

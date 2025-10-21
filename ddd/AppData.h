@@ -99,8 +99,6 @@
 #define XtNindentSource          "indentSource"
 #define XtNindentCode            "indentCode"
 #define XtCIndent                "Indent"
-#define XtNsourceEditing         "sourceEditing"
-#define XtCSourceEditing         "SourceEditing"
 #define XtNlineBufferedConsole   "lineBufferredConsole"
 #define XtCLineBuffered          "LineBuffered"
 #define XtNconsoleHasFocus       "consoleHasFocus"
@@ -150,8 +148,6 @@
 #define XtNplot2dSettings        "plot2dSettings"
 #define XtNplot3dSettings        "plot3dSettings"
 #define XtCPlotSettings          "PlotSettings"
-#define XtNplotWindowClass       "plotWindowClass"
-#define XtCPlotWindowClass       "PlotWindowClass"
 #define XtNplotWindowDelay       "plotWindowDelay"
 #define XtCWindowDelay           "WindowDelay"
 #define XtNtermCommand           "termCommand"
@@ -437,7 +433,6 @@ struct AppData {
     Cardinal  indent_source;
     Cardinal  indent_script;
     Cardinal  indent_code;
-    Boolean   source_editing;
     Boolean   line_buffered_console;
     OnOff     console_has_focus;
     const _XtString    bash_display_shortcuts;
@@ -466,7 +461,6 @@ struct AppData {
     Boolean   debugger_console;
     Boolean   auto_close_data_window;
     const _XtString    plot_command;
-    const _XtString    plot_window_class;
     Cardinal  plot_window_delay;
     const _XtString    plot_init_commands;
     const _XtString    plot_2d_settings;

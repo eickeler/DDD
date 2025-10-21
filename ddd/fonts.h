@@ -59,10 +59,6 @@ extern void set_font(DDDFont n, const string& name);
 std::vector<string> GetFixedWithFonts();
 std::vector<string> GetVariableWithFonts();
 
-#ifndef HAVE_FREETYPE
-// Browse fonts
-extern void BrowseFontCB(Widget w, XtPointer, XtPointer);
-#endif
 
 // Set font name and size
 extern void SetFontNameCB(Widget w, XtPointer, XtPointer);

@@ -414,25 +414,8 @@ void commandAct(Widget w, XEvent *ev, String *params, Cardinal *num_params)
     gdb_keyboard_command = from_keyboard(ev);
 }
 
-void processAct(Widget w, XEvent *e, String *params, Cardinal *num_params)
+void processAct(Widget w, XEvent *e, String *, Cardinal *)
 {
-    if (app_data.source_editing && w == source_view->source())
-    {
-	// Process event in source window
-	string action = "self-insert";   // Default action
-	String *action_params      = 0;
-	Cardinal num_action_params = 0;
-	if (num_params != 0 && *num_params > 0)
-	{
-	    action = params[0];
-	    action_params = params + 1;
-	    num_action_params = *num_params - 1;
-	}
-
-	XtCallActionProc(w, action.chars(), e, action_params, num_action_params);
-	return;
-    }
-
     if (e->type != KeyPress && e->type != KeyRelease)
 	return;			// Forward only keyboard events
 

@@ -134,8 +134,6 @@ class SourceView {
     static void CheckScrollCB(Widget, XtPointer, XtPointer);
     static void CheckScrollWorkProc(XtPointer, XtIntervalId *);
 
-    static void CheckModificationCB        (Widget, XtPointer, XtPointer);
-
     static void StackDialogPoppedDownCB    (Widget, XtPointer, XtPointer);
     static void CodeDialogPoppedDownCB     (Widget, XtPointer, XtPointer);
     static void RegisterDialogPoppedDownCB (Widget, XtPointer, XtPointer);
@@ -156,8 +154,7 @@ class SourceView {
     static int line_height(Widget text_w);
 
     // Create text or code widget
-    static void create_text(Widget parent,
-                            const char *base, bool editable,
+    static void create_text(Widget parent, const char *base,
                             Widget& form, Widget& text);
 
     // Refresh displays

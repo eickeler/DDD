@@ -823,11 +823,7 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
     snprintf(hexid, sizeof(hexid), "%06x", randomnumber);
 
     string cmd = app_data.plot_command;
-#if HAVE_FREETYPE
     cmd.gsub("@FONT@", make_xftfont(app_data, FixedWidthDDDFont));
-#else
-    cmd.gsub("@FONT@", make_font(app_data, FixedWidthDDDFont));
-#endif
 
     string window_name = ddd_NAME "plot";
     window_name += hexid;

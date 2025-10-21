@@ -62,52 +62,15 @@ BoxFont *FontTable::operator[](const string& name)
     {
 	// Insert new font
 	table[i].name = name;
-#if HAVE_FREETYPE
  	table[i].font = XftFontOpenName(_display, DefaultScreen(_display), (name+":antialias=true").chars());
-#else
-	table[i].font = XLoadQueryFont(_display, name.chars());
-#endif
 	if (table[i].font == 0)
 	{
 	    std::cerr << "Warning: Could not load font \"" << name << "\"";
 
 	    // Try default font
-#if HAVE_FREETYPE
             table[i].font = XftFontOpen(_display, DefaultScreen(_display), XFT_FAMILY, XftTypeString, "", NULL);
             std::cerr << ", using default font instead\n";
-#else
-	    GC default_gc =
-		DefaultGCOfScreen(DefaultScreenOfDisplay(_display));
-	    XGCValues gc_values;
-	    if (XGetGCValues(_display, default_gc, GCFont, &gc_values))
-	    {
-		const Font& font_id = gc_values.font;
-		XFontStruct *font = XQueryFont(_display, font_id);
-		if (font != 0)
-		{
-		    std::cerr << ", using default font instead\n";
-		    table[i].font = font;
-		}
-	    }
-#endif
-
         }
-
-#if !HAVE_FREETYPE
-	if (table[i].font == 0)
-	{
-	    // Try "fixed" font
-	    XFontStruct *font = XLoadQueryFont(_display, "fixed");
-	    if (font != 0)
-	    {
-		std::cerr << ", using font \"fixed\" instead\n";
-		table[i].font = font;
-	    }
-	}
-
-	if (table[i].font == 0)
-	    std::cerr << "\n";
-#endif
     }
 
     return table[i].font;
