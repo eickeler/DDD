@@ -68,6 +68,7 @@ char logo_rcsid[] =
 
 #else
 static const char **ddd_xpm = 0;
+static const char **ddd3_5_xpm = 0;
 #endif
 
 #include <iostream>
