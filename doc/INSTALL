@@ -21,6 +21,9 @@ To build a complete DDD from sources, you need:
      -   libX11
      -   libXt
 
+   * The X11 miscellaneous extensions library.
+     -   libxext
+
    * The XPM library (3.2 or later).  The XPM library brings support
      for multi-color icons and logos.  Without XPM, DDD will use
      monochrome icons.
