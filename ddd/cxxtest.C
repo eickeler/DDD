@@ -49,6 +49,12 @@ char cxxtest_rcsid[] =
 
 #include <vector>
 #include <string>
+#include <set>
+#include <list>
+#include <map>
+#include <unordered_map>
+#include <valarray>
+#include <memory>
 
 //--------------------------------------------------------------------------
 extern "C" {
@@ -458,7 +464,7 @@ static void array_test()
     // Initialize array
     for (int i = 0; i < int(sizeof(array) / sizeof(array[0])); i++)
 	for (int j = 0; j < int(sizeof(array[0]) / sizeof(array[0][0])); j++)
-	    array[i][j] = 0;
+	    array[i][j] = i + j;
 
     // Dereference this
     Date *date_ptrs[4];
@@ -618,7 +624,7 @@ static void plot_test()
 	ir[i] = rnd(100);
     shellsort(ir, numbers(ir));
 
-    static double dr[10][100];
+    static double dr[50][100];
     double pi = 3.14159265358979323846;
 
     int j;
@@ -635,6 +641,146 @@ static void plot_test()
 	for (j = 0; j < 10; j++)
 	    array[i][j] = i * j;
     }
+}
+
+//--------------------------------------------------------------------------
+
+// Simple image structure
+template <class PIXTYPE>
+class Image
+{
+public:
+    int xdim;                //!< Width  (pixels)
+    int ydim;                //!< Height (pixels)
+    int cdim;                //!< Number of colour planes (RGB ⇒ 3, Gray ⇒ 1...)
+    PIXTYPE *pixmap;         //!< Contiguous image buffer (size = cdim·xdim·ydim)
+
+    // Constructor
+    Image(int width, int height, int colordim)
+    : xdim(width), ydim(height), cdim(colordim)
+    {
+        pixmap = new PIXTYPE[xdim * ydim * cdim];
+    }
+
+    // Destructor
+    ~Image()
+    {
+        delete[] pixmap;
+    }
+
+    // Copy constructor
+    Image(const Image& other) : xdim(other.xdim), ydim(other.ydim), cdim(other.cdim)
+    {
+        int size = xdim * ydim * cdim;
+        pixmap = new PIXTYPE[size];
+        for (int i = 0; i < size; ++i)
+            pixmap[i] = other.pixmap[i];
+    }
+
+    // Assignment operator
+    Image& operator=(const Image& other)
+    {
+        if (this == &other)
+            return *this;
+
+        delete[] pixmap;
+        xdim = other.xdim;
+        ydim = other.ydim;
+        cdim = other.cdim;
+        int size = xdim * ydim * cdim;
+        pixmap = new PIXTYPE[size];
+        for (int i = 0; i < size; ++i)
+            pixmap[i] = other.pixmap[i];
+
+        return *this;
+    }
+
+    void clear()
+    {
+        int size = xdim * ydim * cdim;
+        for (int i = 0; i < size; ++i)
+            pixmap[i] = PIXTYPE();
+    }
+
+    PIXTYPE& at(int x, int y, int channel = 0)
+    {
+        return pixmap[(channel * ydim + y) * xdim + x];
+    }
+
+    const PIXTYPE& at(int x, int y, int channel = 0) const
+    {
+        return pixmap[(channel * ydim + y) * xdim + x];
+    }
+
+};
+
+// Mandelbrot fractal generator
+void image_test()
+{
+    Image<unsigned char> img(800, 600, 3);
+
+    // Mandelbrot fractal generator
+    double xmin = -2.0, xmax = 0.7;
+    double ymin = -1.3, ymax = 1.3;
+    int maxIterations = 200;
+
+    double dx = (xmax - xmin) / img.xdim;
+    double dy = (ymax - ymin) / img.ydim;
+
+    for (int y = 0; y < img.ydim; ++y)
+    {
+        for (int x = 0; x < img.xdim; ++x)
+        {
+            double cx = xmin + x * dx;
+            double cy = ymin + y * dy;
+
+            double zx = 0, zy = 0;
+            int iterations = 0;
+
+            while (iterations < maxIterations)
+            {
+                double zx2 = zx * zx;
+                double zy2 = zy * zy;
+
+                if (zx2 + zy2 > 4.0) break;
+
+                double new_zx = zx2 - zy2 + cx;
+                zy = 2 * zx * zy + cy;
+                zx = new_zx;
+
+                iterations++;
+            }
+
+            if (iterations == maxIterations)
+            {
+                //Inside set - black
+                img.at(x, y, 0) = 0;
+                img.at(x, y, 1) = 0;
+                img.at(x, y, 2) = 0;
+            }
+            else
+            {
+                // Smooth coloring using continuous iteration count
+                double log_zn = log(zx*zx + zy*zy) / 2;
+                double nu = log(log_zn / log(2.0)) / log(2.0);
+                double smooth_iter = iterations + 1 - nu;
+
+                // Normalize and create colors
+                double t = smooth_iter / maxIterations;
+
+                // Rainbow effect
+                img.at(x, y, 0) = (int)(255 * (0.5 + 0.5 * cos(3.0 + t * 6.28 * 3)));
+                img.at(x, y, 1) = (int)(255 * (0.5 + 0.5 * cos(2.0 + t * 6.28 * 3)));
+                img.at(x, y, 2) = (int)(255 * (0.5 + 0.5 * cos(1.0 + t * 6.28 * 3)));
+            }
+        }
+    }
+
+    (void) img;			// Plot this
+
+
+    std::cout << "pixel at 10,10 " << int(img.at(10, 10,2)) << std::endl;
+
 }
 
 //--------------------------------------------------------------------------
@@ -731,6 +877,39 @@ static void type_test()
 }
 
 //--------------------------------------------------------------------------
+static void stl_test()
+{
+    std::list<int> li;
+    li.push_back(1);
+    li.push_back(2);
+    li.push_back(3);
+
+    std::vector<int> vec(0);
+    vec.reserve(8);
+    vec.push_back(1);
+    vec.push_back(2);
+    vec.push_back(3);
+
+    std::unordered_map<int,int> ma { {1, 1}, {2, 2},{3, 3}};
+
+    std::pair<int, float> p = {2, 0.1};
+    std::tuple<int, float, float> t = {1, 0.2, 0.3};
+
+    std::shared_ptr<std::vector<int>> sp = std::make_shared<std::vector<int>>(vec);
+    std::set<int> s = { 1, 2, 4, 5, 8, 9};
+
+    int a = 4;
+    std::shared_ptr<int> p1 = std::make_shared<int>(a);
+    std::unique_ptr<int> p2(new int);
+    std::weak_ptr<int> p4 = p1;
+    int *pa = &a;
+
+    (void) pa;
+    (void) p;
+    (void) t;
+}
+
+//--------------------------------------------------------------------------
 static void utf8test()
 {
     // list created by ChatGPT
@@ -792,7 +971,13 @@ int main(int /* argc */, char ** /* argv */)
     plot_test();
     i++;
 
+    image_test();
+    i++;
+
     type_test();
+    i++;
+
+    stl_test();
     i++;
 
     namespace_test();
