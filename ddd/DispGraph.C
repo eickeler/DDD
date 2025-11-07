@@ -223,7 +223,6 @@ int DispGraph::insert(int new_disp_nr, DispNode *new_dn, int depends_on)
 BoxPoint DispGraph::adjust_position (DispNode *new_node,
 				     Widget w,
 				     BoxPoint pos,
-				     const BoxPoint& offset,
 				     BoxPoint grid,
                                      bool horizontal) const
 {
@@ -455,9 +454,8 @@ BoxPoint DispGraph::default_pos(DispNode *new_node,
     }
 
     assert(pos.isValid());
-    assert(offset.isValid());
 
-    return adjust_position(new_node, w, pos, offset, grid, offset[X]!=0);
+    return adjust_position(new_node, w, pos, grid, offset[X]!=0);
 }
 
 // Find all hints in edges leading to NODE; store them in HINTS

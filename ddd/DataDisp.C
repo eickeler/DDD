@@ -6715,8 +6715,11 @@ static bool Yes(RegionGraphNode *, const BoxSize&)
     return true;
 }
 
-bool DataDisp::bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint delta)
+bool DataDisp::bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint delta, int depth)
 {
+    if ((delta[X]==0 && delta[Y]==0) || depth>30)
+        return false;
+
     for (GraphNode *r = disp_graph->firstNode(); r != 0; r = disp_graph->nextNode(r))
     {
         if (r == node)
@@ -6726,7 +6729,7 @@ bool DataDisp::bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint d
             continue;
 
         r->moveTo(r->pos()+delta);
-        bumpposition(gc, r, delta);
+        bumpposition(gc, r, delta, depth+1);
     }
 
     return true;
@@ -6802,7 +6805,7 @@ bool DataDisp::bump(RegionGraphNode *node, const BoxSize& newSize)
 
         r->moveTo(r_pos);
         // recursively test for overlaps of the moved box
-        bumpposition(gc, r, r_pos-r_old);
+        bumpposition(gc, r, r_pos-r_old, 0);
     }
 
     // All is done - don't use default behavior.

@@ -160,7 +160,6 @@ protected:
     BoxPoint adjust_position (DispNode *new_node,
 			      Widget w,
 			      BoxPoint pos,
-			      const BoxPoint& offset,
 			      BoxPoint grid,
                               bool horizontal) const;
 
