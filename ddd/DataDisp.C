@@ -134,6 +134,7 @@ char DataDisp_rcsid[] =
 #include <fstream>		// ofstream
 #include <ctype.h>
 
+#include <list>
 
 //-----------------------------------------------------------------------
 // Xt Stuff
@@ -6715,21 +6716,22 @@ static bool Yes(RegionGraphNode *, const BoxSize&)
     return true;
 }
 
-bool DataDisp::bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint delta, int depth)
+bool recursivebump(const GraphGC& gc, std::list<GraphNode*> &nodelist, GraphNode *node, const BoxPoint delta, int depth)
 {
     if ((delta[X]==0 && delta[Y]==0) || depth>30)
         return false;
 
-    for (GraphNode *r = disp_graph->firstNode(); r != 0; r = disp_graph->nextNode(r))
+    for (auto it = nodelist.begin(); it != nodelist.end(); ++it)
     {
+        GraphNode *r = *it;
         if (r == node)
             continue;
 
         if (!(node->region(gc) <= r->region(gc)))
             continue;
 
-        r->moveTo(r->pos()+delta);
-        bumpposition(gc, r, delta, depth+1);
+        r->moveTo(r->pos() + delta);
+        recursivebump(gc, nodelist, r, delta, depth+1);
     }
 
     return true;
@@ -6739,14 +6741,14 @@ bool DataDisp::bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint d
 bool DataDisp::bump(RegionGraphNode *node, const BoxSize& newSize)
 {
     if (!bump_displays)
-	return true;		// Okay
+        return true;		// Okay
 
     if (node->pos() == BoxPoint())
-	return true;		// No valid position yet
+        return true;		// No valid position yet
 
     DispNode *dn = ptr_cast(DispNode, node);
     if (dn != 0 && (!dn->active() || dn->clustered()))
-	return true;		// Clustered or inactive
+        return true;		// Clustered or inactive
 
     const GraphGC& gc = graphEditGetGraphGC(graph_edit);
     BoxRegion oldRegion = node->region(gc);
@@ -6759,53 +6761,76 @@ bool DataDisp::bump(RegionGraphNode *node, const BoxSize& newSize)
     // Let origin remain constant
     node->moveTo(node->originToPos(oldRegion.origin(), gc));
 
-    // Move all nodes that are right or below NODE such that their
-    // distance to NODE remains constant.
-
     // DELTA is the difference between old and new size
-    BoxSize delta  = node->space(gc) - oldRegion.space();
+    BoxSize sizediff = node->space(gc) - oldRegion.space();
 
-    if (delta[X]<=0 && delta[Y]<=0)
+    if (sizediff[X]<=0 && sizediff[Y]<=0)
         return true; // nothing to do
 
-    // NODE_ORIGIN is the (old) upper left corner of NODE
-    // BoxPoint node_origin = oldRegion.origin();
-
-    // BUMPER is the (old) lower right corner of NODE
-    BoxPoint node_bumper = oldRegion.origin() + oldRegion.space();
-
-    for (GraphNode *r = disp_graph->firstNode(); 
-	 r != 0; r = disp_graph->nextNode(r))
+    // create a list of GraphNodes that have to be handled
+    std::list<GraphNode*> nodelist;
+    for (GraphNode *r = disp_graph->firstNode(); r != 0; r = disp_graph->nextNode(r))
     {
-	if (r == node)
-	    continue;
+        if (r == node)
+            continue;
 
-	// If R is inactive or clustered, don't bump it
-	DispNode *rn = ptr_cast(DispNode, r);
-	if (rn != 0 && (!rn->active() || rn->clustered()))
-	    continue;
+        DispNode *rn = ptr_cast(DispNode, r);
+        if (rn != 0 && (!rn->active() || rn->clustered()))
+            continue;
 
+        nodelist.push_back(r);
+    }
+
+    // for overlapping GraphNodes leave only the bigger one to prevent infinite loops in recursive position correction
+    for (auto it = nodelist.begin(); it != nodelist.end();)
+    {
+        bool removed = false;
+        for (auto jt = std::next(it); jt != nodelist.end(); ++jt)
+        {
+            if ((*it)->region(gc) <= (*jt)->region(gc)) // overlaps
+            {
+                BoxSize bs1 = (*it)->region(gc).space();
+                int s1 = bs1[X] * bs1[Y];
+                BoxSize bs2 = (*jt)->region(gc).space();
+                int s2 = bs2[X] * bs2[Y];
+                if (s1 <= s2)
+                    it = nodelist.erase(it); // remove current if smaller (ties remove 'it')
+                else
+                    nodelist.erase(jt);      // remove successor if smaller
+                removed = true;
+                break; // restart comparisons for current 'it' (or its successor if 'it' was erased)
+            }
+        }
+        if (!removed)
+            ++it;
+    }
+
+    BoxPoint node_pos = node->pos();
+    BoxPoint node_origin = node->origin(gc);
+    for (auto it = nodelist.begin(); it != nodelist.end(); ++it)
+    {
+        GraphNode *r = *it;
         if (!(node->region(gc) <= r->region(gc)))
             continue;
 
-	// If ORIGIN (the upper left corner of R) is right of BUMPER,
-	// move R DELTA units to the right.  If it is below BUMPER,
-	// move R DELTA units down.
-
-	BoxPoint r_origin = r->origin(gc);
-	// BoxPoint r_bumper = r->origin(gc) + r->space(gc);
-
-	BoxPoint r_pos = r->pos();
+        BoxPoint r_pos = r->pos();
         BoxPoint r_old = r_pos;
 
-	if (r_origin[X] > node_bumper[X])
-	    r_pos[X] += delta[X];
-	if (r_origin[Y] > node_bumper[Y])
-	    r_pos[Y] += delta[Y];
+        if (std::abs(node_pos[X] -r_pos[X]) > std::abs(node_pos[Y] -r_pos[Y]))
+        {
+            if (node_origin[X] < r->origin(gc)[X])
+                r_pos[X] += sizediff[X];
+        }
+        else
+        {
+            if (node_origin[X] < r->origin(gc)[X])
+                r_pos[Y] += sizediff[Y];
+        }
 
         r->moveTo(r_pos);
+
         // recursively test for overlaps of the moved box
-        bumpposition(gc, r, r_pos-r_old, 0);
+        recursivebump(gc, nodelist, (*it), r_pos-r_old, 0);
     }
 
     // All is done - don't use default behavior.

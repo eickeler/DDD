@@ -140,7 +140,6 @@ class DataDisp {
     //-----------------------------------------------------------------------
     // Graph callbacks
     //-----------------------------------------------------------------------
-    static bool bumpposition(const GraphGC& gc, GraphNode *node, const BoxPoint delta, int depth);
     static bool bump(RegionGraphNode *node, const BoxSize& newSize);
 
     //-----------------------------------------------------------------------
