@@ -650,68 +650,42 @@ template <class PIXTYPE>
 class Image
 {
 public:
-    int xdim;                //!< Width  (pixels)
-    int ydim;                //!< Height (pixels)
-    int cdim;                //!< Number of colour planes (RGB ⇒ 3, Gray ⇒ 1...)
-    PIXTYPE *pixmap;         //!< Contiguous image buffer (size = cdim·xdim·ydim)
+    int xdim = 0;  // Width  (pixels)
+    int ydim = 0;  // Height (pixels)
+    int cdim = 0;  // Number of colour planes (RGB ⇒ 3, Gray ⇒ 1, ...)
+    std::vector<PIXTYPE> pixmap; // Contiguous planar image buffer (size = cdim·xdim·ydim)
 
-    // Constructor
-    Image(int width, int height, int colordim)
-    : xdim(width), ydim(height), cdim(colordim)
-    {
-        pixmap = new PIXTYPE[xdim * ydim * cdim];
-    }
+    Image() = default;
 
-    // Destructor
-    ~Image()
-    {
-        delete[] pixmap;
-    }
+    Image(int width, int height, int channels)
+        : xdim(width), ydim(height), cdim(channels),
+          pixmap(width * height * channels)
+    {  }
 
-    // Copy constructor
-    Image(const Image& other) : xdim(other.xdim), ydim(other.ydim), cdim(other.cdim)
-    {
-        int size = xdim * ydim * cdim;
-        pixmap = new PIXTYPE[size];
-        for (int i = 0; i < size; ++i)
-            pixmap[i] = other.pixmap[i];
-    }
-
-    // Assignment operator
-    Image& operator=(const Image& other)
-    {
-        if (this == &other)
-            return *this;
-
-        delete[] pixmap;
-        xdim = other.xdim;
-        ydim = other.ydim;
-        cdim = other.cdim;
-        int size = xdim * ydim * cdim;
-        pixmap = new PIXTYPE[size];
-        for (int i = 0; i < size; ++i)
-            pixmap[i] = other.pixmap[i];
-
-        return *this;
-    }
+    // Rule-of-zero (vector handles copy/move/destruct)
+    Image(const Image&) = default;
+    Image(Image&&) noexcept = default;
+    Image& operator=(const Image&) = default;
+    Image& operator=(Image&&) noexcept = default;
+    ~Image() = default;
 
     void clear()
     {
-        int size = xdim * ydim * cdim;
-        for (int i = 0; i < size; ++i)
-            pixmap[i] = PIXTYPE();
+        std::fill(pixmap.begin(), pixmap.end(), PIXTYPE{});
     }
 
-    PIXTYPE& at(int x, int y, int channel = 0)
+    PIXTYPE& at(int x, int y, int c = 0)
     {
-        return pixmap[(channel * ydim + y) * xdim + x];
+        return pixmap[(c * ydim + y) * xdim + x];
     }
 
-    const PIXTYPE& at(int x, int y, int channel = 0) const
+    const PIXTYPE& at(int x, int y, int c = 0) const
     {
-        return pixmap[(channel * ydim + y) * xdim + x];
+        return pixmap[(c * ydim + y) * xdim + x];
     }
 
+    PIXTYPE* data() noexcept { return pixmap.data(); }
+    const PIXTYPE* data() const noexcept { return pixmap.data(); }
 };
 
 // Mandelbrot fractal generator

@@ -1600,6 +1600,27 @@ bool DispValue::can_plot2d() const
 
 bool DispValue::can_plot3d() const
 {
+    if (type() == Simple && m_value.contains("<error:"))
+    {
+        // array is too large -- ask GDB about size and type
+        string gdbtype;
+        string answer = gdb_question("whatis " + m_full_name);
+        gdbtype = answer.after("=");
+        strip_space(gdbtype);
+        string ydim = gdbtype.after('[');
+        string xdim = ydim.after('[');
+        ydim = ydim.before(']');
+        xdim = xdim.before(']');
+        gdbtype = gdbtype.before('[');
+        strip_space(gdbtype);
+
+        string question = "python print(gdb.lookup_type('" + gdbtype + "').code in (gdb.TYPE_CODE_INT, gdb.TYPE_CODE_FLT))";
+        answer = gdb_question(question);
+
+        if (answer.contains("True"))
+            return true;
+    }
+
     if (type() != Array)
 	return false;
 
@@ -1618,21 +1639,46 @@ bool DispValue::can_plot3d() const
     return true;
 }
 
+bool matchMemberVariable(string variable, std::vector<string> candidates)
+{
+    // remove leagin "m_"
+    if (variable.contains("m_", 0))
+        variable = variable.after(1);
+
+    // remove all leading "_"
+    while (variable.length() > 1 && variable[0] == '_')
+        variable = variable.from(1);
+
+    // remove trailing "_"
+    while (variable.length() > 1 && variable[variable.length() - 1] == '_')
+        variable = variable.at(0, variable.length() - 1);
+
+    for (string &c : candidates)
+        if (variable == c)
+            return true;
+
+    return false;
+}
+
 bool DispValue::can_plotImage() const
 {
     if (m_type!=Struct)
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "pixmap"; }))
+    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"pixmap", "data"}); }))
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "cdim"; }))
+    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"cdim", "channels", "spectrum"}); }))
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "xdim"; }))
+    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"xdim", "width"}); }))
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "ydim"; }))
+    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"ydim", "height" }); }))
         return false;
 
     return true;
@@ -2032,7 +2078,8 @@ bool DispValue::plotVector(PlotAgent *plotter) const
 
 bool DispValue::plotImage(PlotAgent *plotter) const
 {
-    auto child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "cdim"; });
+    auto child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"cdim", "channels", "spectrum"}); });
     if (child == m_children.end())
         return false;
 
@@ -2045,28 +2092,44 @@ bool DispValue::plotImage(PlotAgent *plotter) const
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "pixmap"; });
+    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"pixmap", "data"}); });
     if (child == m_children.end())
         return false;
 
-    string address  = (*child)->value();
-    int pos = address.index(rxwhite);
-    if (pos>0)
-        address = address.before(pos);
+    string pixmapname = (*child)->m_print_name;
+    string address = (*child)->value();
+    if (!address.empty())
+    {
+        // pixmap is a raw pointer
+        int pos = address.index(rxwhite);
+        if (pos>0)
+            address = address.before(pos);
+    }
+    else
+    {
+        // pixmap is a container -> get addres of first element
+        string answer = gdb_question("print /x  &(" + m_full_name + "." + pixmapname + "[0])");
+printf("answer %s\n", answer.chars());
+        address = answer.after("=");
+        strip_space(address);
+    }
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "xdim"; });
+    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"xdim", "width"}); });
     if (child == m_children.end())
         return false;
 
     string xdimstr = (*child)->value().chars();
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "ydim"; });
+    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
+            { return matchMemberVariable(child->m_print_name, {"ydim", "height" }); });
     if (child == m_children.end())
         return false;
 
     string ydimstr =(*child)->value().chars();
 
-    string answer = gdb_question("whatis (" + m_full_name + ").pixmap[0]");
+    string answer = gdb_question("whatis (" + m_full_name + ")." + pixmapname + "[0]");
     string gdbtype = answer.after("=");
     strip_space(gdbtype);
 
