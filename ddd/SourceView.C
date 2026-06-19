@@ -5854,7 +5854,7 @@ bool SourceView::update_source_glyphs = false;
 // Update glyphs for widget GLYPH (0: all)
 void SourceView::update_glyphs(Widget glyph)
 {
-    static XtWorkProcId update_glyph_id = 0;
+    static XtIntervalId update_glyph_id = 0;
 
     if (glyph == 0)
         update_source_glyphs = update_code_glyphs = true;
@@ -6339,15 +6339,10 @@ Widget SourceView::map_drag_arrow_at(Widget text_w, Utf8Pos pos)
 // Update glyphs after interval
 void SourceView::UpdateGlyphsWorkProc(XtPointer client_data, XtIntervalId *id)
 {
-    (void) id;                        // Use it
-
     // Allow new invocations
     XtIntervalId *proc_id = ((XtIntervalId *) client_data);
-    if (proc_id != 0)
-    {
-        assert(*proc_id == *id);
+    if (proc_id != 0 && *proc_id == *id)
         *proc_id = 0;
-    }
 
     change_glyphs = true;
     update_glyphs_now();
