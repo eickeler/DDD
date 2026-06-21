@@ -59,6 +59,7 @@ char MakeMenu_rcsid[] =
 #include "x11/verify.h"
 #include "x11/findParent.h"
 #include "x11/frame.h"
+#include "x11/XwaylandExpose.h"
 #include "ComboBox.h"
 #include "SpinBox.h"
 #include "x11/AutoRaise.h"
@@ -643,41 +644,6 @@ void MMaddItems(Widget shell, MMDesc items[], bool ignore_seps)
 // Custom menu creation
 //-----------------------------------------------------------------------
 
-static void menubar_configure_eh(Widget w, XtPointer, XEvent *ev, Boolean *)
-{
-    if (!ev || ev->type != ConfigureNotify || !XtIsRealized(w))
-        return;
-
-    Display *dpy = XtDisplay(w);
-    Window   win = XtWindow(w);
-    if (!win)
-       return;
-
-    XClearArea(dpy, win, 0, 0, 0, 0, True);   // force full repaint
-
-    // expose the all childen  (CascadeButtons, PushButtons)
-    WidgetList children = nullptr;
-    Cardinal   nchildren = 0;
-    XtVaGetValues(w,
-                XmNchildren,    &children,
-                XmNnumChildren, &nchildren,
-                nullptr);
-
-    for (Cardinal i = 0; i < nchildren; ++i)
-    {
-        Widget c = children[i];
-        if (!XtIsRealized(c))
-           continue;
-
-        Window cwin = XtWindow(c);
-        if (!cwin)
-            continue;
-
-        XClearArea(dpy, cwin, 0, 0, 0, 0, True);
-    }
-}
-
-
 // Create pulldown menu from items
 Widget MMcreatePulldownMenu(Widget parent, const _XtString name, MMDesc items[],
 			    ArgList _args, Cardinal _arg)
@@ -762,7 +728,7 @@ Widget MMcreateMenuBar(Widget parent, const _XtString name, MMDesc items[],
     MMaddItems(bar, items);
     XtManageChild(bar);
 
-    XtAddEventHandler(bar, StructureNotifyMask, False, menubar_configure_eh, NULL);
+    XtAddEventHandler(bar, StructureNotifyMask, False, XwaylandConfigureEH, nullptr);
 
     delete[] args;
     return bar;

@@ -180,7 +180,9 @@ XSTUFF_SRC = \
 	x11/Sash.h       \
 	x11/Widget.h     \
 	x11/XErrorB.C    \
-	x11/XErrorB.h
+	x11/XErrorB.h    \
+	x11/XwaylandExpose.C \
+	x11/XwaylandExpose.h
 
 # Same, but for Motif
 MSTUFF_SRC = \

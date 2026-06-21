@@ -178,7 +178,7 @@ char ddd_rcsid[] =
 #include "DataDisp.h"
 #include "x11/DeleteWCB.h"
 #include "x11/DestroyCB.h"
-#include "DispGraph.h"
+#include "x11/XwaylandExpose.h"
 #include "DispGraph.h"
 #include "DispBox.h"
 #include "DispValue.h"
@@ -4904,42 +4904,6 @@ static void dddPopupPreferencesCB (Widget, XtPointer, XtPointer)
 // Create status line
 //-----------------------------------------------------------------------------
 
-static void status_configure_eh(Widget w, XtPointer, XEvent *ev, Boolean *)
-{
-    if (!ev || ev->type != ConfigureNotify || !XtIsRealized(w))
-        return;
-
-    Display *dpy = XtDisplay(w);
-    Window   win = XtWindow(w);
-    if (!win)
-        return;
-
-    XClearArea(dpy, win, 0, 0, 0, 0, True);   // force a full repaint
-
-    if (XtIsComposite(w))
-    {
-        WidgetList children = nullptr;
-        Cardinal   nchildren = 0;
-        XtVaGetValues(w,
-                      XmNchildren,    &children,
-                      XmNnumChildren, &nchildren,
-                      nullptr);
-
-        for (Cardinal i = 0; i < nchildren; ++i)
-        {
-            Widget c = children[i];
-            if (!XtIsRealized(c))
-                continue;
-
-            Window cwin = XtWindow(c);
-            if (!cwin)
-                continue;
-
-            XClearArea(dpy, cwin, 0, 0, 0, 0, True);
-        }
-    }
-}
-
 static void create_status(Widget parent)
 {
     Arg args[15];
@@ -4950,7 +4914,7 @@ static void create_status(Widget parent)
     XtAddEventHandler(status_form,
                       StructureNotifyMask,
                       False,
-                      status_configure_eh,
+                      XwaylandConfigureEH,
                       NULL);
 
     // Create LED
@@ -4972,7 +4936,7 @@ static void create_status(Widget parent)
     XtAddEventHandler(led_w,
                       StructureNotifyMask,
                       False,
-                      status_configure_eh,
+                      XwaylandConfigureEH,
                       NULL);
 
     XtAddCallback(led_w, XmNvalueChangedCallback, ToggleBlinkCB, XtPointer(0));
@@ -5000,7 +4964,7 @@ static void create_status(Widget parent)
     XtAddEventHandler(arrow_w,
                       StructureNotifyMask,
                       False,
-                      status_configure_eh,
+                      XwaylandConfigureEH,
                       NULL);
 
     arg = 0;
@@ -5018,7 +4982,7 @@ static void create_status(Widget parent)
     XtAddEventHandler(status_w,
                       StructureNotifyMask,
                       False,
-                      status_configure_eh,
+                      XwaylandConfigureEH,
                       NULL);
 
     // Initialize status history

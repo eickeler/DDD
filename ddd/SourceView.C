@@ -81,6 +81,7 @@ char SourceView_rcsid[] =
 #include "DataDisp.h"                // Only for `DataDisp::SelectionLostCB'
 #include "x11/Delay.h"
 #include "x11/DestroyCB.h"
+#include "x11/XwaylandExpose.h"
 #include "HelpCB.h"
 #include "HistoryD.h"
 #include "x11/InitImage.h"
@@ -6532,18 +6533,7 @@ void SourceView::update_glyphs_now()
         // For each glyph whose geometry changed in this update, force
         // an Expose so Motif redraws its label pixmap.
         for (int i = 0; i < int(changed_glyphs.size()); ++i)
-        {
-            Widget g = changed_glyphs[i];
-            if (!g || !XtIsRealized(g))
-                continue;
-
-            Display *dpy = XtDisplay(g);
-            Window   win = XtWindow(g);
-            if (!win)
-                continue;
-
-            XClearArea(dpy, win, 0, 0, 0, 0, True);
-        }
+            XwaylandForceExpose(changed_glyphs[i], false);
     }
 
     // std::clog << "done.\n";
