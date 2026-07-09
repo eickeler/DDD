@@ -1046,7 +1046,7 @@ Ddd*no_debugger_dialog*foreground: STOP_COLOR
 
 ! Glyph colors
 Ddd*plain_arrow.foreground:  RUN_COLOR
-Ddd*grey_arrow.foreground:   RUN_COLOR
+Ddd*grey_arrow.foreground:   DISABLED_COLOR
 Ddd*past_arrow.foreground:   RUN_COLOR
 Ddd*signal_arrow.foreground: STOP_COLOR
 
