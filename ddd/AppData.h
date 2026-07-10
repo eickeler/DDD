@@ -238,6 +238,8 @@
 #define XtCCacheMachineCode      "CacheMachineCode"
 #define XtNsyntaxHighlighting    "syntaxHighlighting"
 #define XtCSyntaxHighlighting    "SyntaxHighlighting"
+#define XtNsourceTabs            "sourceTabs"
+#define XtCSourceTabs            "SourceTabs"
 #define XtNsuppressWarnings      "suppressWarnings"
 #define XtCSuppressWarnings      "SuppressWarnings"
 #define XtNwarnIfLocked          "warnIfLocked"
@@ -487,6 +489,7 @@ struct AppData {
     Boolean   cache_source_files;
     Boolean   cache_machine_code;
     Boolean   syntax_highlighting;
+    Boolean   source_tabs;
     Boolean   suppress_warnings;
     Boolean   warn_if_locked;
     Cardinal  check_options;

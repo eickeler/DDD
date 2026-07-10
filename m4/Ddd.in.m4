@@ -753,6 +753,9 @@ Ddd*cacheSourceFiles: on
 ! Do we wish to shw syntax highlighting
 Ddd*syntaxHighlighting: on
 
+! Do we wish to show source tabs
+Ddd*sourceTabs: off
+
 ! Do we wish to cache machine code in memory?
 Ddd*cacheMachineCode: on
 
@@ -3318,6 +3321,10 @@ ITEM If LBL(Cache source files) is set, source texts are cached in memory.\n\
 ITEM If LBL(Cache machine code) is set, disassembled code is cached \
 in memory.\n\
     Otherwise, code is re-disassembled upon each function change.\n\
+ITEM If LBL(Syntax Highlighting) is set, DDD colorizes the source code.\n\
+    Otherwise, the source is shown in plain text.\n\
+ITEM If LBL(Source Tabs) is set, DDD shows a tab bar above the source view\n\
+    and keeps recently visited source files as tabs.\n\
 ITEM In LBL(Tab Width), you can set the spacing of tab stops.\n\
     Setting the tab width to 8 sets a tab stop every 8 characters.\n\
 \n\
@@ -3347,6 +3354,7 @@ Ddd*preferences*wordsOnly.labelString:		Words Only\
 Ddd*preferences*caseSensitive.labelString:	Case Sensitive
 
 Ddd*preferences*syntaxHighlighting.labelString:	Syntax Highlighting
+Ddd*preferences*sourceTabs.labelString:         Source Tabs
 
 Ddd*preferences*tabWidth.orientation:		XmHORIZONTAL
 Ddd*preferences*tabWidth.minimum:		1

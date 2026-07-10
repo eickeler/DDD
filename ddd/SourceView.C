@@ -134,6 +134,7 @@ char SourceView_rcsid[] =
 // Motif stuff
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
+#include <Xm/DrawnB.h>
 #include <Xm/Label.h>
 #include <Xm/MessageB.h>
 #include <Xm/Text.h>
@@ -319,6 +320,9 @@ MMDesc SourceView::text_popup[] =
 //-----------------------------------------------------------------------
 
 Widget SourceView::toplevel_w                = 0;
+Widget SourceView::source_pane_w             = 0;
+Widget SourceView::source_tabs_w             = 0;
+Widget SourceView::source_tabs_row_w         = 0;
 Widget SourceView::source_form_w             = 0;
 Widget SourceView::source_text_w             = 0;
 Widget SourceView::code_form_w               = 0;
@@ -357,6 +361,10 @@ SourceCode SourceView::sourcecode;
 string SourceView::current_code;
 string SourceView::current_code_start;
 string SourceView::current_code_end;
+
+std::vector<string> SourceView::source_tabs;
+std::map<string, int> SourceView::recent_source_lines;
+std::map<string, int> SourceView::recent_source_top_lines;
 
 string SourceView::current_pwd        = cwd();
 string SourceView::current_class_path = NO_GDB_ANSWER;
@@ -451,12 +459,107 @@ bool SourceView::is_source_widget(Widget w)
 {
     while (w != 0)
     {
+        if (w == source_tabs_w)
+            return false;
+
         if (w == source_form_w)
             return true;
-        else
-            w = XtParent(w);
+
+        w = XtParent(w);
     }
     return false;
+}
+
+static string source_tab_label(const string& file_name)
+{
+    string label = string(basename(file_name.chars()));
+    if (label.empty())
+        label = file_name;
+
+    shorten(label, 24);
+    return label;
+}
+
+struct SourceTabInfo
+{
+    string file_name;
+    bool pressed_close;
+
+    SourceTabInfo(const string& file)
+        : file_name(file),
+          pressed_close(false)
+    {}
+
+private:
+    SourceTabInfo(const SourceTabInfo&);
+    SourceTabInfo& operator=(const SourceTabInfo&);
+};
+
+static void source_tab_measure(Widget w, const string& file_name,
+                               Dimension& width, Dimension& height)
+{
+    XmFontList fontlist = 0;
+    XtVaGetValues(w, XmNfontList, &fontlist, XtPointer(0));
+
+    Dimension label_w = 0, label_h = 0;
+    Dimension close_w = 0, close_h = 0;
+
+    MString label(source_tab_label(file_name));
+    MString close("x");
+
+    if (fontlist != 0)
+    {
+        XmStringExtent(fontlist, label.xmstring(), &label_w, &label_h);
+        XmStringExtent(fontlist, close.xmstring(), &close_w, &close_h);
+    }
+
+    if (label_h == 0)
+        label_h = 14;
+    if (close_h == 0)
+        close_h = label_h;
+    if (close_w == 0)
+        close_w = close_h / 2 + 2;
+
+    const Dimension vpad = 8;
+    const Dimension hpad = 10;
+    const Dimension gap  = 8;
+    const Dimension close_box = Dimension(max(int(close_w), int(close_h)) + 6);
+
+    height = Dimension(max(int(label_h), int(close_h)) + vpad);
+    width  = Dimension(label_w + (2 * hpad) + gap + close_box);
+
+    if (width < 64)
+        width = 64;
+}
+
+static void source_tab_close_rect(Widget w, Position& x, Position& y, Dimension& size)
+{
+    Dimension width = 0;
+    Dimension height = 0;
+
+    XtVaGetValues(w,
+                  XmNwidth,  &width,
+                  XmNheight, &height,
+                  XtPointer(0));
+
+    Dimension margin = (height >= 20) ? 6 : 4;
+    size = (height > 2 * margin) ? height - 2 * margin : height / 2;
+
+    if (size < 10)
+        size = 10;
+
+    x = Position(width - size - margin);
+    y = Position((height - size) / 2);
+}
+
+static bool source_tab_in_close(Widget w, int x, int y)
+{
+    Position cx = 0;
+    Position cy = 0;
+    Dimension cs = 0;
+    source_tab_close_rect(w, cx, cy, cs);
+
+    return x >= cx && y >= cy && x < cx + int(cs) && y < cy + int(cs);
 }
 
 //-----------------------------------------------------------------------
@@ -1219,6 +1322,457 @@ void SourceView::reload()
                                 at_lowest_frame, signal_received);
 }
 
+void SourceView::remember_current_source_line()
+{
+    if (!sourcecode.have_source())
+        return;
+
+    if (sourcecode.get_filename().empty())
+        return;
+
+    Utf8Pos pos = XmhColorTextViewGetInsertionPosition(source_text_w);
+    int line = max(sourcecode.getLineOfBytepos(pos), 1);
+    recent_source_lines[sourcecode.get_filename()] = line;
+
+    Utf8Pos top = XmhColorTextViewGetTopCharacter(source_text_w);
+    int top_line = max(sourcecode.getLineOfBytepos(top), 1);
+    recent_source_top_lines[sourcecode.get_filename()] = top_line;
+}
+
+void SourceView::destroy_source_tab_infoCB(Widget, XtPointer client_data, XtPointer)
+{
+    SourceTabInfo *info = (SourceTabInfo *)client_data;
+    delete info;
+}
+
+void SourceView::source_tab_activateCB(Widget, XtPointer client_data, XtPointer)
+{
+    SourceTabInfo *info = (SourceTabInfo *)client_data;
+    if (info == 0 || info->pressed_close)
+        return;
+
+    open_recent_file(info->file_name, true);
+}
+
+void SourceView::source_tab_drawCB(Widget w, XtPointer client_data, XtPointer)
+{
+    SourceTabInfo *info = (SourceTabInfo *)client_data;
+    if (info == 0 || !XtIsRealized(w))
+        return;
+
+    Dimension width = 0;
+    Dimension height = 0;
+    Pixel background = 0;
+    Pixel foreground = 0;
+    Pixel top_shadow = 0;
+    Pixel bottom_shadow = 0;
+    XmFontList fontlist = 0;
+
+    XtVaGetValues(w,
+                  XmNwidth,             &width,
+                  XmNheight,            &height,
+                  XmNbackground,        &background,
+                  XmNforeground,        &foreground,
+                  XmNtopShadowColor,    &top_shadow,
+                  XmNbottomShadowColor, &bottom_shadow,
+                  XmNfontList,          &fontlist,
+                  XtPointer(0));
+
+    const bool active = is_current_file(info->file_name);
+    const bool execution = !last_execution_file.empty() &&
+                           file_matches(info->file_name, last_execution_file);
+
+    Display *dpy = XtDisplay(w);
+    Window win = XtWindow(w);
+
+    Pixel inactive_fill = background;
+    Pixel active_fill = app_data.dark_mode ? bottom_shadow : top_shadow;
+
+    Pixel border_color        = app_data.dark_mode ? top_shadow    : bottom_shadow;
+    Pixel active_border_color = foreground;
+    Pixel text_color          = foreground;
+
+    Pixel fill_color = active ? active_fill : inactive_fill;
+
+    XGCValues gcv;
+
+    gcv.foreground = fill_color;
+    gcv.background = fill_color;
+    GC fill_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+    XFillRectangle(dpy, win, fill_gc, 0, 0, width, height);
+    XtReleaseGC(w, fill_gc);
+
+    gcv.foreground = active ? active_border_color : border_color;
+    gcv.background = background;
+    GC line_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+
+    gcv.foreground = text_color;
+    gcv.background = background;
+    GC text_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+
+    if (active)
+    {
+        XDrawLine(dpy, win, line_gc, 0, 0, int(width) - 1, 0);
+        XDrawLine(dpy, win, line_gc, 0, 0, 0, int(height) - 1);
+        XDrawLine(dpy, win, line_gc, int(width) - 1, 0, int(width) - 1, int(height) - 1);
+    }
+    else
+    {
+        XDrawLine(dpy, win, line_gc, 0, int(height) - 1, int(width) - 1, int(height) - 1);
+    }
+
+    Position close_x = 0;
+    Position close_y = 0;
+    Dimension close_s = 0;
+    source_tab_close_rect(w, close_x, close_y, close_s);
+
+    if (info->pressed_close)
+    {
+        Pixel close_fill = app_data.dark_mode ? background : bottom_shadow;
+
+        gcv.foreground = close_fill;
+        gcv.background = close_fill;
+        GC close_fill_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+        XFillRectangle(dpy, win, close_fill_gc, close_x, close_y, close_s, close_s);
+        XtReleaseGC(w, close_fill_gc);
+
+        gcv.foreground = foreground;
+        gcv.background = background;
+        GC close_line_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+        XDrawRectangle(dpy, win, close_line_gc, close_x, close_y, close_s - 1, close_s - 1);
+        XtReleaseGC(w, close_line_gc);
+    }
+
+    int text_x = 10;
+
+    if (execution)
+    {
+        const int marker_margin = 6;
+        const int marker_w = 4;
+        const int marker_h = max(8, int(height) - 10);
+        const int marker_x = marker_margin;
+        const int marker_y = max(1, (int(height) - marker_h) / 2);
+
+        gcv.foreground = foreground;
+        gcv.background = background;
+        GC marker_gc = XtGetGC(w, GCForeground | GCBackground, &gcv);
+        XFillRectangle(dpy, win, marker_gc, marker_x, marker_y, marker_w, marker_h);
+        XtReleaseGC(w, marker_gc);
+
+        text_x += marker_w + marker_margin + 2;
+    }
+
+    const string label_text = source_tab_label(info->file_name);
+    MString label(label_text);
+
+    Dimension label_w = 0;
+    Dimension label_h = 0;
+    if (fontlist != 0)
+        XmStringExtent(fontlist, label.xmstring(), &label_w, &label_h);
+
+    const int text_y = max(0, (int(height) - int(label_h)) / 2);
+    const unsigned text_width = (close_x > text_x + 6) ? unsigned(close_x - text_x - 6) : 0U;
+
+    if (fontlist != 0 && text_width > 0)
+    {
+        XmStringDraw(dpy, win, fontlist, label.xmstring(), text_gc, text_x, text_y, text_width,
+                     XmALIGNMENT_BEGINNING, XmSTRING_DIRECTION_L_TO_R, 0);
+    }
+
+    int cross_pad = max(3, int(close_s) / 4);
+    int x1 = close_x + cross_pad;
+    int y1 = close_y + cross_pad;
+    int x2 = close_x + int(close_s) - cross_pad - 1;
+    int y2 = close_y + int(close_s) - cross_pad - 1;
+
+    XDrawLine(dpy, win, text_gc, x1, y1, x2, y2);
+    XDrawLine(dpy, win, text_gc, x1, y2, x2, y1);
+
+    XtReleaseGC(w, text_gc);
+    XtReleaseGC(w, line_gc);
+}
+
+void SourceView::source_tab_eventEH(Widget w, XtPointer client_data,
+                                    XEvent *event, Boolean *continue_to_dispatch)
+{
+    SourceTabInfo *info = (SourceTabInfo *)client_data;
+    if (info == 0)
+        return;
+
+    switch (event->type)
+    {
+    case ButtonPress:
+        if (event->xbutton.button == Button1 &&
+            source_tab_in_close(w, event->xbutton.x, event->xbutton.y))
+        {
+            info->pressed_close = true;
+            if (XtIsRealized(w))
+                source_tab_drawCB(w, client_data, XtPointer(0));
+            *continue_to_dispatch = False;
+        }
+        break;
+
+    case ButtonRelease:
+        if (event->xbutton.button == Button1 && info->pressed_close)
+        {
+            bool close = source_tab_in_close(w, event->xbutton.x,
+                                             event->xbutton.y);
+
+            info->pressed_close = false;
+
+            if (XtIsRealized(w))
+                source_tab_drawCB(w, client_data, XtPointer(0));
+
+            if (close)
+                close_source_tab(info->file_name);
+
+            *continue_to_dispatch = False;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void SourceView::refresh_source_tabs()
+{
+    if (!app_data.source_tabs || source_tabs_w == 0 || source_tabs_row_w == 0)
+        return;
+
+    WidgetList children = 0;
+    Cardinal num_children = 0;
+    XtVaGetValues(source_tabs_row_w,
+                  XmNchildren, &children,
+                  XmNnumChildren, &num_children,
+                  XtPointer(0));
+
+    for (Cardinal i = 0; i < num_children; i++)
+        XtDestroyWidget(children[num_children - i - 1]);
+
+    // If the bar is hidden anyway, don't rebuild widgets.
+    if (source_tabs.size() <= 1)
+    {
+        update_source_tab_layout();
+        return;
+    }
+
+    Pixel tabs_bg = 0;
+    Pixel tabs_fg = 0;
+    Pixel tabs_top = 0;
+    Pixel tabs_bottom = 0;
+    XtVaGetValues(source_tabs_row_w,
+                  XmNbackground,        &tabs_bg,
+                  XmNforeground,        &tabs_fg,
+                  XmNtopShadowColor,    &tabs_top,
+                  XmNbottomShadowColor, &tabs_bottom,
+                  XtPointer(0));
+
+    Dimension max_tab_h = 0;
+
+    for (int i = 0; i < int(source_tabs.size()); i++)
+    {
+        const string& file_name = source_tabs[i];
+        SourceTabInfo *info = new SourceTabInfo(file_name);
+
+        string tab_name = "tab" + itostring(i + 1);
+        Arg args[20];
+        Cardinal arg = 0;
+
+        XtSetArg(args[arg], XmNmarginWidth, 0); arg++;
+        XtSetArg(args[arg], XmNmarginHeight, 0); arg++;
+        XtSetArg(args[arg], XmNborderWidth, 0); arg++;
+        XtSetArg(args[arg], XmNshadowThickness, 0); arg++;
+        XtSetArg(args[arg], XmNhighlightThickness, 0); arg++;
+        XtSetArg(args[arg], XmNpushButtonEnabled, True); arg++;
+        XtSetArg(args[arg], XmNbackground, tabs_bg); arg++;
+        XtSetArg(args[arg], XmNforeground, tabs_fg); arg++;
+        XtSetArg(args[arg], XmNtopShadowColor, tabs_top); arg++;
+        XtSetArg(args[arg], XmNbottomShadowColor, tabs_bottom); arg++;
+        XtSetArg(args[arg], XmNarmColor, tabs_bg); arg++;
+
+        Widget tab = verify(XmCreateDrawnButton(source_tabs_row_w,
+                                                XMST(tab_name.chars()),
+                                                args, arg));
+
+        XtAddCallback(tab, XmNdestroyCallback, destroy_source_tab_infoCB, XtPointer(info));
+        XtAddCallback(tab, XmNexposeCallback, source_tab_drawCB, XtPointer(info));
+        XtAddCallback(tab, XmNresizeCallback, source_tab_drawCB, XtPointer(info));
+        XtAddCallback(tab, XmNactivateCallback, source_tab_activateCB, XtPointer(info));
+
+        EventMask mask = ButtonPressMask | ButtonReleaseMask;
+        XtAddEventHandler(tab, mask, False,
+                          source_tab_eventEH, XtPointer(info));
+
+        Dimension tab_w = 0;
+        Dimension tab_h = 0;
+        source_tab_measure(tab, file_name, tab_w, tab_h);
+
+        max_tab_h = std::max(max_tab_h, tab_h);
+
+        XtVaSetValues(tab,
+                      XmNwidth,  tab_w,
+                      XmNheight, tab_h,
+                      XtPointer(0));
+
+        XtManageChild(tab);
+    }
+
+    // manage/show the bar before querying or fixing its height.
+    update_source_tab_layout();
+
+    Dimension row_margin_h = 0;
+    XtVaGetValues(source_tabs_row_w,
+                  XmNmarginHeight, &row_margin_h,
+                  XtPointer(0));
+
+    Dimension wanted_h = Dimension(max_tab_h + 2 * row_margin_h);
+
+    XtWidgetGeometry pref;
+    pref.request_mode = 0;
+    XtQueryGeometry(source_tabs_row_w, 0, &pref);
+    if (pref.height > wanted_h)
+        wanted_h = pref.height;
+
+    if (wanted_h > 0)
+         XtVaSetValues(source_tabs_w, XmNheight, wanted_h, XtPointer(0));
+}
+
+void SourceView::add_source_tab(const string& file_name)
+{
+    if (!app_data.source_tabs)
+        return;
+
+    if (file_name.empty())
+        return;
+
+    for (int i = 0; i < int(source_tabs.size()); i++)
+    {
+        if (source_tabs[i] == file_name)
+        {
+            refresh_source_tabs();
+            return;   // keep position fixed
+        }
+    }
+
+    if (int(source_tabs.size()) >= MaxSourceTabs)
+        source_tabs.erase(source_tabs.begin());
+
+    source_tabs.push_back(file_name);
+    refresh_source_tabs();
+}
+
+void SourceView::close_source_tab(const string& file_name)
+{
+    if (!app_data.source_tabs)
+        return;
+
+    if (file_name.empty())
+        return;
+
+    int index = -1;
+    for (int i = 0; i < int(source_tabs.size()); i++)
+    {
+        if (source_tabs[i] == file_name)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index < 0)
+        return;
+
+    bool was_current = is_current_file(file_name);
+
+    source_tabs.erase(source_tabs.begin() + index);
+
+    if (was_current && !source_tabs.empty())
+    {
+        int next_index = index;
+        if (next_index >= int(source_tabs.size()))
+            next_index = int(source_tabs.size()) - 1;
+
+        string next_file = source_tabs[next_index];
+        refresh_source_tabs();
+        open_recent_file(next_file, true);
+        return;
+    }
+
+    refresh_source_tabs();
+}
+
+void SourceView::update_source_tab_layout()
+{
+    if (!app_data.source_tabs)
+        return;
+
+    if (source_pane_w == 0 || source_form_w == 0 || source_tabs_w == 0)
+        return;
+
+    const bool show_tabs = (source_tabs.size() > 1);
+
+    if (!show_tabs)
+    {
+        XtUnmanageChild(source_tabs_w);
+        XtVaSetValues(source_form_w,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNtopWidget,     Widget(0),
+                      XtPointer(0));
+    }
+    else
+    {
+        XtManageChild(source_tabs_w);
+        XtVaSetValues(source_form_w,
+                      XmNtopAttachment, XmATTACH_WIDGET,
+                      XmNtopWidget,     source_tabs_w,
+                      XtPointer(0));
+    }
+}
+
+void SourceView::open_recent_file(const string& file_name, bool silent)
+{
+    if (file_name.empty())
+        return;
+
+    if (is_current_file(file_name))
+        return;
+
+    int line = 1;
+    int top_line = -1;
+
+    std::map<string, int>::iterator it = recent_source_lines.find(file_name);
+    if (it != recent_source_lines.end() && it->second > 0)
+        line = it->second;
+
+    std::map<string, int>::iterator top_it = recent_source_top_lines.find(file_name);
+    if (top_it != recent_source_top_lines.end() && top_it->second > 0)
+        top_line = top_it->second;
+
+    read_file(file_name, line, false, silent);
+
+    if (!is_current_file(file_name))
+        return;
+
+    line = min(sourcecode.get_num_lines(), line);
+    top_line = min(sourcecode.get_num_lines(), top_line);
+
+    if (top_line > 0)
+    {
+        Utf8Pos top_pos = sourcecode.getBytePosOfLine(top_line);
+        XmhColorTextViewSetTopCharacter(source_text_w, top_pos);
+    }
+
+    if (line > 0)
+    {
+        Utf8Pos pos = sourcecode.getBytePosOfLine(line) + sourcecode.calculate_indent(line);
+        XmhColorTextViewSetInsertionPosition(source_text_w, pos);
+    }
+
+    update_glyphs(source_text_w);
+}
+
+
 // Change tab width
 void SourceView::set_tab_width(int width)
 {
@@ -1238,6 +1792,8 @@ void SourceView::read_file(string file_name,
 {
     if (file_name.empty())
         return;
+
+    remember_current_source_line();
 
     /*
       Yves Arrouye <Yves.Arrouye@marin.fdn.fr> states:
@@ -1269,6 +1825,7 @@ void SourceView::read_file(string file_name,
     if (error)
         return;
 
+    add_source_tab(sourcecode.get_filename());
     add_position_to_history(file_name, initial_line, false);
 
     // The remainder may take some time...
@@ -1930,8 +2487,71 @@ SourceView::SourceView(Widget parent)
     // Setup actions
     XtAppAddActions (app_context, actions, XtNumber (actions));
 
+
+    if (!app_data.source_tabs)
+    {
+        // no source code tabs
+        create_text(parent, "source", source_form_w, source_text_w);
+        XtManageChild(source_form_w);
+
+        create_text(parent, "code", code_form_w, code_text_w);
+        if (disassemble)
+            XtManageChild(code_form_w);
+
+        return;
+    }
+
+    Arg args[20];
+    int arg = 0;
+
+    // Create source tab bar above source view
+    arg = 0;
+    XtSetArg(args[arg], XmNmarginWidth, 0); arg++;
+    XtSetArg(args[arg], XmNmarginHeight, 0); arg++;
+    XtSetArg(args[arg], XmNborderWidth, 0); arg++;
+    XtSetArg(args[arg], XmNshadowThickness, 0); arg++;
+    source_pane_w = verify(XmCreateForm(parent, XMST("source_pane_w"),
+                                        args, arg));
+    XtManageChild(source_pane_w);
+
+    arg = 0;
+    XtSetArg(args[arg], XmNtopAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNleftAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNrightAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNmarginWidth, 0); arg++;
+    XtSetArg(args[arg], XmNmarginHeight, 0); arg++;
+    XtSetArg(args[arg], XmNborderWidth, 0); arg++;
+    XtSetArg(args[arg], XmNshadowThickness, 0); arg++;
+    source_tabs_w = verify(XmCreateForm(source_pane_w, XMST("source_tabs_w"),
+                                        args, arg));
+    XtManageChild(source_tabs_w);
+    XtUnmanageChild(source_tabs_w);
+
+    arg = 0;
+    XtSetArg(args[arg], XmNorientation, XmHORIZONTAL); arg++;
+    XtSetArg(args[arg], XmNpacking, XmPACK_TIGHT); arg++;
+    XtSetArg(args[arg], XmNspacing, 2); arg++;
+    XtSetArg(args[arg], XmNmarginWidth, 2); arg++;
+    XtSetArg(args[arg], XmNmarginHeight, 2); arg++;
+    XtSetArg(args[arg], XmNborderWidth, 0); arg++;
+    XtSetArg(args[arg], XmNshadowThickness, 0); arg++;
+    XtSetArg(args[arg], XmNtopAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNbottomAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNleftAttachment, XmATTACH_FORM); arg++;
+    XtSetArg(args[arg], XmNrightAttachment, XmATTACH_FORM); arg++;
+    source_tabs_row_w = verify(XmCreateRowColumn(source_tabs_w,
+                                                 XMST("source_tabs_row_w"),
+                                                 args, arg));
+    XtManageChild(source_tabs_row_w);
+
     // Create source code window
-    create_text(parent, "source", source_form_w, source_text_w);
+    create_text(source_pane_w, "source", source_form_w, source_text_w);
+    XtVaSetValues(source_form_w,
+                  XmNtopAttachment, XmATTACH_FORM,
+                  XmNleftAttachment, XmATTACH_FORM,
+                  XmNrightAttachment, XmATTACH_FORM,
+                  XmNbottomAttachment, XmATTACH_FORM,
+                  XtPointer(0));
     XtManageChild(source_form_w);
 
     // Create machine code window
@@ -2304,9 +2924,13 @@ void SourceView::show_execution_position (const string& position_,
 
     if (position_.empty())
     {
+        const bool execution_tab_changed = !last_execution_file.empty();
         last_execution_file = "";
         last_execution_line = 0;
         update_glyphs();
+
+        if (execution_tab_changed)
+            refresh_source_tabs();
 
         undo_buffer.remove_position();
         undo_buffer.add_state();
@@ -2360,6 +2984,9 @@ void SourceView::clear_execution_position()
 void SourceView::_show_execution_position(const string& file, int line, 
                                           bool silent, bool stopped)
 {
+    const bool execution_tab_changed = last_execution_file.empty() ||
+                                       !file_matches(last_execution_file, file);
+
     last_execution_file = file;
     last_execution_line = line;
 
@@ -2376,6 +3003,9 @@ void SourceView::_show_execution_position(const string& file, int line,
     SetInsertionPosition(source_text_w, pos + indent, false);
 
     update_glyphs();
+
+    if (execution_tab_changed)
+        refresh_source_tabs();
 }
 
 

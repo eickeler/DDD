@@ -274,6 +274,7 @@ String SourceCode::read_local(const string& file_name, long& length,
             post_file_error(file_name,
                             file_name + ": " + delay.outcome,
                             "source_file_error", source_text_w);
+        close(fd);
         return 0;
     }
 
@@ -285,6 +286,7 @@ String SourceCode::read_local(const string& file_name, long& length,
             post_file_error(file_name,
                             file_name + ": " + delay.outcome,
                             "source_file_error", source_text_w);
+        close(fd);
         return 0;
     }
 
@@ -456,7 +458,7 @@ String SourceCode::read_from_gdb(const string& file_name, long& length,
     // GDB listings have the format <NUMBER>\t<LINE>.
     // Copy LINE only; line numbers will be re-added later.
     // Note that tabs may be expanded to spaces due to a PTY interface.
-    String text = XtMalloc(listing.length());
+    String text = XtMalloc(listing.length() + 1);
 
     int i = 0;
     length = 0;

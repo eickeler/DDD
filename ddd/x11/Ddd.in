@@ -752,6 +752,9 @@ main_vxworks
 ! Do we wish to shw syntax highlighting
 @Ddd@*syntaxHighlighting: on
 
+! Do we wish to show source tabs
+@Ddd@*sourceTabs: off
+
 ! Do we wish to cache machine code in memory?
 @Ddd@*cacheMachineCode: on
 
@@ -1045,7 +1048,7 @@ main_vxworks
 
 ! Glyph colors
 @Ddd@*plain_arrow.foreground:  DarkGreen
-@Ddd@*grey_arrow.foreground:   DarkGreen
+@Ddd@*grey_arrow.foreground:   grey50
 @Ddd@*past_arrow.foreground:   DarkGreen
 @Ddd@*signal_arrow.foreground: red4
 
@@ -4458,6 +4461,10 @@ Warn if Multiple @DDD@ Instances are Running
 @tt \342\227\276 @rm If @bf Cache machine code@rm  is set, disassembled code is cached \
 in memory.\n\
     Otherwise, code is re-disassembled upon each function change.\n\
+@tt \342\227\276 @rm If @bf Syntax Highlighting@rm  is set, @DDD@ colorizes the source code.\n\
+    Otherwise, the source is shown in plain text.\n\
+@tt \342\227\276 @rm If @bf Source Tabs@rm  is set, @DDD@ shows a tab bar above the source view\n\
+    and keeps recently visited source files as tabs.\n\
 @tt \342\227\276 @rm In @bf Tab Width@rm , you can set the spacing of tab stops.\n\
     Setting the tab width to 8 sets a tab stop every 8 characters.\n\
 \n\
@@ -4487,6 +4494,7 @@ Source Window\ \ \ \ \
 @Ddd@*preferences*caseSensitive.labelString:	Case Sensitive
 
 @Ddd@*preferences*syntaxHighlighting.labelString:	Syntax Highlighting
+@Ddd@*preferences*sourceTabs.labelString:         Source Tabs
 
 @Ddd@*preferences*tabWidth.orientation:		XmHORIZONTAL
 @Ddd@*preferences*tabWidth.minimum:		1

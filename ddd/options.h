@@ -70,6 +70,7 @@ extern void sourceToggleFindCaseSensitiveCB (Widget, XtPointer, XtPointer);
 extern void sourceToggleCacheSourceFilesCB  (Widget, XtPointer, XtPointer);
 extern void sourceToggleCacheMachineCodeCB  (Widget, XtPointer, XtPointer);
 extern void sourceToggleSyntaxHighlightingCB(Widget, XtPointer, XtPointer);
+extern void sourceToggleSoureTabsCB         (Widget, XtPointer, XtPointer);
 extern void sourceSetIntRegistersCB         (Widget, XtPointer, XtPointer);
 extern void sourceSetAllRegistersCB         (Widget, XtPointer, XtPointer);
 extern void sourceSetUseSourcePathCB        (Widget, XtPointer, XtPointer);

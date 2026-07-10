@@ -47,6 +47,7 @@
 #define _DDD_SourceView_h
 
 #include <vector>
+#include <map>
 
 // Motif includes
 #include <Xm/Xm.h>
@@ -80,13 +81,15 @@ class SourceView {
     // Callbacks
     //-----------------------------------------------------------------------
     static void set_source_argCB         (Widget, XtPointer, XtPointer);
-
+    static void source_tab_activateCB    (Widget, XtPointer, XtPointer);
+    static void source_tab_drawCB        (Widget, XtPointer, XtPointer);
+    static void source_tab_eventEH       (Widget, XtPointer, XEvent*, Boolean*);
+    static void destroy_source_tab_infoCB(Widget, XtPointer, XtPointer);
     static void line_popup_setCB         (Widget, XtPointer, XtPointer);
     static void line_popup_set_tempCB    (Widget, XtPointer, XtPointer);
     static void line_popup_temp_n_contCB (Widget, XtPointer, XtPointer);
     static void line_popup_set_pcCB      (Widget, XtPointer, XtPointer);
 
-    static void bp_popup_infoCB          (Widget, XtPointer, XtPointer);
     static void bp_popup_deleteCB        (Widget, XtPointer, XtPointer);
     static void bp_popup_disableCB       (Widget, XtPointer, XtPointer);
     static void bp_popup_set_pcCB        (Widget, XtPointer, XtPointer);
@@ -133,7 +136,6 @@ class SourceView {
     static void CheckScrollCB(Widget, XtPointer, XtPointer);
 
     static void StackDialogPoppedDownCB    (Widget, XtPointer, XtPointer);
-    static void CodeDialogPoppedDownCB     (Widget, XtPointer, XtPointer);
     static void RegisterDialogPoppedDownCB (Widget, XtPointer, XtPointer);
     static void ThreadDialogPoppedDownCB   (Widget, XtPointer, XtPointer);
 
@@ -170,7 +172,11 @@ class SourceView {
     static void add_current_to_history();
     static void add_position_to_history(const string& file_name, 
                                         int line, bool stopped);
-
+    static void remember_current_source_line();
+    static void add_source_tab(const string& file_name);
+    static void refresh_source_tabs();
+    static void close_source_tab(const string& file_name);
+    static void update_source_tab_layout();
 
     // Find the line number at POS.  LINE_NR becomes the line number
     // at POS.  IN_TEXT becomes true iff POS is in the source area.
@@ -217,7 +223,6 @@ class SourceView {
     // Menus
     //-----------------------------------------------------------------------
     static MMDesc line_popup[];
-    static MMDesc address_popup[];
     static MMDesc bp_popup[];
     static MMDesc text_popup[];
     static MMDesc bp_area[];
@@ -231,6 +236,9 @@ class SourceView {
 
     static Widget toplevel_w;         // Top-level widget
 
+    static Widget source_pane_w;      // one Paned child: tabs + source
+    static Widget source_tabs_w;      // Tab bar above source view
+    static Widget source_tabs_row_w;  // actual row of tabs
     static Widget source_form_w; // Form around text and glyphs
     static Widget source_text_w; // Source text
     static Widget code_form_w;   // Form around Machine code and glyphs
@@ -282,6 +290,13 @@ class SourceView {
     static string current_code_start;
     static string current_code_end;
 
+    enum { MaxSourceTabs = 9 };
+    static std::vector<string> source_tabs;
+
+    // Last remembered source line per file
+    static std::map<string, int> recent_source_lines;
+    static std::map<string, int> recent_source_top_lines;
+
     // The current directory
     static string current_pwd;
 
@@ -313,9 +328,6 @@ class SourceView {
 
     static bool is_source_widget(Widget w);
     static bool is_code_widget(Widget w);
-
-    // Format `where' and `thread' lines
-    static void setup_where_line(string& line);
 
     // Assembler code display routines.
     static Utf8Pos find_pc(const string& pc);
@@ -432,7 +444,6 @@ private:
     {
         map_drag_stop_at(w, Utf8Pos(-1));
     }
-    static void copy_colors(Widget w, Widget origin);
 
     // True if code/source glyphs need to be updated
     static bool update_code_glyphs;
@@ -552,6 +563,9 @@ public:
                           int initial_line = 1,
                           bool force_reload = false,
                           bool silent = false);
+
+    // Open a recent file and restore its remembered line
+    static void open_recent_file(const string& file_name, bool silent = false);
 
     // Reload current file
     static void reload();

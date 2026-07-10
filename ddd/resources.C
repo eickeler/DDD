@@ -1091,6 +1091,16 @@ XtResource ddd_resources[] = {
     },
 
     {
+        XTRESSTR(XtNsourceTabs),
+        XTRESSTR(XtCSourceTabs),
+        XtRBoolean,
+        sizeof(Boolean),
+        XtOffsetOf(AppData, source_tabs),
+        XtRImmediate,
+        XtPointer(False)
+    },
+
+    {
         XTRESSTR(XtNsuppressWarnings),
         XTRESSTR(XtCSuppressWarnings),
         XtRBoolean,

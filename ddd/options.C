@@ -215,6 +215,21 @@ void sourceToggleSyntaxHighlightingCB(Widget, XtPointer, XtPointer call_data)
         set_status("Disable syntax highlighting.");
 }
 
+void sourceToggleSoureTabsCB(Widget, XtPointer, XtPointer call_data)
+{
+    XmToggleButtonCallbackStruct *info =
+        (XmToggleButtonCallbackStruct *)call_data;
+
+    app_data.source_tabs = info->set;
+
+    update_options();
+
+    if (info->set)
+        set_status("Enable source tabs (show tab bar above source).");
+    else
+        set_status("Disable source tabs (hide tab bar above source).");
+}
+
 void sourceSetUseSourcePathCB (Widget, XtPointer client_data, XtPointer)
 {
     Boolean state = (int)(long)client_data;
@@ -2360,6 +2375,8 @@ static bool save_options_init(unsigned long flags)
                          app_data.disassemble) << '\n';
     os << bool_app_value(XtNallRegisters,
                          app_data.all_registers) << '\n';
+    os << bool_app_value(XtNsourceTabs,
+                         app_data.source_tabs) << '\n';
 
     os << "\n! Undo Buffer.\n";
     os << int_app_value(XtNmaxUndoDepth,

@@ -1269,6 +1269,7 @@ static MMDesc scales_menu[] =
 
 static Widget refer_sources_w;
 static Widget syntax_highlighting_w;
+static Widget source_tabs_w;
 static MMDesc source_preferences_menu[] =
 {
     { "toolButtons",  MMRadioPanel,  MMNoCB, tool_buttons_menu, 0, 0, 0 },
@@ -1276,6 +1277,7 @@ static MMDesc source_preferences_menu[] =
     { "find",         MMButtonPanel, MMNoCB, find_preferences_menu, 0, 0, 0 },
     { "cache",        MMButtonPanel, MMNoCB, cache_menu, 0, 0, 0 },
     { "syntaxHighlighting", MMToggle, { sourceToggleSyntaxHighlightingCB, 0 },  0, &syntax_highlighting_w, 0, 0 },
+    { "sourceTabs", MMToggle, { sourceToggleSoureTabsCB, 0 },  0, &source_tabs_w, 0, 0 },
     { "scales",       MMPanel | MMUnmanagedLabel, MMNoCB, scales_menu, 0, 0, 0 },
     MMEnd
 };
@@ -3815,6 +3817,7 @@ void update_options()
     set_toggle(cache_source_files_w,     app_data.cache_source_files);
     set_toggle(cache_machine_code_w,     app_data.cache_machine_code);
     set_toggle(syntax_highlighting_w,    app_data.syntax_highlighting);
+    set_toggle(source_tabs_w,            app_data.source_tabs);
     set_toggle(set_refer_path_w,         app_data.use_source_path);
     set_toggle(set_refer_base_w,         !app_data.use_source_path);
 
@@ -4253,6 +4256,7 @@ static void ResetSourcePreferencesCB(Widget, XtPointer, XtPointer)
     notify_set_toggle(cache_source_files_w, initial_app_data.cache_source_files);
     notify_set_toggle(cache_machine_code_w, initial_app_data.cache_machine_code);
     notify_set_toggle(syntax_highlighting_w, initial_app_data.syntax_highlighting);
+    notify_set_toggle(source_tabs_w, initial_app_data.source_tabs);
     if (app_data.tab_width != initial_app_data.tab_width)
     {
         app_data.tab_width = initial_app_data.tab_width;
@@ -4281,6 +4285,9 @@ static bool source_preferences_changed()
         return true;
 
     if (app_data.syntax_highlighting != initial_app_data.syntax_highlighting)
+        return true;
+
+    if (app_data.source_tabs != initial_app_data.source_tabs)
         return true;
 
     if (app_data.tab_width != initial_app_data.tab_width)
@@ -4490,9 +4497,6 @@ static bool startup_preferences_changed()
     if (app_data.select_all_bindings != initial_app_data.select_all_bindings)
         return true;
 
-    if (app_data.splash_screen != initial_app_data.splash_screen)
-        return true;
-
     Boolean initial_separate = (initial_app_data.separate_data_window ||
                                 initial_app_data.separate_source_window);
     Boolean separate = (app_data.separate_data_window || 
@@ -4513,6 +4517,9 @@ static bool startup_preferences_changed()
         return true;
 
     if (app_data.scale_glyphs != initial_app_data.scale_glyphs)
+        return true;
+
+    if (app_data.source_tabs != initial_app_data.source_tabs)
         return true;
 
     if (string(app_data.button_color_key) !=

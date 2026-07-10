@@ -51,11 +51,9 @@ char SpinBox_rcsid[] =
 
 // Whether to use XmSpinBox
 #ifndef USE_XM_SPINBOX
-#if XmVersion >= 2000
 #define USE_XM_SPINBOX 1
 #else
 #define USE_XM_SPINBOX 0
-#endif
 #endif
 
 #if USE_XM_SPINBOX
