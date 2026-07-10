@@ -2,7 +2,18 @@
 
 void XwaylandForceExpose(Widget w, bool include_children)
 {
-    if (!w || !XtIsRealized(w))
+    if (!w || !XtIsRealized(w) || !XtIsManaged(w))
+        return;
+
+    Dimension width = 0;
+    Dimension height = 0;
+
+    XtVaGetValues(w,
+                  XtNwidth,  &width,
+                  XtNheight, &height,
+                  nullptr);
+
+    if (width == 0 || height == 0)
         return;
 
     Display *dpy = XtDisplay(w);
