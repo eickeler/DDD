@@ -2646,7 +2646,7 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
         data_menubar_w = 
             MMcreateMenuBar (data_main_window_w, "menubar", data_menubar);
         MMaddCallbacks(data_menubar);
-        MMaddHelpCallback(menubar, ImmediateHelpCB);
+        MMaddHelpCallback(data_menubar, ImmediateHelpCB);
         verify_buttons(data_menubar);
         register_menu_shell(data_menubar);
 
@@ -2702,7 +2702,7 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
         source_menubar_w = 
             MMcreateMenuBar (source_main_window_w, "menubar", source_menubar);
         MMaddCallbacks(source_menubar);
-        MMaddHelpCallback(menubar, ImmediateHelpCB);
+        MMaddHelpCallback(source_menubar, ImmediateHelpCB);
         verify_buttons(source_menubar);
         register_menu_shell(source_menubar);
 
@@ -2776,10 +2776,6 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
 
     if (command_toolbar_w != 0)
         XtUnmanageChild(command_toolbar_w);
-
-    // Status line
-    if (app_data.separate_source_window)
-        create_status(source_view_parent);
 
     // Debugger console
     if (console_buttons_w == 0)
@@ -4981,7 +4977,7 @@ static void create_status(Widget parent)
     XtSetArg(args[arg], XmNleftWidget,       arrow_w); arg++;
     XtSetArg(args[arg], XmNrightAttachment,  XmATTACH_WIDGET); arg++;
     XtSetArg(args[arg], XmNrightWidget,      led_w); arg++;
-    XtSetArg(args[arg], XmNresizable,        False); arg++;
+    XtSetArg(args[arg], XmNresizable,        True); arg++;
     XtSetArg(args[arg], XmNrecomputeSize,    False); arg++;
     XtSetArg(args[arg], XmNshadowThickness,  0); arg++;
     status_w = verify(XmCreatePushButton(status_form, XMST("status"), args, arg));
