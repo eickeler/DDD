@@ -118,8 +118,7 @@ TEMPLATE_SRC = \
 	template/Queue.h      \
 	template/StatArray.h  \
 	template/StringSA.h   \
-	template/VoidArray.h  \
-	template/WidgetSA.h
+	template/VoidArray.h
 
 # Interprocess communication
 # Top-level class is `Agent', declared in `Agent.h'
