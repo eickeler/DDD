@@ -2168,21 +2168,22 @@ void SourceView::find_word_bounds (Widget text_w,
     // The exception to this is $$. 
     // We also dispose of the special automatic variables of GNU make: 
     // $@, $<, etc and special variables of BASH: $*, $@, $? $$, etc.
-    if ( '$' == text[endpos] && endpos < Utf8Pos(text.length()) 
-         && (endpos - 1 >= 0 || '$' != text[endpos-1]) )
+    const Utf8Pos text_len = Utf8Pos(text.length());
+    if (endpos >= 0 && endpos < text_len && text[endpos] == '$' &&
+        (endpos == 0 || text[endpos - 1] != '$'))
     {
         if ( gdb->program_language() == LANGUAGE_BASH )
         {
-            if (text[endpos+1] == '{')
+            if (endpos + 1 < text_len && text[endpos + 1] == '{')
             {
                 // Advance position over ${
                 startpos = endpos += 2;
             }
-            else if (is_bash_special(text[endpos+1]))
+            else if (endpos + 1 < text_len && is_bash_special(text[endpos + 1]))
             {
                 // Found a Bash special variable
                 startpos = endpos;
-                endpos  =  endpos+2;
+                endpos  =  endpos + 2;
                 startpos += lineoffset;
                 endpos += lineoffset;
                 return;
@@ -2190,41 +2191,41 @@ void SourceView::find_word_bounds (Widget text_w,
         }
         else if ( gdb->program_language() == LANGUAGE_MAKE )
         {
-            if ( text[endpos+1] == '(' )
+            if (endpos + 1 < text_len && text[endpos + 1] == '(')
             {
                 // Advance position over $(
                 startpos = endpos += 2;
             }
-            else if (is_make_automatic(text[endpos+1]))
+            else if (endpos + 1 < text_len && is_make_automatic(text[endpos + 1]))
             {
                 // Found a GNU Make automatic variable
                 startpos = endpos;
-                endpos  =  endpos+2;
+                endpos  =  endpos + 2;
                 startpos += lineoffset;
                 endpos += lineoffset;
                 return;
             }
         }
     }
-    else if (endpos - 1 > 0 || '$' == text[endpos-1])
+    else if (endpos > 0 && text[endpos - 1] == '$')
     {
         /* Previous character was a $ - check it out. */
         if ( gdb->program_language() == LANGUAGE_MAKE &&
-            is_make_automatic(text[endpos]) )
+            endpos < text_len && is_make_automatic(text[endpos]) )
         {
             // Found a GNU Make automatic variable
-            startpos = endpos-1;
-            endpos  =  endpos+1;
+            startpos = endpos - 1;
+            endpos  =  endpos + 1;
             startpos += lineoffset;
             endpos += lineoffset;
             return;
         }
         else if ( gdb->program_language() == LANGUAGE_BASH &&
-            is_bash_special(text[endpos]) )
+            endpos < text_len && is_bash_special(text[endpos]) )
         {
             // Found a Bash special variable
-            startpos = endpos-1;
-            endpos  =  endpos+1;
+            startpos = endpos - 1;
+            endpos  =  endpos + 1;
             startpos += lineoffset;
             endpos += lineoffset;
             return;
