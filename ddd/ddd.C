@@ -2177,6 +2177,12 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
                                 ddd_resources, ddd_resources_size,
                                 XtPointer(0));
 
+    // Show splash screen
+    Boolean iconic;
+    XtVaGetValues(toplevel, XmNiconic, &iconic, XtPointer(0));
+    if (app_data.splash_screen && !iconic && restart_session().empty())
+        popup_splash_screen(toplevel, app_data.splash_screen_color_key);
+
     // Initialize APP_DATA from configuration file
     int res;
     res = config_set_app_data(session_settings_file(DEFAULT_SESSION).chars());
@@ -2421,16 +2427,6 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     help_clear_tip_delay  = app_data.clear_tip_delay;
 
     // Re-register own converters.  Motif may have overridden some of
-    // these, so register them again.
-    registerOwnConverters();
-
-    // Show splash screen
-    Boolean iconic;
-    XtVaGetValues(toplevel, XmNiconic, &iconic, XtPointer(0));
-    if (app_data.splash_screen && !iconic && restart_session().empty())
-        popup_splash_screen(toplevel, app_data.splash_screen_color_key);
-
-    // Re-register own converters.  Motif has overridden some of
     // these, so register them again.
     registerOwnConverters();
 
