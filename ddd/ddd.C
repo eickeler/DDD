@@ -3002,22 +3002,17 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     update_options();
 
     // Setup info buttons
+    const string locals_cmd = gdb->info_locals_command();
+    const string args_cmd   = gdb->info_args_command();
 
-    // Our info routines require that the widgets be named after the
-    // info command.  Ugly hack.
-    const string tmp_1_ = gdb->info_locals_command();
-    strcpy(XtName(locals_w), tmp_1_.chars());
-    const string tmp_2_ = gdb->info_args_command();
-    strcpy(XtName(args_w),   tmp_2_.chars());
-    
-    if (gdb->info_locals_command() != gdb->info_args_command())
+    if (locals_cmd != args_cmd)
     {
-        register_info_button(locals_w);
-        register_info_button(args_w);
+        register_info_button(locals_w, locals_cmd);
+        register_info_button(args_w,   args_cmd);
     }
     else
     {
-        register_info_button(locals_w);
+        register_info_button(locals_w, locals_cmd);
         XtUnmanageChild(args_w);
     }
     update_infos();

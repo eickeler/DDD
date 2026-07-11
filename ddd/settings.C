@@ -47,12 +47,12 @@ char settings_rcsid[] =
 #include <Xm/LabelG.h>
 #include <Xm/MwmUtil.h>
 #include <Xm/Separator.h>
+#include <map>
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "AppData.h"
-#include "template/Assoc.h"
 #include "motif/ComboBox.h"
 #include "Command.h"
 #include "DataDisp.h"
@@ -68,7 +68,6 @@ char settings_rcsid[] =
 #include "template/StringSA.h"
 #include "UndoBuffer.h"
 #include "ThemeP.h"
-#include "template/WidgetSA.h"
 #include "base/basename.h"
 #include "buttons.h"
 #include "base/cook.h"
@@ -118,16 +117,16 @@ static Widget            reset_settings_button = 0;
 static Widget            apply_settings_button = 0;
 static WidgetArray       settings_entries;
 static EntryTypeArray    settings_entry_types;
-static WidgetStringAssoc settings_values;
-static WidgetStringAssoc settings_initial_values;
+static std::map<Widget, string> settings_values;
+static std::map<Widget, string> settings_initial_values;
 static bool              need_reload_settings = false;
 
 static Widget            signals_panel = 0;
 static Widget            signals_form  = 0;
 static Widget            reset_signals_button = 0;
 static WidgetArray       signals_entries;
-static WidgetStringAssoc signals_values;
-static WidgetStringAssoc signals_initial_values;
+static std::map<Widget, string> signals_values;
+static std::map<Widget, string> signals_initial_values;
 static bool              need_reload_signals = false;
 
 static Widget            themes_panel = 0;
@@ -139,7 +138,7 @@ static WidgetArray       themes_labels;
 static Widget            infos_panel        = 0;
 static Widget            reset_infos_button = 0;
 static WidgetArray       infos_entries;
-
+static std::map<Widget, string> info_commands;
 
 
 //-----------------------------------------------------------------------
@@ -540,6 +539,14 @@ static void update_themes_buttons()
     set_sensitive(reset_themes_button, reset_is_sensitive);
 }
 
+static string info_button_command(Widget w)
+{
+    std::map<Widget, string>::const_iterator it = info_commands.find(w);
+    if (it != info_commands.end() && !it->second.empty())
+        return it->second;
+
+    return XtName(w);
+}
 
 
 // Update states of `info' buttons
@@ -549,10 +556,12 @@ void update_infos()
 
     for (int i = 0; i < int(infos_entries.size()); i++)
     {
-	Widget button = infos_entries[i];
-	bool set = data_disp->have_user_display(XtName(button));
-	have_info = have_info || set;
-	XtVaSetValues(button, XmNset, set, XtPointer(0));
+        Widget button = infos_entries[i];
+        const string command = info_button_command(button);
+        bool set = data_disp->have_user_display(command);
+
+        have_info = have_info || set;
+        XmToggleButtonSetState(button, set, False);
     }
 
     if (reset_infos_button != 0)
@@ -637,9 +646,14 @@ static void ResetThemesCB(Widget w, XtPointer client_data,
 
 
 // Register additional info button
-void register_info_button(Widget w)
+void register_info_button(Widget w, const string& command)
 {
     infos_entries.push_back(w);
+
+    if (!command.empty())
+        info_commands[w] = command;
+    else
+        info_commands[w] = XtName(w);
 }
 
 // Save `settings' state
@@ -2318,8 +2332,8 @@ static void add_button(Widget form, int& row, Dimension& max_width,
     }
     else
     {
-	// Register entry
-	infos_entries.push_back(entry);
+        // Register entry
+        register_info_button(entry, set_command);
     }
 
     max_width = max(width, max_width);

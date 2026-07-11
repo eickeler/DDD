@@ -76,7 +76,7 @@ extern void dddPopupInfosCB(Widget, XtPointer, XtPointer);
 extern void update_infos();
 
 // Register additional info button
-extern void register_info_button(Widget w);
+extern void register_info_button(Widget w, const string& command = "");
 
 
 // Signal Handling
