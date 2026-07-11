@@ -127,7 +127,7 @@ int DispGraph::count_selected() const
     int count = 0;
     MapRef ref;
     for (int k = idMap.first_key(ref); k != 0; k = idMap.next_key(ref)) {
-	    if (!idMap.get(k)->selected())
+	    if (idMap.get(k)->selected())
 		count++;
     }
     return count;

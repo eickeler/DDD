@@ -1444,6 +1444,8 @@ static MMDesc debugger_menu [] =
       0, &set_debugger_gdb_w, 0, 0 },
     { "jdb", MMToggle, { dddSetDebuggerCB, XtPointer(JDB) },
       0, &set_debugger_jdb_w, 0, 0 },
+    { "make", MMToggle, { dddSetDebuggerCB, XtPointer(MAKE) },
+      0, &set_debugger_make_w, 0, 0 },
     { "perl", MMToggle, { dddSetDebuggerCB, XtPointer(PERL) },
       0, &set_debugger_perl_w, 0, 0 },
     { "pydb", MMToggle, { dddSetDebuggerCB, XtPointer(PYDB) },
@@ -3916,6 +3918,7 @@ void update_options()
     set_toggle(set_debugger_dbx_w,  debugger_type == DBX);
     set_toggle(set_debugger_gdb_w,  debugger_type == GDB);
     set_toggle(set_debugger_jdb_w,  debugger_type == JDB);
+    set_toggle(set_debugger_make_w, debugger_type == MAKE);
     set_toggle(set_debugger_perl_w, debugger_type == PERL);
     set_toggle(set_debugger_pydb_w, debugger_type == PYDB);
     set_toggle(set_debugger_xdb_w,  debugger_type == XDB);
@@ -3927,7 +3930,7 @@ void update_options()
 
     source_view->set_cache_source(app_data.cache_source_files);
     source_view->set_cache_machine_code(app_data.cache_machine_code);
-    source_view->set_disassemble(gdb->type() == GDB || (gdb->type() == PYDB && app_data.disassemble));
+    source_view->set_disassemble(gdb->has_disassembly() && app_data.disassemble);
     source_view->set_all_registers(app_data.all_registers);
     source_view->set_tab_width(app_data.tab_width);
 
@@ -5387,7 +5390,8 @@ static void gdb_readyHP(Agent *, void *, void *call_data)
 }
 
 
-struct WhenReadyInfo {
+struct WhenReadyInfo
+{
     MString message;
     XtCallbackProc proc;
     XtPointer client_data;
@@ -5409,10 +5413,11 @@ struct WhenReadyInfo {
         if (c.event == 0)
         {
             // This happens with old LessTif versions
+            cbs.event = 0;
         }
         else
         {
-            memcpy(cbs.event, c.event, sizeof(XEvent));
+            memcpy(&event, c.event, sizeof(event));
             cbs.event = &event;
         }
     }
