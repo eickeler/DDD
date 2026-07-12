@@ -844,15 +844,15 @@ $(builddocdir)/ddd.info.txt: $(srcdir)/ddd.info
 	    && $(MV) $@~ $@
 
 # EPS code stuff.
-header.str: $(srcdir)/header.ps
+$(srcdir)/header.str: $(srcdir)/header.ps
 	$(SED) 's/^.*$$/"&\\n"/' $(srcdir)/header.ps | $(DELETE_CR) \
 	    > $@~ && $(MV) $@~ $@
 
-trailer.str: $(srcdir)/trailer.ps
+$(srcdir)/trailer.str: $(srcdir)/trailer.ps
 	$(SED) 's/^.*$$/"&\\n"/' $(srcdir)/trailer.ps | $(DELETE_CR) \
 	    > $@~ && $(MV) $@~ $@
 
-eps-code.h: \
+$(srcdir)/eps-code.h: \
 	$(srcdir)/header.str $(srcdir)/trailer.str $(srcdir)/eps-code.x
 	$(SED) -e '/prolog/r $(srcdir)/header.str' \
 	       -e '/trailer/r $(srcdir)/trailer.str' $(srcdir)/eps-code.x \
