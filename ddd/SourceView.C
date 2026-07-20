@@ -2150,6 +2150,9 @@ void SourceView::find_word_bounds (Widget text_w,
     else
     {
         text = current_code;
+        if (text.empty())
+            return;
+
         Utf8Pos line_pos = pos;
         if (line_pos < Utf8Pos(text.length()))
             while (line_pos > 0 && text[line_pos - 1] != '\n')
@@ -2163,12 +2166,19 @@ void SourceView::find_word_bounds (Widget text_w,
         }
     }
 
+    const Utf8Pos text_len = Utf8Pos(text.length());
+    if (startpos < 0 || endpos < 0 || startpos > text_len || endpos > text_len)
+    {
+        startpos = endpos = pos;
+        return;
+    }
+
+
     // We first check the special case in BASH and MAKE where we are 
     // looking at a $ which often surrounds an identifier. 
     // The exception to this is $$. 
     // We also dispose of the special automatic variables of GNU make: 
     // $@, $<, etc and special variables of BASH: $*, $@, $? $$, etc.
-    const Utf8Pos text_len = Utf8Pos(text.length());
     if (endpos >= 0 && endpos < text_len && text[endpos] == '$' &&
         (endpos == 0 || text[endpos - 1] != '$'))
     {
@@ -2207,7 +2217,7 @@ void SourceView::find_word_bounds (Widget text_w,
             }
         }
     }
-    else if (endpos > 0 && text[endpos - 1] == '$')
+    else if (endpos > 0 && endpos <= text_len && text[endpos - 1] == '$')
     {
         /* Previous character was a $ - check it out. */
         if ( gdb->program_language() == LANGUAGE_MAKE &&
@@ -2325,7 +2335,9 @@ void SourceView::find_word_bounds (Widget text_w,
             startpos -= 2;
         }
         else
+        {
             break;
+        }
     }
     startpos += lineoffset;
     endpos += lineoffset;
