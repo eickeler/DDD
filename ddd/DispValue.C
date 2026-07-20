@@ -2195,13 +2195,25 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
 
     int xdim  = atoi(xdimstr.chars());
     int ydim  = atoi(ydimstr.chars());
-    eldata.imagedata.read_image(eldata.file, xdim, ydim, cdim, eldata.gdbtype,
+    bool res = eldata.imagedata.read_image(eldata.file, xdim, ydim, cdim, eldata.gdbtype,
                             PixelCache::L_PLANAR);
+
+    if (res==false)
+    {
+        set_status("DDD: failed to read image data from " + quote(eldata.file));
+        return false;
+    }
+
 
     if (cdim == 3)
     {
         eldata.plottype = PlotElement::RGBIMAGE;
-        eldata.imagedata.write_image_interleaved(eldata.file);
+        res = eldata.imagedata.write_image_interleaved(eldata.file);
+        if (res==false)
+        {
+            set_status("DDD: failed to re-write interleaved RGB image");
+            return false;
+        }
     }
 
 
