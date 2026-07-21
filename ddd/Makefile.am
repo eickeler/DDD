@@ -1426,8 +1426,8 @@ PROG_STUFF = vsl-lex.L vsl-lex.C \
              $(srcdir)/../m4/ddd.vsl.m4 $(vsldir)/ddd.vsl \
              root.h.in \
 	     $(srcdir)/ddd.info \
-             xlibdir.txt xlibdir.C $(srcdir)/header.str \
-	     $(srcdir)/trailer.str $(srcdir)/eps-code.x eps-code.h \
+             xlibdir.txt xlibdir.C header.str \
+	     trailer.str $(srcdir)/eps-code.x eps-code.h \
 	     .gdbinit $(ICONS) 
 
 # Additional files to be included in the distribution.
