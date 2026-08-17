@@ -2523,6 +2523,7 @@ SourceView::SourceView(Widget parent)
     XtSetArg(args[arg], XmNmarginHeight, 0); arg++;
     XtSetArg(args[arg], XmNborderWidth, 0); arg++;
     XtSetArg(args[arg], XmNshadowThickness, 0); arg++;
+    XtSetArg(args[arg], XmNpaneMaximum, 5000); arg++;
     source_pane_w = verify(XmCreateForm(parent, XMST("source_pane_w"),
                                         args, arg));
     XtManageChild(source_pane_w);
@@ -4216,8 +4217,8 @@ void SourceView::setArgAct(Widget w, XEvent *, String *, Cardinal *)
     String s = 0;
     if (XmhIsColorTextView(w))
         s = XmhColorTextViewGetSelection(w);
-    else if (XmIsTextField(w))
-        s = XmTextFieldGetSelection(w);
+    else if (XmIsText(w))
+        s = XmTextGetSelection(w);
     else if (XmIsTextField(w))
         s = XmTextFieldGetSelection(w);
 
@@ -7378,7 +7379,8 @@ void SourceView::dragGlyphAct(Widget glyph, XEvent *e, String *params,
     int k;
     for (k = 0; k < 2; k++)
     {
-        if (glyph == grey_arrows[k] || glyph == past_arrows[k])
+        if (glyph == grey_arrows[k] || glyph == past_arrows[k] ||
+            glyph == signal_arrows[k])
         {
             // Cannot drag last execution position
             return;
@@ -7465,7 +7467,7 @@ void SourceView::followGlyphAct(Widget glyph, XEvent *e, String *, Cardinal *)
         map_drag_arrow_at(text_w, pos);
 }
 
-void SourceView::dropGlyphAct (Widget glyph, XEvent *e, 
+void SourceView::dropGlyphAct(Widget glyph, XEvent *e,
                                String *params, Cardinal *num_params)
 {
     if (e->type != ButtonPress && e->type != ButtonRelease)
@@ -7520,6 +7522,7 @@ void SourceView::dropGlyphAct (Widget glyph, XEvent *e,
         // Selection from code
         if (address.empty())
             return;                // No address
+        address = string('*') + address;
     }
     else
     {
@@ -7531,21 +7534,6 @@ void SourceView::dropGlyphAct (Widget glyph, XEvent *e,
 
     // std::clog << "Dropping " << XtName(glyph) << " [" << glyph << "] at " 
     //      << address << "\n";
-
-    if (text_w == code_text_w)
-    {
-        // Selection from code
-        if (address.empty())
-            return;                // No address
-        address = string('*') + address;
-    }
-    else
-    {
-        // Selection from source
-        if (line_nr == 0)
-            return;                // No line
-        address = sourcecode.current_source_name() + ':' + itostring(line_nr);
-    }
 
     string p = "move";
     if (num_params != 0 && *num_params == 1)
@@ -8163,6 +8151,12 @@ void SourceView::reset_done(const string&, void *)
     clear_code_cache();
     clear_dbx_lookup_cache();
     sourcecode.reset_filename();
+
+    // Reset source tabs
+    source_tabs.clear();
+    recent_source_lines.clear();
+    recent_source_top_lines.clear();
+    refresh_source_tabs();
 
     // Reset execution positions
     last_execution_file = "";
