@@ -87,7 +87,7 @@ SUSEDEVPKGS=( \
 
 NEEDED=""
 
-if grep -E "Ubuntu|Raspbian" /etc/os-release > /dev/null; then
+if grep -E "Debian|Ubuntu|Raspbian" /etc/os-release > /dev/null; then
   DISTRO="DEBIAN"
   dpkg -l | tail -n +6 | cut -d ' ' -f 3 | tr ' ' '\n' > /tmp/debian.dpkg.$$
 elif grep USE /etc/os-release > /dev/null; then
