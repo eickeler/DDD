@@ -39,6 +39,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 
 // Forward decls of handlers used by the widget class
 static void buttonEH(Widget, XtPointer client, XEvent* ev, Boolean* cont);
@@ -247,7 +248,7 @@ typedef struct CtvCtx
     char *font_family = nullptr;
     double font_pt = 0.0;
     Visual  *visual = nullptr;
-    Colormap cmap;
+    Colormap cmap = 0;
     Pixel bg = 0;
     int ascent = 0;
     int descent = 0;
@@ -1209,8 +1210,20 @@ static void draw_expose(CtvCtx *ctx, XExposeEvent *ex)
     if (!ctx->xft || !ctx->font)
         return;
 
-    if (ctx->text_len==0)
+    if (ctx->text_len == 0)
+    {
+        // The pixmap may still contain the previous source display.
+        // Clear the complete back buffer before copying it to the window.
+        clear_rect(ctx, 0, 0, ctx->back_w, ctx->back_h);
+
+        Display *dpy = XtDisplay(ctx->textWidget);
+        Window win = XtWindow(ctx->textWidget);
+
+        XCopyArea(dpy, ctx->back_pix, win, ctx->bg_gc,
+                0, 0, ctx->back_w, ctx->back_h,
+                0, 0);
         return;
+    }
 
     int curH = 0;
     int sliderH = 1;
@@ -1667,6 +1680,7 @@ static void buttonEH(Widget, XtPointer client, XEvent *ev, Boolean *cont)
         ctx->drag_anchor = xy_to_pos(ctx, x, y, CTV_COORD_VIEWPORT);
         ctx->caret = ctx->drag_anchor;
         ctx->sel_start = ctx->sel_end = ctx->drag_anchor;
+        ctx->sel_anchor = ctx->drag_anchor;
         ctx->has_sel = 0;
         ctx->dragging = 1;
         ctx->goal_x = -1;          // reset column goal
@@ -2051,7 +2065,8 @@ static XtGeometryResult QueryGeometry(Widget w, XtWidgetGeometry *in, XtWidgetGe
     out->width  = prefW;
     out->height = prefH;
 
-    if ((in->request_mode & CWWidth)  && in->width  == prefW &&
+    if (in != 0 &&
+        (in->request_mode & CWWidth)  && in->width  == prefW &&
         (in->request_mode & CWHeight) && in->height == prefH)
         return XtGeometryYes;
 
@@ -2422,7 +2437,7 @@ void XmhColorTextViewSetTokens(Widget w, const XmhColorToken *tokens, int count)
     }
 
     // 2) Sort by start
-    std::sort(tmp.begin(), tmp.end(),
+    std::stable_sort(tmp.begin(), tmp.end(),
               [](const XmhColorToken &a, const XmhColorToken &b) {
                   return a.start < b.start;
               });
@@ -2712,6 +2727,8 @@ void XmhColorTextViewSetTopCharacter(Widget w, Utf8Pos pos)
     int line = y / ctx->line_height;
     int visible_lines = get_visible_lines(ctx);
     scroll_from_topLine(ctx, line, ctx->line_count, visible_lines);
+
+    queue_redraw(ctx);
 }
 
 /*!
@@ -2847,7 +2864,10 @@ static void update_metrics_from_font(CtvCtx *ctx)
     XGlyphInfo gi;
     XftTextExtentsUtf8(dpy, ctx->font, &M, 1, &gi);
     if (gi.xOff <= 0)
+    {
         ctx->cellwidth =  8;
+        return;
+    }
     ctx->cellwidth = gi.xOff;
 }
 

@@ -3,6 +3,7 @@
 #define SOURCEWIDGET_TEXT_H
 
 #include <Xm/Xm.h>
+#include <cstdint>
 #include <vector>
 
 
