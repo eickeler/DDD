@@ -269,44 +269,18 @@ int LiterateAgent::_read(const char*& data, FILE *fp)
 
     queue.discard();
     char buffer[ARG_MAX + 1];
-    
-    if (blocking_tty(fp))
-    {
-	// Non-blocking ttys are nasty, so we read only the 
-	// single line available here and now.
-	char *s = fgets(buffer, ARG_MAX, fp);
 
-	if (s != 0)
-	    queue.append(buffer, strlen(buffer));
-	else if (false
-#ifdef EAGAIN
-		 || errno == EAGAIN
-#endif
-#ifdef EINTR
-		 || errno == EINTR
-#endif
-#ifdef EWOULDBLOCK
-		 || errno == EWOULDBLOCK
-#endif
-	    )
-	{
-	    // Linux libc 5.4.39 and later treats EAGAIN and
-	    // EWOULDBLOCK as EOF condition.  This is a bad idea.
-	    clearerr(fp);
-	}
-    }
-    else
-    {
-	// Otherwise, read and accumulate whatever's there - up to
-	// ARG_MAX characters
-	int length = -1;
-	while (queue.length() < ARG_MAX
-	       && (length = _readNonBlocking(buffer, ARG_MAX, fp)) > 0)
-	    queue.append(buffer, length);
+    // Always use non-blocking I/O, compatible with FreeBSD and Linux
+    // to read and accumulate whatever's there - up to
+    //
+    // ARG_MAX characters
+    int length = -1;
+    while (queue.length() < ARG_MAX
+           && (length = _readNonBlocking(buffer, ARG_MAX, fp)) > 0)
+        queue.append(buffer, length);
 
-	if (length < 0)
-	    raiseIOMsg("read from agent failed");
-    }
+    if (length < 0)
+        raiseIOMsg("read from agent failed");
 
     data = queue.data();
     return queue.length();
