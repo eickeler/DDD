@@ -5376,7 +5376,8 @@ static void gdb_readyHP(Agent *, void *, void *call_data)
         // We don't exit and we don't restart
         ddd_is_exiting = ddd_is_restarting = false;
 
-        if (app_data.raise_when_ready && userInteractionSeen())
+        if (app_data.raise_when_ready && userInteractionSeen() &&
+            emptyCommandQueue() && !auto_raise_suppressed())
         {
             Widget shell = source_view_shell ? source_view_shell : command_shell;
 

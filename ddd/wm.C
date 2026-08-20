@@ -213,3 +213,39 @@ void request_active_window(Widget w, Time timestamp)
                SubstructureRedirectMask | SubstructureNotifyMask,
                &ev);
 }
+
+//-----------------------------------------------------------------------------
+// Auto-raise suppression
+//-----------------------------------------------------------------------------
+//
+// Breaks the race between an explicit raise (e.g. of a freshly
+// popped-up plot shell and raise_when_ready for the DDD shell.
+
+static bool auto_raise_suppressed_flag = false;
+static XtIntervalId auto_raise_suppress_timer = 0;
+static void ClearAutoRaiseSuppressionCB(XtPointer, XtIntervalId *id)
+{
+    (void) id; // use it
+    auto_raise_suppressed_flag = false;
+    auto_raise_suppress_timer = 0;
+}
+
+void suppress_auto_raise(Widget w, unsigned long grace_ms)
+{
+    if (w == 0)
+        return;
+
+    auto_raise_suppressed_flag = true;
+
+    if (auto_raise_suppress_timer != 0)
+        XtRemoveTimeOut(auto_raise_suppress_timer);
+
+    auto_raise_suppress_timer = XtAppAddTimeOut(XtWidgetToApplicationContext(w), grace_ms,
+                                    ClearAutoRaiseSuppressionCB, XtPointer(0));
+}
+
+bool auto_raise_suppressed()
+{
+    return auto_raise_suppressed_flag;
+}
+

@@ -457,7 +457,13 @@ static void popup_plot_shell(PlotWindowInfo *plot)
     // Pop up shell
     XtSetSensitive(plot->shell, True);
     XtPopup(plot->shell, XtGrabNone);
-    wait_until_mapped(plot->shell);
+    wait_until_mapped(plot->gnuplot);
+
+    if (XtIsRealized(plot->shell))
+        XMapWindow(XtDisplay(plot->shell), XtWindow(plot->shell));
+    raise_shell(plot->shell);
+
+    suppress_auto_raise(plot->shell, 3000);
 }
 
 // Cancel plot

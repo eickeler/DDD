@@ -48,5 +48,10 @@ void manage_and_raise(Widget w);
 // Ask the WM to activate/raise a window (EWMH _NET_ACTIVE_WINDOW)
 void request_active_window(Widget w, Time timestamp);
 
+// Temporarily suppress "raise when ready". Safe to call repeatedly;
+// each call (re-)arms the timer.
+void suppress_auto_raise(Widget w, unsigned long grace_ms = 3000);
+bool auto_raise_suppressed();
+
 #endif // _DDD_wm_h
 // DON'T ADD ANYTHING BEHIND THIS #endif
