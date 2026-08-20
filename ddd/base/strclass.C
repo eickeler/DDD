@@ -240,7 +240,7 @@ static strRep *string_Sresize(strRep* old, int newlen)
 
 void string::alloc (int newsize)
 {
-    unsigned short old_len = rep->len;
+    unsigned int old_len = rep->len;
     rep = string_Sresize(rep, newsize);
     rep->len = old_len;
 }

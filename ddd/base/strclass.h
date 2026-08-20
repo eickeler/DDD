@@ -601,7 +601,7 @@ public:
 
     string& prepend(const string& y); 
     string& prepend(const subString& y);
-    string& prepend(const constSubString& y);
+    // string& prepend(const constSubString& y);
     string& prepend(const char* t);
     string& prepend(char* t);
     string& prepend(char c);
@@ -659,8 +659,11 @@ public:
     bool contains(char* t) const;
     bool contains(const regex& r) const;
 
-    // Return 1 if target appears anywhere after position pos 
-    // (if pos is negative, pos is counted from the end of the string) in string; else 0
+    // Return true if target matches at pos; this does not search elsewhere.
+    // If pos >= 0, fixed string/char targets must start at pos.
+    // If pos < 0, fixed string/char targets must end at length() + pos
+    // (-1 means the match ends at the last character).
+    // Use index(..., pos) to search from pos.
     bool contains(char c, int pos) const;
     bool contains(const string& y, int pos) const;
     bool contains(const subString& y, int pos) const;
@@ -1040,7 +1043,7 @@ inline string& string::operator = (const string& y)
 
 inline string& string::operator = (const char* t)
 {
-    if (*t == '\0')
+    if (t == 0 || *t == '\0')
     {
 	// Assignment of empty string
 	rep->s += rep->len;
