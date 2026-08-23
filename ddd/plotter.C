@@ -65,12 +65,6 @@ char plotter_rcsid[] =
 #include "darkmode.h"
 #include "scrollbar.h"
 
-#include <stdio.h>
-#include <fstream>
-#include <vector>
-#include <sstream>
-#include <locale>
-
 #include <Xm/Command.h>
 #include <Xm/MainW.h>
 #include <Xm/MessageB.h>
@@ -89,6 +83,10 @@ char plotter_rcsid[] =
 #include <Xm/CascadeB.h>
 
 #include <stdio.h>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <locale>
 #include <cmath>
 
 static void TraceInputHP (Agent *source, void *, void *call_data);
@@ -463,7 +461,8 @@ static void popup_plot_shell(PlotWindowInfo *plot)
         XMapWindow(XtDisplay(plot->shell), XtWindow(plot->shell));
     raise_shell(plot->shell);
 
-    suppress_auto_raise(plot->shell, 3000);
+    if (app_data.raise_when_ready)
+        suppress_auto_raise(plot->shell, 2000);
 }
 
 // Cancel plot
