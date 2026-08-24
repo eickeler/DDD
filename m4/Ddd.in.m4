@@ -333,9 +333,6 @@ Ddd*listDirCommand:   \
 Ddd*plotCommand: \
 gnuplot -e \"set terminal x11 window '@X_ID@' title '@NAME@' font '@FONT@'\" -
 
-! The Gnuplot window class.
-Ddd*plotWindow: Gnuplot
-
 ! Gnuplot initialization commands.  Issued at the start of each Gnuplot
 Ddd*plotInitCommands:
 
@@ -744,9 +741,6 @@ Ddd*maxGlyphs: 10
 ! The time (in ms) to wait before updating glyph positions while scrolling
 Ddd*glyphUpdateDelay: 5
 
-! Do we wish to display line numbers? (Default in DDD 2.1.1 and earlier)
-Ddd*displayLineNumbers: on
-
 ! Do we wish to cache source files in memory?
 Ddd*cacheSourceFiles: on
 
@@ -824,9 +818,6 @@ Ddd*sortPopdownHistory: on
 
 
 ! Status line
-
-! Should the status line be placed at the bottom?
-Ddd*statusAtBottom: on
 
 ! Number of status messages to be kept in status history
 Ddd*statusHistorySize: 20
@@ -1027,9 +1018,6 @@ Ddd*XmText.background:		   TEXT_BACKGROUND_COLOR
 Ddd*XmTextField.background:	   TEXT_BACKGROUND_COLOR
 Ddd*GraphEdit.background:	   TEXT_BACKGROUND_COLOR
 Ddd*XmList.background:		   TEXT_BACKGROUND_COLOR
-Ddd*graph_edit_panner.background:  BACKGROUND_COLOR
-Ddd*graph_edit_panner.foreground:  BACKGROUND_COLOR
-Ddd*graph_edit_panner.shadowColor: FOREGROUND_COLOR
 
 ! Red, green and blue buttons.
 Ddd*break.foreground:		   STOP_COLOR
@@ -2670,7 +2658,6 @@ ITEM LBL(Find Words Only) enables finding complete words only.\n\
 ITEM LBL(Find Case Sensitive) enables case-sensitive search.\n\
     If unset, occurrences are found regardless of case.\n\
 \n\
-DESC(Display Line Numbers, [enable numbered source lines])\n\
 DESC(Display Machine Code, [enable disassembling of the current function])\n\
 \n\
 DESC(Edit Source..., [invoke text editor for current source])\n\
@@ -2725,13 +2712,6 @@ Ddd*sourceMenu.disassemble.accelerator:		Meta<Key>4
 Ddd*sourceMenu.disassemble.acceleratorText:	@accel Alt+4
 Ddd*sourceMenu.disassemble.documentationString:\
 @rm Toggle display of machine code window
-
-Ddd*sourceMenu.lineNumbers.labelString:		Display Line Numbers
-Ddd*sourceMenu.lineNumbers.mnemonic:		N
-Ddd*sourceMenu.lineNumbers.accelerator:		Meta<Key>N
-Ddd*sourceMenu.lineNumbers.acceleratorText:	@accel Alt+N
-Ddd*sourceMenu.lineNumbers.documentationString:\
-@rm Toggle displaying source line numbers
 
 Ddd*sourceMenu.edit.labelString:	Edit Source...
 Ddd*sourceMenu.edit.mnemonic:		E
@@ -3383,7 +3363,7 @@ ITEM LBL(Layout) controls the automatic layout:\n\
         suitable for homogeneous structures only.\n\
     SUBITEM LBL(Automatic layout) makes DDD relayout the graph\n\
         after each change.\n\
-ITEM LBL(Mini-Map) is a small overview widget on the bottom left:\n\
+ITEM LBL(Mini-Map) is a small overview widget on the bottom right:\n\
     SUBITEM LBL(On): Always show the mini-map.\n\
     SUBITEM LBL(Auto): Show the mini-map when needed.\n\
     SUBITEM LBL(Off): Never show the mini-map.\n\
@@ -3462,7 +3442,7 @@ ITEM LBL(Window Layout) sets the window layout.\n\
         where source, data, and the @GDB@ console are stacked.\n\
     SUBITEM LBL(Side by Side Windows) means to use one top-level window\n\
         where the source and the @GDB@ console are on the left side and the\n\
-        data console on the right side.\n\
+        data window on the right side.\n\
     SUBITEM LBL(Separate Windows) means to use a separate top-level window\n\
         for each of source, data, and the @GDB@ console.\n\
 ITEM The LBL(Ctrl+C) and LBL(Ctrl+A) keys can be bound to different actions.\n\
@@ -3604,11 +3584,7 @@ Ddd*preferences*edit*labelString:		Edit Sources
 Ddd*preferences*get_core*labelString:		Get Core File
 Ddd*preferences*ps*labelString:			List Processes
 Ddd*preferences*term*labelString:		Execution Window
-Ddd*preferences*uncompress*labelString:		Uncompress
 Ddd*preferences*plot*labelString:		Plot
-Ddd*preferences*plot_window*labelString:	Plot Window
-Ddd*preferences*extern*labelString:		External
-Ddd*preferences*builtin*labelString:		Builtin
 Ddd*preferences*text.columns:			47
 
 
@@ -3889,22 +3865,6 @@ Ddd*XmPanedWindow.spacing:		4
 ! Graph Editor
 !-----------------------------------------------------------------------------
 
-Ddd*graph_edit_panner.backgroundPixmap:	25_foreground
-Ddd*graph_edit_panner.defaultScale:	10
-Ddd*graph_edit_panner.@TRANSLATIONS@: \
-#override\n\
-<Btn1Down>:	   ddd-get-focus() start()\n\
-<Btn2Down>:	   ddd-get-focus() abort()\n\
-<Key>osfLeft:	   page(-.5p, +0)\n\
-<Key>osfRight:	   page(+.5p, +0)\n\
-<Key>osfUp:	   page(+0, -.5p)\n\
-<Key>osfDown:	   page(+0, +.5p)\n\
-<Key>osfBeginLine: page(0,0)\n\
-<Key>osfBackSpace: page(-1p, -1p)\n\
-<Key>osfDelete:	   page(-1p, -1p)\n\
-Shift<Key>Tab:	   ddd-prev-tab-group()\n\
-<Key>Tab:	   ddd-next-tab-group()\n
-
 Ddd*graph_edit.highlightOnEnter:	On
 Ddd*graph_edit.navigationType:		TAB_GROUP
 
@@ -3944,13 +3904,6 @@ ITEM Using BUTTON(3), click on the background\n\
 
 Ddd*graph_edit.helpString:	GRAPH_EDIT_HELP
 Ddd*data_disp_shell.helpString:	GRAPH_EDIT_HELP
-
-Ddd*graph_edit_panner.helpString:	\
-WIDGET(Panner)\n\
-\n\
-Drag the slider with BUTTON(1) to scroll the data window.
-Ddd*graph_edit_panner.tipString:	\
-@rm Scroll data window
 
 
 !-----------------------------------------------------------------------------
@@ -6902,15 +6855,6 @@ The printing has been cancelled.\n\
 \n\
 Please try another file name and try again.
 
-Ddd*unknown_plot_term_type_error: DDD: Unknown Plot Terminal Type
-Ddd*unknown_plot_term_type_error*helpString:	\
-@rm DDD does not know the plot terminal type specified in the\n\
-SAMP(.plotTermType) resource.\n\
-Possible SAMP(.plotTermType) values include SAMP(xlib) and SAMP(x11).\n\
-\n\
-Please set up the SAMP(.plotTermType) resource\n\
-in your FILE(~/.[ddd]/init) file and try again.
-
 Ddd*tty_exec_error.dialogTitle: DDD: No Execution Window
 Ddd*tty_exec_error*helpString:	\
 @rm The terminal emulator for the execution window\n\
@@ -6957,25 +6901,18 @@ Ddd*options_save_error*helpString:	\
 @rm The DDD options could not be saved.\n\
 Please verify whether FILE(~/.[ddd]/init) is writable and try again.
 
-define(COULD_NOT_BE_UNCOMPRESSED,
-[could not be uncompressed.\n\
-\n\
-Please verify the contents of the\n\
-LBL(Edit, Preferences, Helpers, Uncompress)\n\
-setting and make sure that the given\n\
-uncompressing program is within your executable path.])dnl
 
 Ddd*no_license_error.dialogTitle: DDD: No License
 Ddd*no_license_error*helpString:	\
-@rm The DDD license COULD_NOT_BE_UNCOMPRESSED
+@rm The DDD license could not be opened.
 
 Ddd*no_news_error.dialogTitle: DDD: No news is good news
 Ddd*no_news_error*helpString:	\
-@rm The DDD news COULD_NOT_BE_UNCOMPRESSED
+@rm The DDD news could not be opened.
 
 Ddd*no_ddd_manual_error.dialogTitle: DDD: No Manual
 Ddd*no_ddd_manual_error*helpString:	\
-@rm The DDD manual COULD_NOT_BE_UNCOMPRESSED
+@rm The DDD manual could not be opened.
 
 Ddd*no_ddd_man_page_error.dialogTitle: DDD: No Manual
 Ddd*no_ddd_man_page_error*helpString:	\
