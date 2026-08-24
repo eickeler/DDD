@@ -1286,6 +1286,8 @@ DOC_IMAGES = \
 	ddd-open		\
 	ddd-open-session	\
 	ddd-plots		\
+	ddd-images		\
+	ddd-tabs		\
 	ddd-print-graph		\
 	ddd-print-output	\
 	ddd-print-popup		\
@@ -1295,6 +1297,7 @@ DOC_IMAGES = \
 	ddd-save-session	\
 	ddd-select-display	\
 	ddd-separate		\
+	ddd-sidebyside		\
 	ddd-set			\
 	ddd-settings		\
 	ddd-shortcut-editor	\
