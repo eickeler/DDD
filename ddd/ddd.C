@@ -6960,7 +6960,7 @@ static void setup_version_info()
                     "Universit\303\244t Passau, Germany.\n"
                     "Copyright \302\251 2001 "
                     "Universit\303\244t des Saarlandes, Germany.\n"
-                    "Copyright \302\251 2001-2023 "
+                    "Copyright \302\251 2001-2026 "
                     "Free Software Foundation, Inc.\n"));
 #endif
 }
