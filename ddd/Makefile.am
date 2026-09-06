@@ -1228,11 +1228,11 @@ CONVERT    = convert
 # The fig2dev command.  (fig2dev)
 FIG2DEV = fig2dev
 FIG2PDF = $(FIG2DEV) -L pdf
-FIG2JPG = $(FIG2DEV) -L jpeg
+FIG2JPG = $(FIG2DEV) -L jpeg -q 100
 
 # The Ghostscript command.  (gs)
 GS = gs
-GSOPT = -q -sDEVICE=pdfwrite -dCompatibilityLevel=1.4
+GSOPT = -q -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -dCompatibilityLevel=1.4
 
 # We use giftoppm/ppmtogif to get optimal GIF compression.
 .fig.pdf:
