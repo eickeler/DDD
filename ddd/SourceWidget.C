@@ -39,7 +39,6 @@
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 
 // Forward decls of handlers used by the widget class
 static void buttonEH(Widget, XtPointer client, XEvent* ev, Boolean* cont);

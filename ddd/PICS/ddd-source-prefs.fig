@@ -1,8 +1,9 @@
-#FIG 3.2
+#FIG 3.2  Produced by xfig version 3.2.9
+#encoding: UTF-8
 Portrait
 Center
 Metric
-A4      
+A4
 100.00
 Single
 -2
@@ -13,5 +14,5 @@ Single
 	 1350 3600 20250 3600
 2 5 0 1 -1 -1 1 0 -1 0.000 0 0 -1 0 0 5
 	0 ddd-source-prefs.png
-	 5850 4302 15760 4302 15760 11745 5850 11745 5850 4302
-4 1 -1 0 0 4 24 0.0000 0 285 3225 10980 13275 Source Preferences\001
+	 4140 3915 16783 3915 16783 12907 4140 12907 4140 3915
+4 1 -1 0 0 4 24 0.0000 0 306 3498 10980 13275 Source Preferences\001

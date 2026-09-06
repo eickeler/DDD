@@ -1,8 +1,9 @@
-#FIG 3.2
+#FIG 3.2  Produced by xfig version 3.2.9
+#encoding: UTF-8
 Portrait
 Center
 Metric
-A4      
+A4
 100.00
 Single
 -2
@@ -13,5 +14,5 @@ Single
 	 1305 3600 20205 3600
 2 5 0 1 -1 -1 1 0 -1 0.000 0 0 -1 0 0 5
 	0 ddd-startup-prefs.png
-	 5850 4257 15760 4257 15760 11700 5850 11700 5850 4257
-4 1 -1 0 0 4 24 0.0000 0 360 3300 10980 13275 Startup Preferences\001
+	 4320 3870 16963 3870 16963 12862 4320 12862 4320 3870
+4 1 -1 0 0 4 24 0.0000 0 383 3520 10980 13275 Startup Preferences\001
