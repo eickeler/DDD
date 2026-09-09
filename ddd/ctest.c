@@ -52,10 +52,7 @@ typedef struct Date {
     int year;
 } Date;
 
-void set_date(d, day_of_week, day, month, year)
-    Date *d;
-    DayOfWeek day_of_week;
-    int day, month, year;
+void set_date(Date *d, DayOfWeek day_of_week, int day, int month, int year)
 {
     d->day_of_week = day_of_week;
     d->day         = day;
@@ -63,9 +60,7 @@ void set_date(d, day_of_week, day, month, year)
     d->year        = year;
 }
 
-Date *new_date(day_of_week, day, month, year)
-    DayOfWeek day_of_week;
-    int day, month, year;
+Date *new_date(DayOfWeek day_of_week, int day, int month, int year)
 {
     Date *date = (Date *)malloc(sizeof(Date));
     set_date(date, day_of_week, day, month, year);
@@ -73,8 +68,7 @@ Date *new_date(day_of_week, day, month, year)
     return date;
 }
 
-void free_date(date)
-    Date *date;
+void free_date(Date *date)
 {
     free(date);
 }
@@ -85,11 +79,7 @@ typedef struct _Holiday {
     char *name;
 } Holiday;
 
-void set_holiday(d, day_of_week, day, month, year, name)
-    Holiday *d;
-    DayOfWeek day_of_week;
-    int day, month, year;
-    char *name;
+void set_holiday(Holiday *d, DayOfWeek day_of_week, int day, int month, int year, char *name)
 {
     set_date(&d->date, day_of_week, day, month, year);
     d->name = name;
@@ -106,9 +96,7 @@ typedef struct _Tree {
     struct _Tree *right;
 } Tree;
 
-Tree *new_tree(value, name)
-    int value;
-    char *name;
+Tree *new_tree(int value, char *name)
 {
     Tree *tree = (Tree *)malloc(sizeof(Tree));
     tree->value = value;
@@ -119,8 +107,7 @@ Tree *new_tree(value, name)
     return tree;
 }
 
-void free_tree(tree)
-    Tree *tree;
+void free_tree(Tree *tree)
 {
     if (tree->left)
 	free_tree(tree->left);
@@ -138,8 +125,7 @@ typedef struct _List {
     struct _List *next;
 } List;
 
-List *new_list(value)
-    int value;
+List *new_list(int value)
 {
     List *list = (List *)malloc(sizeof(List));
     list->value = value;
@@ -166,8 +152,7 @@ void tree_test ()
 }
 
 /*--------------------------------------------------------------------------*/
-void list_test(start)
-    int start;
+void list_test(int start)
 {
     List *list = 0;
 
@@ -258,9 +243,7 @@ void in_out_test ()
 }
 
 /*--------------------------------------------------------------------------*/
-int main (argc, argv)
-    int argc;
-    char *argv[];
+int main (int argc, char *argv)
 {
     int i = 42;
     tree_test();
