@@ -1702,11 +1702,13 @@ bool DispValue::can_plotImage() const
         return false;
 
     DispValue *pixmapChild = find_child_member({"pixmap", "data"});
-    DispValue *cdimChild   = find_child_member({"cdim", "channels", "spectrum"});
-    DispValue *xdimChild   = find_child_member({"xdim", "width"});
-    DispValue *ydimChild   = find_child_member({"ydim", "height"});
+    if (!pixmapChild)
+        return false;
 
-    if (pixmapChild && xdimChild && ydimChild && cdimChild)
+    DispValue *xdimChild   = find_child_member({"xdim", "width", "nc"});
+    DispValue *ydimChild   = find_child_member({"ydim", "height", "nr"});
+
+    if (xdimChild && ydimChild)
         return true;
 
     return false;
@@ -2129,21 +2131,84 @@ bool DispValue::plotVector(PlotAgent *&plotter) const
     return true;
 }
 
+// Identifies dlib/ImageLib multi-component pixel types by name and
+// reports their channel count and byte order.
+static bool channels_from_pixel_type(DispValue *pixmapChild, int &cdim, bool &isBGR)
+{
+    isBGR = false;
+
+    string answer = gdb_question("whatis *(" + pixmapChild->full_name() + ")");
+    int pos = answer.index("type = ");
+    if (pos >= 0)
+        answer = answer.after(pos + 6);
+
+    if (answer.index("dlib::rgb_alpha_pixel")>=0)
+    {
+        cdim = 4;
+        return true;
+    }
+    if (answer.index("IMAGE::ARGB")>=0)
+    {
+        isBGR = true;
+        cdim = 4;
+        return true;
+    }
+    if (answer.index("dlib::bgr_pixel")>=0)
+    {
+        isBGR = true;
+        cdim = 3;
+        return true;
+    }
+    if (answer.index("dlib::rgb_pixel")>=0)
+    {
+        cdim = 3;
+        return true;
+    }
+
+    return false;
+}
+
+
 bool DispValue::plotImage(PlotAgent *&plotter) const
 {
     DispValue *pixmapChild = find_child_member({"pixmap", "data"});
-    DispValue *xdimChild   = find_child_member({"xdim", "width"});
-    DispValue *ydimChild   = find_child_member({"ydim", "height"});
+    DispValue *xdimChild   = find_child_member({"xdim", "width", "nc"});
+    DispValue *ydimChild   = find_child_member({"ydim", "height", "nr"});
     DispValue *cdimChild   = find_child_member({"cdim", "channels", "spectrum"});
 
-    if (!pixmapChild || !xdimChild || !ydimChild || !cdimChild)
+    if (!pixmapChild || !xdimChild || !ydimChild)
         return false;
 
-    string cdimstr = cdimChild->value();
-    int cdim = atoi(cdimstr.chars());
+    int cdim = 1;
+    string cdimstr;
+    if (cdimChild!=nullptr)
+    {
+        cdimstr = cdimChild->value();
+        cdim = atoi(cdimstr.chars());
+    }
+
+    string gdbtype = "";
+    PixelCache::Layout layout = PixelCache::L_PLANAR;
+    bool isBGR = false;
+    if (cdim==1)
+    {
+        // further analyze type for DLIB and ImageLib
+        if (channels_from_pixel_type(pixmapChild, cdim, isBGR))
+        {
+            layout = PixelCache::L_INTERLEAVED;
+            gdbtype = "unsigned char";
+        }
+        cdimstr = itostring(cdim);
+    }
 
     if (cdim!=1 && cdim!=3)
-        return false; 
+    {
+        if (cdim == 4)
+            set_status("DDD: alpha-channel images are not yet supported for plotting");
+        else
+            set_status("DDD: images with " + itostring(cdim) + " channels are not supported for plotting");
+        return false;
+    }
 
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
@@ -2171,11 +2236,14 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     string xdimstr = xdimChild->value().chars();
     string ydimstr = ydimChild->value().chars();
 
-    string answer = gdb_question("whatis " + pixmapChild->full_name() + "[0]");
-    string gdbtype = answer.after("=");
-    strip_space(gdbtype);
+    if (gdbtype=="")
+    {
+        string answer = gdb_question("whatis " + pixmapChild->full_name() + "[0]");
+        gdbtype = answer.after("=");
+        strip_space(gdbtype);
+    }
 
-    answer = gdb_question("print sizeof(" + gdbtype + ")");
+    string answer = gdb_question("print sizeof(" + gdbtype + ")");
     string sizestr = answer.after("=");
     strip_space(sizestr);
 
@@ -2210,15 +2278,22 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     }
 
 
-    if (cdim == 3)
+    if (cdim == 3 && layout == PixelCache::L_PLANAR)
     {
-        eldata.plottype = PlotElement::RGBIMAGE;
         res = eldata.imagedata.write_image_interleaved(eldata.file);
         if (res==false)
         {
             set_status("DDD: failed to re-write interleaved RGB image");
             return false;
         }
+    }
+
+    if (cdim==3)
+    {
+        if (isBGR)
+            eldata.plottype = PlotElement::BGRIMAGE;
+        else
+            eldata.plottype = PlotElement::RGBIMAGE;
     }
 
 
