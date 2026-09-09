@@ -1729,8 +1729,8 @@ bool DispValue::can_plotImage() const
     if (!pixmapChild)
         return false;
 
-    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "nc", "cols"});
-    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "nr", "rows"});
+    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "nc", "cols", "n_cols"});
+    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "nr", "rows", "n_rows"});
 
     if (xdimChild && ydimChild)
         return true;
@@ -2203,8 +2203,8 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     if (find_child("dataend") && find_child("datalimit"))
         return false;
 
-    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "nc", "cols"});
-    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "nr", "rows"});
+    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "cols", "nc", "n_cols"});
+    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "rows", "nr", "n_rows"});
     DispValue *cdimChild = find_child_member({"cdim", "channels", "spectrum"});
 
     DispValue *pixmapChild = find_child_member_deep({"pixmap", "data", "mem"});
@@ -2217,6 +2217,7 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     PixelCache::StorageOrder storageOrder = PixelCache::ROW_MAJOR;
     bool isBGR = false;
 
+    DispValue *armaChild    = find_child("n_elem");     // Armadillo marker
     DispValue *storageChild = find_child("m_storage");  // Eigen marker
     if (storageChild != nullptr)
     {
@@ -2278,6 +2279,21 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
             if (arrayChild)
                 pixmapChild = arrayChild;
         }
+    }
+    else if (armaChild != nullptr)
+    {
+        // arma::Mat<eT>: elements are always plain scalars (one channel) in column-major order
+        cdim = 1;
+        cdimstr = "1";
+        storageOrder = PixelCache::COL_MAJOR;
+
+        if (!xdimChild || !ydimChild)
+        {
+            set_status("DDD: could not determine the size of this Armadillo matrix");
+            return false;
+        }
+        xdimstr = xdimChild->value();
+        ydimstr = ydimChild->value();
     }
     else
     {
