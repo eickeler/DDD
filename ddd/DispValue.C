@@ -1661,28 +1661,44 @@ bool matchMemberVariable(string variable, std::vector<string> candidates)
     return false;
 }
 
+DispValue* DispValue::find_child(const string &name) const
+{
+    for (DispValue *c : m_children)
+    {
+        if (c->m_print_name == name)
+            return c;
+    }
+
+    return nullptr;
+}
+
+DispValue* DispValue::find_child_member(std::vector<string> candidates) const
+{
+    for (DispValue *c : m_children)
+    {
+        if (matchMemberVariable(c->m_print_name, candidates))
+            return c;
+    }
+
+    return nullptr;
+}
+
+
+
 bool DispValue::can_plotImage() const
 {
     if (m_type!=Struct)
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"pixmap", "data"}); }))
-        return false;
+    DispValue *pixmapChild = find_child_member({"pixmap", "data"});
+    DispValue *cdimChild   = find_child_member({"cdim", "channels", "spectrum"});
+    DispValue *xdimChild   = find_child_member({"xdim", "width"});
+    DispValue *ydimChild   = find_child_member({"ydim", "height"});
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"cdim", "channels", "spectrum"}); }))
-        return false;
+    if (pixmapChild && xdimChild && ydimChild && cdimChild)
+        return true;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"xdim", "width"}); }))
-        return false;
-
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"ydim", "height" }); }))
-        return false;
-
-    return true;
+    return false;
 }
 
 bool DispValue::can_plotVector() const
@@ -1716,28 +1732,19 @@ bool DispValue::can_plotCVMat() const
     if (m_type!=Struct)
         return false;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "flags"; }))
-        return false;
+    DispValue *flagsChild = find_child("flags");
+    DispValue *dataChild = find_child("data");
+    DispValue *dimsChild = find_child("dims");
+    DispValue *colsChild = find_child("cols");
+    DispValue *rowsChild = find_child("rows");
+    DispValue *datastartChild = find_child("datastart");
+    DispValue *dataendChild = find_child("dataend");
+    DispValue *datalimitChild = find_child("datalimit");
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "data"; }))
-        return false;
+    if (flagsChild && dataChild && dimsChild && colsChild && rowsChild && datastartChild && dataendChild && datalimitChild)
+        return true;
 
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "dims"; }))
-        return false;
-
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "cols"; }))
-        return false;
-
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "rows"; }))
-        return false;
-
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "datastart"; }))
-        return false;
-
-    if (std::none_of(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "dataend"; }))
-        return false;
-
-    return true;
+    return false;
 }
 
 int DispValue::nchildren_with_repeats() const
@@ -2113,12 +2120,15 @@ bool DispValue::plotVector(PlotAgent *&plotter) const
 
 bool DispValue::plotImage(PlotAgent *&plotter) const
 {
-    auto child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"cdim", "channels", "spectrum"}); });
-    if (child == m_children.end())
+    DispValue *pixmapChild = find_child_member({"pixmap", "data"});
+    DispValue *xdimChild   = find_child_member({"xdim", "width"});
+    DispValue *ydimChild   = find_child_member({"ydim", "height"});
+    DispValue *cdimChild   = find_child_member({"cdim", "channels", "spectrum"});
+
+    if (!pixmapChild || !xdimChild || !ydimChild || !cdimChild)
         return false;
 
-    string cdimstr = (*child)->value();
+    string cdimstr = cdimChild->value();
     int cdim = atoi(cdimstr.chars());
 
     if (cdim!=1 && cdim!=3)
@@ -2127,13 +2137,8 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"pixmap", "data"}); });
-    if (child == m_children.end())
-        return false;
-
-    string pixmapname = (*child)->m_print_name;
-    string address = (*child)->value();
+    string pixmapname = pixmapChild->m_print_name;
+    string address = pixmapChild->value();
     if (!address.empty())
     {
         // pixmap is a raw pointer
@@ -2144,7 +2149,7 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     else
     {
         // pixmap is a container -> get addres of first element
-        string answer = gdb_question("print /x  &(" + m_full_name + "." + pixmapname + "[0])");
+        string answer = gdb_question("print /x &(" + pixmapChild->full_name() + "[0])");
         if (answer.contains("No symbol"))
             return false;
 
@@ -2152,21 +2157,10 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         strip_space(address);
     }
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"xdim", "width"}); });
-    if (child == m_children.end())
-        return false;
+    string xdimstr = xdimChild->value().chars();
+    string ydimstr = ydimChild->value().chars();
 
-    string xdimstr = (*child)->value().chars();
-
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child)
-            { return matchMemberVariable(child->m_print_name, {"ydim", "height" }); });
-    if (child == m_children.end())
-        return false;
-
-    string ydimstr =(*child)->value().chars();
-
-    string answer = gdb_question("whatis (" + m_full_name + ")." + pixmapname + "[0]");
+    string answer = gdb_question("whatis " + pixmapChild->full_name() + "[0]");
     string gdbtype = answer.after("=");
     strip_space(gdbtype);
 
@@ -2193,8 +2187,8 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     eldata.gdbtype = gdbtype;
     eldata.binary = true;
 
-    int xdim  = atoi(xdimstr.chars());
-    int ydim  = atoi(ydimstr.chars());
+    int xdim = atoi(xdimstr.chars());
+    int ydim = atoi(ydimstr.chars());
     bool res = eldata.imagedata.read_image(eldata.file, xdim, ydim, cdim, eldata.gdbtype,
                             PixelCache::L_PLANAR);
 
@@ -2222,21 +2216,25 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
 
 bool DispValue::plotCVMat(PlotAgent *&plotter) const
 {
-    auto child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "dims"; });
-    if (child == m_children.end())
+    DispValue *flagsChild = find_child("flags");
+    DispValue *dataChild = find_child("data");
+    DispValue *dimsChild = find_child("dims");
+    DispValue *colsChild = find_child("cols");
+    DispValue *rowsChild = find_child("rows");
+    DispValue *datastartChild = find_child("datastart");
+    DispValue *dataendChild = find_child("dataend");
+    DispValue *datalimitChild = find_child("datalimit");
+
+    if (!flagsChild || !dataChild || !dimsChild || !colsChild || !rowsChild || !datastartChild || !dataendChild || !datalimitChild)
         return false;
 
-    string cdimstr = (*child)->value();
-    int cdim = atoi(cdimstr.chars());
+    string cdimstr = dimsChild->value();
+    int dim = atoi(cdimstr.chars());
 
-    if (cdim!=2)
+    if (dim!=2)
         return false; // only 2 dimensional images
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "flags"; });
-    if (child == m_children.end())
-        return false;
-
-    int flags = atoi((*child)->value().chars());
+    int flags = atoi(flagsChild->value().chars());
     if (flags>>16 != 0x42FF)
         return false;
 
@@ -2275,36 +2273,18 @@ bool DispValue::plotCVMat(PlotAgent *&plotter) const
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "data"; });
-    if (child == m_children.end())
-        return false;
-
-    string startaddress  = (*child)->value();
+    string startaddress  = dataChild->value();
     int pos = startaddress.index(rxwhite);
     if (pos>0)
         startaddress = startaddress.before(pos);
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "datalimit"; });
-    if (child == m_children.end())
-        return false;
-
-    string endaddress  = (*child)->value();
+    string endaddress  = datalimitChild->value();
     pos = endaddress.index(rxwhite);
     if (pos>0)
         endaddress = endaddress.before(pos);
 
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "cols"; });
-    if (child == m_children.end())
-        return false;
-
-    string colsstr = (*child)->value();
-
-    child = std::find_if(m_children.begin(), m_children.end(), [&](const DispValue *child) { return child->m_print_name == "rows"; });
-    if (child == m_children.end())
-        return false;
-
-    string rowsstr = (*child)->value();
-
+    string colsstr = colsChild->value();
+    string rowsstr = rowsChild->value();
 
     string question = "dump binary memory " + eldata.file + " " + startaddress + " " + endaddress;
     string answer = gdb_question(question);

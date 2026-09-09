@@ -95,6 +95,8 @@ class DispValue {
     static int index_base(const string& expr, int dim);
     static string add_member_name(const string& base, 
 				  const string& member_name);
+    DispValue *find_child(const string &name) const;
+    DispValue *find_child_member(std::vector<string> candidates) const;
 
     // Plotting stuff
     bool getGnuplotType(string expr, string &gdbtype, string &gnuplottype, string &sizestr) const;
