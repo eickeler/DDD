@@ -57,7 +57,7 @@
 @set EDITION First
 
 @c !!set DDD manual's revision date
-@set DATE 20 Jan, 2024
+@set DATE 9 September, 2026
 
 @c Index stuff
 @c Labels
@@ -174,7 +174,7 @@ to the developers' mailing list @email{bug-ddd@@gnu.org}. @*
 \subtitle \textsf{\value{EDITION} Edition, for \value{DDD} Version \value{VERSION}}
 \subtitle \textsf{Last updated \value{DATE}}
 \vskip 2\baselineskip
-\center \image{PICS/dddlogo34, 15cm}
+\center \image{PICS/dddlogo35, 15cm}
 \author \titlesf{Andreas Zeller}
 @end titlepage
 @end tex
@@ -188,7 +188,7 @@ to the developers' mailing list @email{bug-ddd@@gnu.org}. @*
 
 @vskip 0pt plus 1filll
 @noindent
-Copyright @copyright{} 2024 Michael J. Eager and Stefan Eickeler.
+Copyright @copyright{} 2026 Michael J. Eager and Stefan Eickeler.
 @sp 1
 @noindent
 Copyright @copyright{} 2004 Universit@"at des Saarlandes @*
@@ -398,8 +398,6 @@ Customizing the Command Tool
 
 Command Tool Position
 
-* Customizing Tool Decoration::  
-
 Customizing @value{DDD}
 
 * How Customizing Works::       
@@ -535,6 +533,7 @@ Examining Data
 * Printing Values::             Printing a value in the debugger console.
 * Displaying Values::           Displaying structures as graphs.
 * Plotting Values::             Displaying values as plots.
+* Plotting Images::             Plotting image buffers.
 * Examining Memory::            Low-level memory examination.
 
 Displaying Complex Values in the Data Window
@@ -595,12 +594,12 @@ Layouting the Graph
 Plotting Values
 
 * Plotting Arrays::             Plotting 1-D and 2-D arrays.
+* Plotting Images::             Plotting image buffers.
 * Plot Appearance::             Controlling the appearance.
 * Scalars and Composites::      Plotting simple values.
 * Plotting Histories::          Plotting the history of a variable.
 * Printing Plots::              Printing on paper.
 * Entering Plotting Commands::  Raw Gnuplot commands.
-* Exporting Plot Data::         Processing data outside of @DDD{}
 * Animating Plots::             Visualizing dynamic behaviour.
 * Customizing Plots::           All at your leisure.
 
@@ -625,7 +624,6 @@ Changing the Program
 Editing Source Code
 
 * Customizing Editing::         
-* In-Place Editing::            
 
 The Command-Line Interface
 
@@ -1179,10 +1177,12 @@ information as well as a @GDB{} prompt.@footnote{Re-invoke @DDD{} with
 (@pxref{Choosing an Inferior Debugger})}
 
 @example
-GNU @value{DDD} Version @value{VERSION}, by Dorothea Lütkehaus and Andreas Zeller.
+GNU @value{DDD} Version @value{VERSION}, by Dorothea Lütkehaus and Andreas Zeller,
+maintained by Michael Eager and Stefan Eickeler.
 Copyright @copyright{} 1995-1999 Technische Universität Braunschweig, Germany.
 Copyright @copyright{} 1999-2001 Universität Passau, Germany.
-Copyright @copyright{} 2001-2004 Universität des Saarlandes, Germany.
+Copyright @copyright{} 2001 Universität des Saarlandes, Germany.
+Copyright @copyright{} 2001-2026 Free Software Foundation, Inc.
 Reading symbols from sample@dots{}done.
 (gdb) _
 @end example
@@ -1738,7 +1738,7 @@ Giving this option is equivalent to setting the @DDD{}
 @xref{Window Layout}, for details.
 
 @item --attach-data-window
-Attach only the source window to the debugger console.
+Attach only the data window to the debugger console.
 
 Giving this option is equivalent to setting the @DDD{}
 @samp{separateDataWindow} resource to @samp{off}.  @xref{Window Layout},
@@ -1870,8 +1870,8 @@ details.
 
 
 @item --fontsize @var{size}
-Set the default font size to @var{size} (in 1/10 points).  To make
-@DDD{} use 12-point fonts, say @option{--fontsize 120}.
+Set the default font size to @var{size} (in points).  To make
+@DDD{} use 12-point fonts, say @option{--fontsize 12}.
 
 Giving this option is equivalent to setting the @DDD{}
 @samp{FontSize} resource class to @samp{size}.  @xref{Customizing
@@ -1897,16 +1897,6 @@ Run @GDB{} as inferior debugger.
 Giving this option is equivalent to setting the @DDD{}
 @samp{debugger} resource to @samp{gdb}.  @xref{Customizing Debugger Interaction},
 for details.
-
-
-@item --glyphs
-Display the current execution position and breakpoints as glyphs.  See
-also the @option{--no-glyphs} option, below.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{displayGlyphs} resource to @samp{on}.  @xref{Customizing Source},
-for details.
-
 
 
 @item --help
@@ -2029,15 +2019,6 @@ Giving this option is equivalent to setting the @DDD{}
 Execution Window}, for details.
 
 
-@item --no-glyphs
-Do not use glyphs; display the current execution position and
-breakpoints as text characters.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{displayGlyphs} resource to @samp{off}.  @xref{Customizing Source},
-for details.
-
-
 @item --no-maintenance
 Do not enable the top-level @samp{Maintenance} menu with options for
 debugging @DDD{}.  This is the default.  @xref{Maintenance Menu},
@@ -2088,19 +2069,6 @@ Giving this option is equivalent to setting the @DDD{}
 for details.
 
 
-@item --panned-graph-editor
-Use an Athena panner to scroll the data window.  Most people prefer
-panners on scroll bars, since panners allow two-dimensional scrolling.
-However, the panner is off by default, since some Motif implementations
-do not work well with Athena widgets.  @xref{Display Resources}, for
-details; see also @option{--scrolled-graph-editor}, below.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{pannedGraphEditor} resource to @samp{on}.  @xref{Display
-Resources}, for details.
-
-
-
 @item --play-log @var{log-file}
 Recapitulate a previous @DDD{} session.
 
@@ -2114,7 +2082,7 @@ debugger given in @var{log-file} (see below).  This is useful for
 debugging @DDD{}.
 
 Giving this option is equivalent to setting the @DDD{}
-@samp{playLog} resource to @samp{on}.  @xref{Customizing Debugger Interaction}, for
+@samp{playLog} resource to @var{log-file}.  @xref{Customizing Debugger Interaction}, for
 details.
 
 
@@ -2124,7 +2092,7 @@ Simulate an inferior debugger.  @var{log-file} is a
 @file{~/.@value{ddd}/log} file as generated by some previous
 @DDD{} session (@pxref{Logging}).  When a command is entered, scan
 @var{log-file} for this command and re-issue the logged reply; if the
-command is not found, do nothing.  This is used by the @option{--play}
+command is not found, do nothing.  This is used by the @option{--play-log}
 option.
 
 
@@ -2140,23 +2108,13 @@ Giving this option is equivalent to setting the @DDD{}
 Debugger}, for details.
 
 
-@item --scrolled-graph-editor
-Use Motif scroll bars to scroll the data window.  This is the default in
-most @DDD{} configurations.  @xref{Display Resources}, for details;
-see also @option{--panned-graph-editor}, above.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{pannedGraphEditor} resource to @samp{off}.  @xref{Display
-Resources}, for details.
-
-
 @item --separate-windows
 @itemx --separate
 Separate the console, source and data windows.  See also the
 @option{--attach} options, above.
 
 Giving this option is equivalent to setting the @DDD{}
-@samp{Separate} resource class to @samp{off}.  @xref{Window Layout}, for
+@samp{Separate} resource class to @samp{on}.  @xref{Window Layout}, for
 details.
 
 
@@ -2179,22 +2137,6 @@ Giving this option is equivalent to setting the @DDD{}
 for details.
 
 
-@item --status-at-bottom
-Place the status line at the bottom of the source window.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{statusAtBottom} resource to @samp{on}.  @xref{Window Layout}, for
-details.
-
-
-@item --status-at-top
-Place the status line at the top of the source window.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{statusAtBottom} resource to @samp{off}.  @xref{Window Layout}, for
-details.
-
-
 @item --sync-debugger
 Do not process X events while the debugger is busy.  This may result
 in slightly better performance on single-processor systems.
@@ -2202,23 +2144,6 @@ in slightly better performance on single-processor systems.
 Giving this option is equivalent to setting the @DDD{}
 @samp{synchronousDebugger} resource to @samp{on}.  @xref{Customizing
 Debugger Interaction}, for details.
-
-
-@item --toolbars-at-bottom
-Place the toolbars at the bottom of the respective window.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{toolbarsAtBottom} resource to @samp{on}.  @xref{Window Layout},
-for details.
-
-
-
-@item --toolbars-at-top
-Place the toolbars at the top of the respective window.
-
-Giving this option is equivalent to setting the @DDD{}
-@samp{toolbarsAtBottom} resource to @samp{off}.  @xref{Window Layout},
-for details.
 
 
 @item --trace
@@ -4164,13 +4089,6 @@ If enabled, find is case-sensitive (@key{Alt+I}).  @xref{Textual
 Search}, for details.
 
 
-@item Display Line Numbers
-@lbindex Display Line Numbers
-@kindex Alt+N
-If enabled, prefix source lines with their line number (@key{Alt+N}).
-@xref{Customizing Source}, for details.
-
-
 @item Display Machine Code
 @lbindex Display Machine Code
 @kindex Alt+4
@@ -4671,94 +4589,24 @@ for details.
 @node Customizing the Tool Bar
 @subsection Customizing the Tool Bar
 
-The @DDD{} tool bar buttons can appear in a variety of styles,
-customized via @samp{Edit @result{} Preferences @result{} Startup}.
+The @DDD{} tool bar buttons can appear in two styles,
+customized via @samp{Edit @result{} Preferences @result{} Appearance}.
 
 @table @code
-@item Images
-This lets each tool bar button show an image illustrating the action.
+@item Modern (Flat)
+This lets each tool bar button show an icon style image illustrating the action.
 
-@item Captions
-This shows the action name below the image.
+@item Classic (Motif)
+This shows the old classic retro style toolbar.
 @end table
 
-The default is to have images as well as captions, but you can choose to
-have only images (saving space) or only captions.
+The default is the modern style.
 
 @ifnotinfo
 @sp 1
 @center @image{PICS/ddd-toolbars, 16cm}
 @sp 1
 @end ifnotinfo
-
-If you choose to have neither images nor captions, tool bar buttons are
-labeled like other buttons, as in @DDD{} 2.x.  Note that this
-implies that in the stacked window configuration, the common tool bar
-cannot be displayed; it is replaced by two separate tool bars, as in
-@DDD{} 2.x.
-
-If you enable @samp{Flat} buttons (default), the border of tool bar
-buttons will appear only if the mouse pointer is over them.  This
-latest-and-greatest @acronym{GUI} invention can be disabled, such that
-the button border is always shown.
-
-If you enable @samp{Color} buttons, tool bar images will be colored when
-entered.  If @DDD{} was built using Motif 2.0 and later, you can
-also choose a third setting, where buttons appear in color all the time.
-
-Here are the related resources (@pxref{Customizing}):
-
-@defvr Resource activeButtonColorKey (class ColorKey)
-The @acronym{XPM} color key to use for the images of active buttons
-(entered or armed).  @samp{c} means color, @samp{g} (default) means
-grey, and @samp{m} means monochrome.
-@end defvr
-
-@defvr Resource buttonCaptions (class ButtonCaptions)
-Whether the tool bar buttons should be shown using captions
-(@samp{on}, default) or not (@samp{off}).  If neither captions nor
-images are enabled, tool bar buttons are shown using ordinary labels.
-See also @samp{buttonImages}, below.
-@end defvr
-
-@defvr Resource buttonCaptionGeometry (class ButtonCaptionGeometry)
-The geometry of the caption subimage within the button icons.  Default
-is @samp{29x7+0-0}.
-@end defvr
-
-@defvr Resource buttonImages (class ButtonImages)
-Whether the tool bar buttons should be shown using images (@samp{on},
-default) or not (@samp{off}).  If neither captions nor images are
-enabled, tool bar buttons are shown using ordinary labels.  See also
-@samp{buttonCaptions}, above.
-@end defvr
-
-@defvr Resource buttonImageGeometry (class ButtonImageGeometry)
-The geometry of the image within the button icon.  Default is
-@samp{25x21+2+0}.
-@end defvr
-
-@defvr Resource buttonColorKey (class ColorKey)
-The @acronym{XPM} color key to use for the images of inactive buttons
-(non-entered or insensitive).  @samp{c} means color, @samp{g}
-(default) means grey, and @samp{m} means monochrome.
-@end defvr
-
-@defvr Resource flatToolbarButtons (class FlatButtons)
-If @samp{on} (default), all tool bar buttons with images or captions
-are given a `flat' appearance---the 3-D border only shows up when the
-pointer is over the icon.  If @samp{off}, the 3-D border is shown all
-the time.
-@end defvr
-
-@defvr Resource flatDialogButtons (class FlatButtons)
-If @samp{on} (default), all dialog buttons with images or captions
-are given a `flat' appearance---the 3-D border only shows up when
-the pointer is over the icon.  If @samp{off}, the 3-D border is shown
-all the time.
-@end defvr
-
-
 
 
 @node Command Tool
@@ -4863,26 +4711,6 @@ that have existed longer.  @xref{Stack}, for details.
 Select the stack frame (i.e. the function) that was called by this one.
 This advances toward the innermost frame, to lower frame numbers, to
 frames that were created more recently.  @xref{Stack}, for details.
-
-@item Undo
-@lbindex Undo
-Undo the most recent action.  Almost all commands can be undone this
-way.  @xref{Undo and Redo}, for details.
-
-@item Redo
-@lbindex Redo
-Redo the action most recently undone.  Every command undone can be
-redone this way.  @xref{Undo and Redo}, for details.
-
-@item Edit
-@lbindex Edit
-Invoke an editor for the current source file.  @xref{Editing Source
-Code}, for details.
-
-@item Make
-@lbindex Make
-Run the @code{make} program with the most recently given arguments.
-@xref{Recompiling}, for details.
 @end table
 
 
@@ -4956,47 +4784,6 @@ right border of the source text (in pixels).  Default is 8.
 The distance between the upper border of the command tool and the
 upper border of the source text (in pixels).  Default is 8.
 @end defvr
-
-
-@menu
-* Customizing Tool Decoration::  
-@end menu
-
-@node Customizing Tool Decoration
-@subsubsection Customizing Tool Decoration
-
-The following resources control the decoration of the command tool
-(@pxref{Customizing}):
-
-@defvr Resource decorateTool (class Decorate)
-This resource controls the decoration of the command tool.
-
-@itemize @bullet
-@item
-If this is @samp{off}, the command tool is created as a @emph{transient
-window}.  Several window managers keep transient windows automatically
-on top of their parents, which is appropriate for the command tool.
-However, your window manager may be configured not to decorate transient
-windows, which means that you cannot easily move the command tool
-around.
-
-@item
-If this is @samp{on}, @DDD{} realizes the command tool as a
-@emph{top-level window}.  Such windows are always decorated by the
-window manager.  However, top-level windows are not automatically kept
-on top of other windows, such that you may wish to set the
-@samp{autoRaiseTool} resource, too.
-
-@item
-If this is @samp{auto} (default), @DDD{} checks whether the window
-manager decorates transients.  If yes, the command tool is realized as a
-transient window (as in the @samp{off} setting); if no, the command tool
-is realized as a top-level window (as in the @samp{on} setting).  Hence,
-the command tool is always decorated using the ``best'' method, but the
-extra check takes some time.
-@end itemize
-@end defvr
-
 
 
 @node Getting Help
@@ -5325,7 +5112,6 @@ The tip of the day numbered @var{n} (a string).
 @end defvr
 
 
-
 @node Help Helpers
 @subsubsection Help Helpers
 
@@ -5337,60 +5123,6 @@ The tip of the day numbered @var{n} (a string).
 @center @image{PICS/ddd-helpers, 16cm}
 @sp 1
 @end ifnotinfo
-
-@lbindex Uncompress
-To uncompress help texts, you can define a @samp{Uncompress} command:
-
-@defvr Resource uncompressCommand (class UncompressCommand)
-@cmindex gzip
-@cmindex gunzip
-@cmindex zcat
-The command to uncompress the built-in @DDD{} manual, the
-@DDD{} license, and the @DDD{} news.  Takes a compressed text
-from standard input and writes the uncompressed text to standard output.
-The default value is @command{gzip -d -c}; typical values include
-@command{zcat} and @command{gunzip -c}.
-@end defvr
-
-@lbindex Web Browser
-To view @WWW{} pages, you can define a @samp{Web Browser} command:
-
-@defvr Resource wwwCommand (class WWWCommand)
-@enindex WWWBROWSER
-@pindex netscape
-@pindex mozilla
-@pindex emacs
-@pindex xemacs
-@pindex firefox
-@pindex gnudoit
-@pindex lynx
-The command to invoke a @WWW{} browser.  The string @samp{@@URL@@} is
-replaced by the @acronym{URL} to open.  Default is to try a running
-Netscape first (trying @command{mozilla}, then @command{netscape}), then
-@command{$WWWBROWSER}, then to invoke a new Netscape process, then to
-let a running Emacs or XEmacs do the job (via @command{gnudoit}), then
-to invoke Firefox, then to invoke Lynx in an xterm.
-
-To specify @samp{netscape-6.0} as browser, use the setting:
-
-@example
-Ddd*wwwCommand: \
-     netscape-6.0 -remote 'openURL(@@URL@@)' \
-  || netscape-6.0 '@@URL@@'
-@end example
-
-This command first tries to connect to a running @code{netscape-6.0}
-browser; if this fails, it starts a new @code{netscape-6.0} process.
-@end defvr
-
-This is the default @WWW{} Page shown by @samp{Help @result{} @DDD{}
-@WWW{} Page}:
-
-@defvr Resource wwwPage (class @WWW{}Page)
-The @DDD{} @WWW{} page.  Value:
-@uref{http://www.gnu.org/software/ddd/}
-@end defvr
-
 
 
 @node Customizing Undo
@@ -5506,6 +5238,24 @@ Startup @result{} Window Layout @result{} Separate Windows}.
 @sp 1
 @end ifnotinfo
 
+The @samp{Side by Side Windows} layout is intended for wide displays,
+such as 16:9 screens and wider.  It keeps all main windows in one top-level
+window, but arranges them in two columns.  The source window, machine
+code window, and debugger console are placed in the left column.  The
+data window is placed in the right column.
+
+To enable this layout, select @samp{Edit @result{} Preferences
+@result{} Startup @result{} Window Layout @result{} Side by Side
+Windows}.
+
+@ifnotinfo
+@sp 1
+@center @image{PICS/ddd-sidebyside, 16cm}
+@sp 1
+@end ifnotinfo
+
+
+
 Here are the related @DDD{} resources:
 
 @defvr Resource separateDataWindow (class Separate)
@@ -5520,24 +5270,15 @@ different top-level windows.  If @samp{off} (default), the source window
 is attached to the debugger console.
 @end defvr
 
-@lbindex Tool Bar Appearance
-@cindex Tool Bar, location
-By default, the @DDD{} tool bars are located on top of the window.
-If you prefer the tool bar being located at the bottom, as in
-@DDD{} 2.x and earlier, set @samp{Edit @result{} Preferences
-@result{} Startup @result{} Tool Bar Appearance @result{} Bottom}.
-
-This is related to the @samp{toolbarsAtBottom} resource:
-
-@defvr Resource toolbarsAtBottom (class ToolbarsAtBottom)
-Whether source and data tool bars should be placed above source and
-data, respectively (@samp{off}, default), or below, as in @DDD{}
-2.x (@samp{on}).
+@defvr Resource sideBySideWindows (class SideBySide)
+If @samp{on}, @DDD{} uses the side-by-side layout: the source window,
+machine code window, and debugger console are placed in the left column,
+and the data window is placed in the right column.  If @samp{off}
+(default), @DDD{} uses the normal stacked layout.
 @end defvr
 
-The bottom setting is only supported for separate tool bars---that is,
-you must either choose separate windows or configure the tool bar to
-have neither images nor captions (@pxref{Customizing the Tool Bar}).
+@lbindex Tool Bar Appearance
+The @DDD{} tool bars are located on top of the window.
 
 If you use stacked windows, you can choose whether there should be one
 tool bar or two tool bars.  By default, @DDD{} uses two tool bars
@@ -5551,16 +5292,6 @@ whether they should be placed in two separate tool bars, one for data,
 and one for source operations, as in @DDD{} 2.x (@samp{off}).
 @end defvr
 
-@cindex Status line, location
-You can also change the location of the @emph{status line}
-(@pxref{Customizing}):
-
-@defvr Resource statusAtBottom (class StatusAtBottom)
-If @samp{on} (default), the status line is placed at the bottom of the
-@DDD{} source window.  If @samp{off}, the status line is placed at
-the top of the @DDD{} source window (as in @DDD{} 1.x).
-@end defvr
-
 @xref{Options}, for options to set these resources upon @DDD{}
 invocation.
 
@@ -5568,23 +5299,42 @@ invocation.
 @node Customizing Fonts
 @subsubsection Customizing Fonts
 @cindex Fonts
+@cindex Xft fonts
+@cindex Fontconfig
+
+@cindex Font size, changing interactively
+@cindex Mouse wheel, changing font size
+@kindex Ctrl+Mouse Wheel
+
+@DDD{} uses Xft fonts selected through Fontconfig.  Font names should
+normally be Fontconfig family names, such as @samp{Liberation Sans} or
+@samp{Liberation Mono}.
+
+Font sizes are specified as whole points.  For example, @samp{12}
+selects a 12-point font.
+
+You can change the font size interactively in the source window, machine
+code window, and data window. Hold down @key{Ctrl} while turning the
+mouse wheel over the desired window.
+
+In the source and machine code windows, this changes the displayed text
+size. In the data window, @DDD{} changes both the data-display font size
+and the graph scale, so that display boxes, labels, and their layout
+remain proportionate.
 
 You can configure the basic @DDD{} fonts at run-time.  Each
 font is specified using two members:
 
 @itemize @bullet
 @item
-The @dfn{font family} is an X font specifications, where the initial
-@samp{@var{foundry}-} specification may be omitted, as well as any
-specification after @var{family}.  Thus, a pair
-@samp{@var{family}-@var{weight}} usually suffices.
+The @dfn{font family} is a Fontconfig family name.
 
 @item
-The @dfn{font size} is given as (resolution-independent) 1/10 points.
+The @dfn{font size} is given in points.
 @end itemize
 
 To specify fonts, select @samp{Edit @result{} Preferences @result{}
-Fonts}.
+Appearance}.
 
 @ifnotinfo
 @sp 1
@@ -5592,30 +5342,20 @@ Fonts}.
 @sp 1
 @end ifnotinfo
 
-The @samp{Browse} button opens a font selection program, where you can
-select fonts and attributes interactively.  Clicking @samp{quit} or
-@samp{select} in the font selector causes all non-default values to be
-transferred to the @DDD{} font preferences panel.
-
 The following fonts can be set using the preferences panel:
 
 @table @code
-@item Default Font
-The default @DDD{} font to use for labels, menus, and buttons.
-Default is @samp{liberation sans-bold} (similar to Helvetica Bold).
-
 @item Variable Width
-The variable width @DDD{} font to use for help texts and messages.
-Default is @samp{liberation sans-medium} (similar to Helvetica Medium).
+The variable width @DDD{} font to use for labels, menus, buttons, and help texts and messages.  Default is @samp{Liberation Sans}.
 
 @item Fixed Width
 The fixed width @DDD{} font to use for source code, the debugger
 console, text fields, and the execution window.  Default
-is @samp{liberation mono-bold} (similar to Courier Bold).
+is @samp{Liberation Mono}.
 
 @item Data
 The @DDD{} font to use for data displays.  Default
-is @samp{liberation mono-bold}. (similar to Courier Bold).
+is @samp{Liberation Mono}.
 @end table
 
 Changes in this panel will take effect only in the next @DDD{} session.
@@ -5630,44 +5370,17 @@ The @samp{Reset} button restores the most recently saved preferences.
 
 Here are the resources related to font specifications:
 
-@defvr Resource defaultFont (class Font)
-The default @DDD{} font to use for labels, menus, buttons, etc.
-The font is specified as an X font spec, where the initial @var{Foundry}
-specification may be omitted, as well as any specification after
-@var{Family}.  
-
-Default value is @samp{liberation sans-bold} (similar to Helvetica Bold).
-
-To set the default @DDD{} font to, say, @samp{liberation sans medium} 
-(similar to Helvetica Medium), insert a line
-
-@example
-@value{Ddd}*defaultFont: liberation sans-medium
-@end example
-
-@noindent
-in your @file{~/.@value{ddd}/init} file.
-@end defvr
-
-@defvr Resource defaultFontSize  (class FontSize)
-The size of the default @DDD{} font, in 1/10 points.  This resource
-overrides any font size specification in the @samp{defaultFont} resource
-(see above).  The default value is @code{120} for a 12.0 point font.
-@end defvr
-
 @defvr Resource variableWidthFont (class Font)
 The variable width @DDD{} font to use for help texts and messages.
-The font is specified as an X font spec, where the initial @var{Foundry}
-specification may be omitted, as well as any specification after
-@var{Family}.
+The font is specified as Fontconfig family.
 
-Default value is @samp{liberation sans-medium-r}.
+Default value is @samp{Liberation Sans}.
 
 To set the variable width @DDD{} font family to, say,
-@samp{liberation serif} (similar to Times Roman), insert a line
+@samp{Liberation Serif} , insert a line
 
 @example
-@value{Ddd}*fixedWidthFont: liberation serif-medium
+@value{Ddd}*fixedWidthFont: Liberation Serif
 @end example
 
 @noindent
@@ -5675,27 +5388,24 @@ in your @file{~/.@value{ddd}/init} file.
 @end defvr
 
 @defvr Resource variableWidthFontSize  (class FontSize)
-The size of the variable width @DDD{} font, in 1/10 points.  This
+The size of the variable width @DDD{} font, in points.  This
 resource overrides any font size specification in the
 @samp{variableWidthFont} resource (see above).  The default value is
-@code{120} for a 12.0 point font.
+@code{12} for a 12-point font.
 @end defvr
 
 @defvr Resource fixedWidthFont (class Font)
 The fixed width @DDD{} font to use for source code, the debugger
 console, text fields, and the execution window.  The font
-is specified as an X font spec, where the initial @var{Foundry}
-specification may be omitted, as well as any specification after
-@var{Family}.
+is specified as Fontconfig family.
 
-Default value is @samp{liberation mono-bold} (similar to Courier
-Bold)..
+Default value is @samp{Liberation Mono}.
 
-To set the fixed width @DDD{} font family to, say, @samp{liberation mono medium}
+To set the fixed width @DDD{} font family to, say, @samp{Liberation Mono}
 (similar to Courier Medium) insert a line
 
 @example
-@value{Ddd}*fixedWidthFont: liberation mono-medium
+@value{Ddd}*fixedWidthFont: Liberation Mono
 @end example
 
 @noindent
@@ -5703,25 +5413,22 @@ in your @file{~/.@value{ddd}/init} file.
 @end defvr
 
 @defvr Resource fixedWidthFontSize  (class FontSize)
-The size of the fixed width @DDD{} font, in 1/10 points.  This
+The size of the fixed width @DDD{} font, in points.  This
 resource overrides any font size specification in the
 @samp{fixedWidthFont} resource (see above).  The default value is
-@code{120} for a 12.0 point font.
+@code{12} for a 12-point font.
 @end defvr
 
 @defvr Resource dataFont (class Font)
-The fixed width @DDD{} font to use data displays.  The font
-is specified as an X font spec, where the initial @var{Foundry}
-specification may be omitted, as well as any specification after
-@var{Family}.
+The Fontconfig family used for data displays.
 
-Default value is @samp{liberation mono-bold} (similar to Courier Bold).
+Default value is @samp{Liberation Mono}.
 
-To set the @DDD{} data font family to, say, @samp{liberation mono medium}
+To set the @DDD{} data font family to, say, @samp{Liberation Mono}
 (similar to Courier Medium), insert a line
 
 @example
-@value{Ddd}*dataFont: liberation mono-medium
+@value{Ddd}*dataFont: Liberation Mono
 @end example
 
 @noindent
@@ -5729,42 +5436,22 @@ in your @file{~/.@value{ddd}/init} file.
 @end defvr
 
 @defvr Resource dataFontSize  (class FontSize)
-The size of the @DDD{} data font, in 1/10 points.  This
+The size of the @DDD{} data font, in points.  This
 resource overrides any font size specification in the
 @samp{dataFont} resource (see above).  The default value is
-@code{120} for a 12.0 point font.
+@code{12} for a 12-point font.
 @end defvr
 
 As all font size resources have the same class (and by default the
 same value), you can easily change the default @DDD{} font size
-to, say, 9.0 points by inserting a line
+to, say, 9 points by inserting a line
 
 @example
-@value{Ddd}*FontSize: 90
+@value{Ddd}*FontSize: 9
 @end example
 
 @noindent
 in your @file{~/.@value{ddd}/init} file.
-
-Here's how to specify the command to select fonts:
-
-@defvr Resource fontSelectCommand (class FontSelectCommand)
-A command to select from a list of fonts.  The string @samp{@@FONT@@} is
-replaced by the current @DDD{} default font; the string
-@samp{@@TYPE@@} is replaced by a symbolic name of the @DDD{} font
-to edit.  The program must either place the name of the selected font in
-the @code{PRIMARY} selection or print the selected font on standard
-output.  A typical value is:
-@example
-@value{Ddd}*fontSelectCommand: xfontsel -print
-@end example
-@pindex xfontsel
-@end defvr
-
-@xref{Options}, for options to set these resources upon @DDD{}
-invocation.
-
-
 
 
 @node Toggling Windows
@@ -5843,12 +5530,12 @@ ready (e.g. after the debugged program has stopped at a breakpoint).
 
 Here is the related resource:
 
-@defvr Resource uniconifyWhenReady (class UniconifyWhenReady)
-If this is @samp{on} (default), the @DDD{} windows are uniconified
+@defvr Resource raiseWhenReady (class RaiseWhenReady)
+If this is @samp{on} (default), the @DDD{} windows are uniconified and raised
 automatically whenever @GDB{} becomes ready.  This way, you can iconify
 @DDD{} during some longer operation and have it uniconify itself as
 soon as the program stops.  Setting this to @samp{off} leaves the
-@DDD{} windows iconified.
+@DDD{} windows unchanged.
 @end defvr
 
 
@@ -5921,6 +5608,7 @@ This chapter discusses how to access code from within @DDD{}.
 @menu
 * Compiling for Debugging::     Always use `-g' to compile.
 * Opening Files::               How to open a program for debugging.
+* Source Code Tabs::            Switching between recently opened source files.
 * Looking up Items::            Searching files and functions.
 * Customizing Source::          Arranging the source window.
 @end menu
@@ -6052,6 +5740,59 @@ when opening execution files, core dumps, or source files, such that the
 selection shows only suitable files.  This requires that @DDD{}
 opens each file, which may take time.  @xref{Customizing File
 Filtering}, if you want to turn off this feature.
+
+
+@node Source Code Tabs
+@section Source Code Tabs
+@cindex Source code tabs
+@cindex Tabs, source code
+
+Source code tabs provide quick navigation between recently opened source
+files.  Enable them using @samp{Edit @result{} Preferences @result{}
+Source @result{} Source Tabs}.
+
+A tab is created when @DDD{} opens a source file.  The tab bar is shown
+only when two or more source files are open.
+
+@ifnotinfo
+@sp 1
+@center @image{PICS/ddd-tabs, 16cm}
+@sp 1
+@end ifnotinfo
+
+@itemize @bullet
+@item
+Click a tab to display its source file.
+
+@item
+The active tab, representing the file currently displayed in the source
+window, is shown with a highlighted border.
+
+@item
+The tab for the file containing the current execution position is marked
+with a vertical bar.  This marker remains visible when you inspect a
+different source file.
+
+@item
+When returning to a tab, @DDD{} restores the previous cursor position
+and scroll position for that file.
+
+@item
+Click the @samp{x} at the right of a tab to close it.  Closing the active
+tab selects the next tab, or the preceding tab if there is no next tab.
+@end itemize
+
+Tab labels normally show the base name of the source file.  Long names
+are shortened to fit in the tab.
+
+Source code tabs affect source-window navigation only.  They do not
+change the current stack frame, program state, or debugger execution
+position.
+
+@defvr Resource sourceTabs (class SourceTabs)
+If @samp{on}, @DDD{} shows source-code tabs for recently opened source
+files.  If @samp{off} (default), no source tab bar is shown.
+@end defvr
 
 
 @node Looking up Items
@@ -6229,25 +5970,8 @@ accessed via @samp{Edit @result{} Preferences @result{} Source}.
 @subsection Customizing Glyphs
 
 @cindex Glyph
-@lbindex Show Position and Breakpoints
-In the source text, the current execution position and breakpoints are
-indicated by symbols (@dfn{glyphs}).  As an alternative, @DDD{} can
-also indicate these positions using text characters.  If you wish to
-disable glyphs, set @samp{Edit @result{} Preferences @result{} Source
-@result{} Show Position and Breakpoints @result{} as Text Characters}
-option.  This also makes @DDD{} run slightly faster, especially
-when scrolling.
 
-This setting is tied to this resource:
-
-@defvr Resource displayGlyphs (class DisplayGlyphs)
-If this is @samp{on}, the current execution position and breakpoints are
-displayed as glyphs; otherwise, they are shown through characters in the
-text.  The default is @samp{on}.  @xref{Options}, for the
-@option{--glyphs} and @option{--no-glyphs} options.
-@end defvr
-
-You can further control glyphs using the following resources:
+You can control glyphs using the following resources:
 
 @defvr Resource cacheGlyphImages (class CacheMachineCode)
 Whether to cache (share) glyph images (@samp{on}) or not (@samp{off}).
@@ -6294,15 +6018,9 @@ complete words only.  Otherwise, arbitrary occurrences are found.
 @subsection Customizing Source Appearance
 
 @cindex Line numbers
-@lbindex Display Source Line Numbers
-You can have @DDD{} show line numbers within the source window.
-Use @samp{Edit @result{} Preferences @result{} Source @result{} Display
-Source Line Numbers}.
-
-@defvr Resource displayLineNumbers (class DisplayLineNumbers)
-If this is @samp{on}, lines in the source text are prefixed with
-their respective line number.  The default is @samp{off}.
-@end defvr
+The source window always displays source line numbers in its left margin.
+The machine code window displays instruction addresses instead and does
+not show source line numbers.
 
 @cindex Indent, source code
 @lbindex Source indentation
@@ -6315,12 +6033,6 @@ at all.
 @defvr Resource indentSource (class Indent)
 The number of columns to indent the source code, such that there is
 enough place to display breakpoint locations.  Default: @code{0}.
-@end defvr
-
-By default, @DDD{} uses a minimum indentation for script languages.
-@defvr Resource indentScript (class Indent)
-The minimum indentation for script languages, such as Perl, Python, and
-Bash.  Default: @code{4}.
 @end defvr
 
 @cindex Tab width
@@ -9668,30 +9380,32 @@ grid positions.
 @cindex Scrolling
 
 If the data window becomes too small to hold all displays, scroll bars
-are created.  If your @DDD{} is set up to use @emph{panners}
-instead, a panner is created in the lower right edge.  When the panner
-is moved around, the window view follows the position of the panner.
+are created.  If your @DDD{} is set up to use the @emph{mini-map},
+additionally a mini-map is created in the lower right edge.  It shows
+an overview of the complete data-display graph and the
+currently visible area. Drag within the mini-map to move the visible
+part of the graph.
 
-To change from scroll bars to panners, use @samp{Edit @result{} Startup
-@result{} Data Scrolling} and choose either @samp{Panner} or
-@samp{Scrollbars}.
+To activate the mini-map, use @samp{Edit @result{} Preferences
+@result{} Data @result{} Mini-Map} and choose either @samp{Off}, @samp{Automatic} or
+@samp{On}.
 @lbindex Data Scrolling
 
 This setting is tied to the following resource:
 
-@defvr Resource pannedGraphEditor (class PannedGraphEditor)
-The control to scroll the graph.  
+@defvr Resource overviewMode (class OverviewMode)
+Controls the data-window mini-map.
 
-@itemize @bullet
-@item
-If this is @samp{on}, an Athena panner is used (a kind of
-two-directional scrollbar).
-@item
-If this is @samp{off} (default), two Motif scrollbars are used.
-@end itemize
+@table @samp
+@item 0
+Never show the mini-map.
 
-@xref{Options}, for the @option{--scrolled-graph-editor} and
-@option{--panned-graph-editor} options.
+@item 1
+Show the mini-map automatically when needed.  This is the default.
+
+@item 2
+Always show the mini-map.
+@end table
 @end defvr
 
 
@@ -9851,12 +9565,12 @@ draw numerical values in nice 2-D and 3-D plots.
 
 @menu
 * Plotting Arrays::             Plotting 1-D and 2-D arrays.
+* Plotting Images::             Plotting image buffers.
 * Plot Appearance::             Controlling the appearance.
 * Scalars and Composites::      Plotting simple values.
 * Plotting Histories::          Plotting the history of a variable.
 * Printing Plots::              Printing on paper.
 * Entering Plotting Commands::  Raw Gnuplot commands.
-* Exporting Plot Data::         Processing data outside of @DDD{}
 * Animating Plots::             Visualizing dynamic behaviour.
 * Customizing Plots::           All at your leisure.
 @end menu
@@ -9913,6 +9627,174 @@ updated to reflect the current values.  The plot window remains active
 until you close it (via @samp{File @result{} Close}) or until the
 associated display is deleted.
 
+@ifnotinfo
+@sp 1
+@center @image{PICS/ddd-plots, 16cm}
+@sp 1
+@end ifnotinfo
+
+
+@node Plotting Images
+@subsection Plotting Images
+@cindex Images, plotting
+@cindex Plotting images
+@cindex CImg
+@cindex OpenCV
+@cindex dlib
+@cindex Eigen
+@cindex Armadillo
+
+@DDD{} can plot supported image objects as grayscale or color images.
+Select the image expression and click @samp{Plot}, just as for an array.
+The image is shown in the plot window and is updated whenever the
+debugged program stops.
+
+Image plotting requires @GDB{} access to the image object and its pixel
+buffer.  @DDD{} writes the pixel data to a temporary binary file and
+asks Gnuplot to display it.  Consequently, the image data must be
+stored contiguously in memory.
+
+@ifnotinfo
+@sp 1
+@center @image{PICS/ddd-images, 16cm}
+@sp 1
+@end ifnotinfo
+
+
+@subsubheading Supported image structures
+
+@DDD{} recognizes image objects by their member names rather than by a
+specific C++ type.  This supports several image libraries as well as
+application-defined image classes.
+
+An image-like object must provide members for:
+
+@table @samp
+@item Width
+One of @samp{xdim}, @samp{width}, @samp{cols}, @samp{nc}, or @samp{n_cols}.
+
+@item Height
+One of @samp{ydim}, @samp{height}, @samp{rows}, @samp{nr}, or @samp{n_rows}.
+
+@item Number of channels
+One of @samp{cdim}, @samp{channels}, or @samp{spectrum}.  If none of
+these members exists, @DDD{} assumes a single channel, unless the
+pixel type is recognized automatically.  Currently, one-channel
+grayscale and three-channel color images are supported.
+
+@item Pixel buffer
+One of @samp{pixmap}, @samp{data}, or @samp{mem}.  The buffer may be a
+raw pointer or a contiguous container whose first element can be accessed
+with @samp{[0]}.
+@end table
+
+Leading member-name prefixes such as @samp{m_} and @samp{_} are ignored.
+Thus, the usual CImg member names @samp{_width}, @samp{_height},
+@samp{_spectrum}, and @samp{_data} are recognized automatically.
+
+Besides such application-defined and CImg-style objects, @DDD{} also
+directly recognizes @code{Eigen::Matrix} and @code{arma::Mat} objects
+(@pxref{Eigen and Armadillo Matrices}) and @code{cv::Mat} objects
+(@pxref{OpenCV Matrices}).
+
+For example, the following application-defined image type can be plotted:
+
+@smallexample
+template <class PIXTYPE>
+class Image
+@{
+public:
+    int xdim;                     // Width
+    int ydim;                     // Height
+    int cdim;                     // 1 for gray, 3 for RGB
+    std::vector<PIXTYPE> pixmap;  // Contiguous pixel buffer
+@};
+@end smallexample
+
+For such an object, use the normal plotting operation:
+
+@example
+graph plot image
+@end example
+
+@subsubheading Pixel layout
+
+Custom image objects and CImg images commonly use planar storage: all
+samples of channel 0 are followed by all samples of channel 1, and so
+on.  For an image with width @var{width} and height @var{height}, the
+sample at @samp{(x, y, c)} is stored at:
+
+@example
+(c * height + y) * width + x
+@end example
+
+@DDD{} recognizes this planar layout and converts three-channel RGB data
+to the interleaved layout required by Gnuplot.
+
+@anchor{OpenCV Matrices}
+@subsubheading OpenCV matrices
+
+@DDD{} also recognizes standard two-dimensional @code{cv::Mat} objects
+directly. One-channel matrices are plotted as grayscale images;
+three-channel matrices are plotted as color images.  OpenCV stores color
+pixels in BGR order, which @DDD{} converts to the RGB order used by Gnuplot.
+
+The supported sample types are signed and unsigned 8-, 16-, and 32-bit
+integer values, as well as @code{float} and @code{double}.  Images must
+have one or three channels.
+
+@subsubheading dlib images
+
+@DDD{} directly recognizes image objects from the dlib library, such as
+@code{dlib::array2d<@dots{}>}.
+
+@DDD{} recognizes the following dlib pixel types by name and infers
+the number of channels and their order automatically:
+
+@table @code
+@item dlib::rgb_pixel
+Three channels, in red/green/blue order.
+
+@item dlib::bgr_pixel
+Three channels, in blue/green/red order.
+@end table
+
+
+@anchor{Eigen and Armadillo Matrices}
+@subsubheading Eigen and Armadillo matrices
+
+@DDD{} directly recognizes dense matrix objects from the
+Eigen and Armadillo C++ libraries and plots them as single-channel
+(grayscale) images.  This works for @code{Eigen::Matrix}/@code{Eigen::MatrixXd}
+and @code{arma::Mat} objects of any scalar type, including fixed-size variants such as
+@code{Eigen::Matrix4d} or @code{arma::mat::fixed<4,4>}.
+
+@subsubheading Inspecting and saving images
+
+For image plots, pressing mouse button 1 in the plot window displays a
+small tip showing the selected pixel coordinates and its channel values.
+Dragging with mouse button 1 updates the tip for the pixel under the
+pointer.
+
+Use @samp{File @result{} Save Image} in the plot window to export the
+current image data.
+
+@itemize @bullet
+@item
+Eight-bit grayscale images can be saved as PGM files.
+
+@item
+Eight-bit color images can be saved as PPM files.
+
+@item
+Single-channel integer and floating-point images can be saved as NRRD
+files, preserving their sample type.
+@end itemize
+
+The normal Gnuplot plot controls are disabled for image plots where they
+do not apply.  The @samp{Replot} command transfers the current image
+buffer again and redraws the image.
+
 
 @node Plot Appearance
 @subsection Changing the Plot Appearance
@@ -9953,16 +9835,7 @@ The @samp{Contour} menu adds contour lines to 3-D plots.
 @end itemize
 
 @cindex Plot, scrolling
-In a 3-D plot, you can use the scroll bars to change your view position.
-The horizontal scroll bar rotates the plot around the @var{z} axis, that
-is, to the left and right.  The vertical scroll bar rotates the plot
-around the @var{y} axis, that is, up and down.
-
-@ifnotinfo
-@sp 1
-@center @image{PICS/ddd-plots, 16cm}
-@sp 1
-@end ifnotinfo
+In a 3-D plot, you can use the mouse button 1 press and the mouse pointer to change your view position.
 
 You can also resize the plot window as desired.
 
@@ -10125,26 +9998,6 @@ The interaction between @DDD{} and Gnuplot is logged in the file
 @option{--trace} option logs this interaction on standard output.
 
 
-@node Exporting Plot Data
-@subsection Exporting Plot Data
-@cindex Plot, exporting
-@lbindex Save Data As
-@pindex xmgr
-
-If you want some external program to process the plot data (a
-stand-alone Gnuplot program or the @command{xmgr} program, for instance),
-you can save the plot data in a file, using @samp{File @result{} Save
-Data As}.  This pops up a dialog that lets you choose a data file to
-save the plotted data in.
-
-The generated file starts with a few comment lines.  The actual data
-follows in X/Y or X/Y/Z format.  It is the same file as processed by
-Gnuplot.
-
-@c Exporting plot data is only available if your plot includes exactly
-@c one array.
-
-
 @node Animating Plots
 @subsection Animating Plots
 @cindex Plot, animating
@@ -10181,54 +10034,34 @@ basic settings.
 @subsubsection Gnuplot Invocation
 
 @lbindex Plot
-Using @samp{Edit @result{} Preferences @result{} Helpers @result{}
-Plot}, you can choose the Gnuplot program to invoke.  This is tied to
-the following resource:
+@DDD{} creates the plot window and starts @command{gnuplot} as an
+external process.  Gnuplot renders into an X11 drawing area owned by
+@DDD{}.
+
+Use @samp{Edit @result{} Preferences @result{} Helpers @result{} Plot}
+to set the command used to start Gnuplot.
 
 @defvr Resource plotCommand (class PlotCommand)
-The name of a Gnuplot executable.  Default is @samp{gnuplot},
-followed by some options to set up colors and the initial geometry.
-@end defvr
+The command used to start Gnuplot.  @DDD{} sends plotting commands to
+the Gnuplot process through standard input.
 
-@lbindex Plot Window
-Using @samp{Edit @result{} Preferences @result{} Helpers @result{} Plot
-Window}, you can choose whether to use the Gnuplot plot window
-(@samp{External}) or to use the plot window supplied by @DDD{}
-(@samp{builtin}).  This is tied to the following resource:
+The command may contain the following substitutions:
 
-@defvr Resource plotTermType (class PlotTermType)
-The Gnuplot terminal type.  Can have one of two values:
 @itemize @bullet
 @item
-@cmindex mwm
-If this is @samp{x11}, @DDD{} ``swallows'' the @emph{external}
-Gnuplot output window into its own user interface.  Some window
-managers, notably @command{mwm}, have trouble with swallowing techniques.
+@samp{@@X_ID@@} is replaced by the X window ID of the drawing area in
+the @DDD{} plot window.  The Gnuplot command must use this value with
+the X11 terminal, so that Gnuplot renders into the @DDD{} plot window.
+
 @item
-Setting this resource to @samp{xlib} (default) makes @DDD{}
-provide a @emph{builtin plot window} instead.  In this mode, plots work
-well with any window manager, but are less customizable (Gnuplot
-resources are not understood).
+@samp{@@NAME@@} is replaced by the plot-window name assigned by @DDD{}.
+
+@item
+@samp{@@FONT@@} is replaced by the current fixed-width @DDD{} font.
 @end itemize
-@end defvr
 
-You can further control interaction with the external plot window:
-
-@defvr Resource plotWindowClass (class PlotWindowClass)
-The class of the Gnuplot output window.  When invoking Gnuplot,
-@DDD{} waits for a window with this class and incorporates it into
-its own user interface (unless @samp{plotTermType} is @samp{xlib}; see
-above).  Default is @samp{Gnuplot}.
-@end defvr
-
-@defvr Resource plotWindowDelay (class WindowDelay)
-The time (in ms) to wait for the creation of the Gnuplot window.  Before
-this delay, @DDD{} looks at each newly created window to see
-whether this is the plot window to swallow.  This is cheap, but
-unfortunately, some window managers do not pass the creation event to
-@DDD{}.  If this delay has passed, and @DDD{} has not found
-the plot window, @DDD{} searches @emph{all} existing windows, which
-is pretty expensive.  Default time is @code{2000}.
+The standard command uses Gnuplot's @samp{x11} terminal and includes
+@samp{@@X_ID@@}.
 @end defvr
 
 
@@ -10544,7 +10377,7 @@ source code, as well as patching executables and core files.
 In @DDD{} itself, you cannot change the source file currently
 displayed.  Instead, @DDD{} allows you to invoke a @emph{text
 editor}.  To invoke a text editor for the current source file, select
-the @samp{Edit} button or @samp{Source @result{} Edit Source}.
+@samp{Source @result{} Edit Source}.
 
 @lbindex Edit Sources
 By default, @DDD{} tries a number of common editors.  You can
@@ -10566,7 +10399,6 @@ program has been recompiled, this should seldom be necessary.
 
 @menu
 * Customizing Editing::         
-* In-Place Editing::            
 @end menu
 
 @node Customizing Editing
@@ -10617,17 +10449,6 @@ Ddd*editCommand: emacsclient +@@LINE@@ @@FILE@@
 @end example
 
 
-@node In-Place Editing
-@subsection In-Place Editing
-
-This resource is experimental:
-
-@defvr Resource sourceEditing (class SourceEditing)
-If this is @samp{on}, the displayed source code becomes editable.
-This is an experimental feature; Default is @samp{off}.
-@end defvr
-
-
 @node Recompiling
 @section Recompiling
 @cindex Recompiling
@@ -10641,9 +10462,6 @@ To recompile the source code using @command{make}, you can select
 @emph{Make Target}---typically the name of the executable.  Clicking on
 the @samp{Make} button invokes the @command{make} program with the given
 target.
-
-The @samp{Make} button on the command tool re-invokes @command{make}
-with the most recently given arguments.
 
 
 @node Patching
