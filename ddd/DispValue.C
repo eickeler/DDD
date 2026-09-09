@@ -1502,7 +1502,7 @@ bool DispValue::structurally_equal(const DispValue *source,
 
 bool DispValue::can_plot() const
 {
-    if (can_plotImage() || can_plotCVMat())
+    if (can_plotCVMat() || can_plotImage())
         return true;
 
     if (can_plot3d())
@@ -1694,21 +1694,49 @@ DispValue* DispValue::find_child_member(std::vector<string> candidates) const
     return nullptr;
 }
 
+DispValue* DispValue::find_child_member_deep(std::vector<string> candidates) const
+{
+    for (DispValue *c : m_children)
+    {
+        if (matchMemberVariable(c->m_print_name, candidates))
+            return c;
+    }
 
+    // one level deep, e.g. Eigen's m_storage
+    for (DispValue *c : m_children)
+    {
+        if (c->type() != Struct)
+            continue;
+
+        for (int j = 0; j < c->nchildren(); j++)
+            if (matchMemberVariable(c->child(j)->m_print_name, candidates))
+                return c->child(j);
+    }
+
+    return nullptr;
+}
 
 bool DispValue::can_plotImage() const
 {
     if (m_type!=Struct)
         return false;
 
-    DispValue *pixmapChild = find_child_member({"pixmap", "data"});
+    // catch OpenCV images
+    if (find_child("dataend") && find_child("datalimit"))
+        return false;
+
+    DispValue *pixmapChild = find_child_member_deep({"pixmap", "data", "mem"});
     if (!pixmapChild)
         return false;
 
-    DispValue *xdimChild   = find_child_member({"xdim", "width", "nc"});
-    DispValue *ydimChild   = find_child_member({"ydim", "height", "nr"});
+    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "nc", "cols"});
+    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "nr", "rows"});
 
     if (xdimChild && ydimChild)
+        return true;
+
+    // Fixed-size Eigen matrices
+    if (find_child("m_storage") != nullptr)
         return true;
 
     return false;
@@ -1835,11 +1863,11 @@ void DispValue::plot() const
 
 bool DispValue::_plot(PlotAgent *&plotter) const
 {
-    if (can_plotImage())
-        return plotImage(plotter);
-
     if (can_plotCVMat())
         return plotCVMat(plotter);
+
+    if (can_plotImage())
+        return plotImage(plotter);
 
     if (can_plot3d())
         return plot3d(plotter);
@@ -2171,34 +2199,110 @@ static bool channels_from_pixel_type(DispValue *pixmapChild, int &cdim, bool &is
 
 bool DispValue::plotImage(PlotAgent *&plotter) const
 {
-    DispValue *pixmapChild = find_child_member({"pixmap", "data"});
-    DispValue *xdimChild   = find_child_member({"xdim", "width", "nc"});
-    DispValue *ydimChild   = find_child_member({"ydim", "height", "nr"});
-    DispValue *cdimChild   = find_child_member({"cdim", "channels", "spectrum"});
+    // catch OpenCV images
+    if (find_child("dataend") && find_child("datalimit"))
+        return false;
 
-    if (!pixmapChild || !xdimChild || !ydimChild)
+    DispValue *xdimChild = find_child_member_deep({"xdim", "width", "nc", "cols"});
+    DispValue *ydimChild = find_child_member_deep({"ydim", "height", "nr", "rows"});
+    DispValue *cdimChild = find_child_member({"cdim", "channels", "spectrum"});
+
+    DispValue *pixmapChild = find_child_member_deep({"pixmap", "data", "mem"});
+    if (!pixmapChild)
         return false;
 
     int cdim = 1;
-    string cdimstr;
-    if (cdimChild!=nullptr)
-    {
-        cdimstr = cdimChild->value();
-        cdim = atoi(cdimstr.chars());
-    }
-
-    string gdbtype = "";
+    string cdimstr, xdimstr, ydimstr, gdbtype;
     PixelCache::Layout layout = PixelCache::L_PLANAR;
+    PixelCache::StorageOrder storageOrder = PixelCache::ROW_MAJOR;
     bool isBGR = false;
-    if (cdim==1)
+
+    DispValue *storageChild = find_child("m_storage");  // Eigen marker
+    if (storageChild != nullptr)
     {
-        // further analyze type for DLIB and ImageLib
-        if (channels_from_pixel_type(pixmapChild, cdim, isBGR))
+        // Eigen: elements are always plain scalars -> one channel.
+        cdim = 1;
+        cdimstr = "1";
+        int fixedRows = -1;
+        int fixedCols = -1;
+
+        string t = gdb_question("ptype " + m_full_name);
+        printf("answer: %s\n", t.chars());
+        int pos = t.index("Matrix<");
+        if (pos >= 0)
         {
-            layout = PixelCache::L_INTERLEAVED;
-            gdbtype = "unsigned char";
+            string args = t.after(pos + 6);   // skip "Matrix<"
+            args = args.before('>');
+
+            printf("after args.before('>')   %s\n", args.chars());
+            if (args.contains(','))
+            {
+                args = args.after(args.index(','));
+
+                string rowsStr = args.before(',');
+                fixedRows = atoi(rowsStr.chars());
+                args = args.after(args.index(','));
+
+                string colsStr = args.before(',');
+                fixedCols = atoi(colsStr.chars());
+                args = args.after(args.index(','));
+
+                string optionsStr = args.contains(',') ? args.before(',') : args;
+                int options = atoi(optionsStr.chars());
+                storageOrder = (options & 0x1) ? PixelCache::ROW_MAJOR : PixelCache::COL_MAJOR;
+            }
         }
-        cdimstr = itostring(cdim);
+
+        if (xdimChild && ydimChild)
+        {
+            // dynamic-size matrix
+            xdimstr = xdimChild->value();
+            ydimstr = ydimChild->value();
+        }
+        else if (fixedRows > 0 && fixedCols > 0)
+        {
+            // sixed-size matrix
+            xdimstr = itostring(fixedCols);
+            ydimstr = itostring(fixedRows);
+        }
+        else
+        {
+            set_status("DDD: could not determine the size of this Eigen matrix");
+            return false;
+        }
+
+        // special handling for fixed-size Eigen matrices
+        if (pixmapChild->type() == Struct)
+        {
+            DispValue *arrayChild = pixmapChild->find_child("array");
+            if (arrayChild)
+                pixmapChild = arrayChild;
+        }
+    }
+    else
+    {
+        if (!xdimChild || !ydimChild)
+            return false;
+
+        xdimstr = xdimChild->value();
+        ydimstr = ydimChild->value();
+
+        if (cdimChild != nullptr)
+        {
+            cdimstr = cdimChild->value();
+            cdim = atoi(cdimstr.chars());
+        }
+
+        if (cdim == 1)
+        {
+            // further analyze type for DLIB and ImageLib
+            if (channels_from_pixel_type(pixmapChild, cdim, isBGR))
+            {
+                layout = PixelCache::L_INTERLEAVED;
+                gdbtype = "unsigned char";
+            }
+            cdimstr = itostring(cdim);
+        }
     }
 
     if (cdim!=1 && cdim!=3)
@@ -2213,7 +2317,6 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     PlotElement &eldata = plotter->start_plot(make_title(full_name()));
     eldata.plottype = PlotElement::IMAGE;
 
-    string pixmapname = pixmapChild->m_print_name;
     string address = pixmapChild->value();
     if (!address.empty())
     {
@@ -2232,9 +2335,6 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         address = answer.after("=");
         strip_space(address);
     }
-
-    string xdimstr = xdimChild->value().chars();
-    string ydimstr = ydimChild->value().chars();
 
     if (gdbtype=="")
     {
@@ -2268,17 +2368,14 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
 
     int xdim = atoi(xdimstr.chars());
     int ydim = atoi(ydimstr.chars());
-    bool res = eldata.imagedata.read_image(eldata.file, xdim, ydim, cdim, eldata.gdbtype,
-                            PixelCache::L_PLANAR);
-
+    bool res = eldata.imagedata.read_image(eldata.file, xdim, ydim, cdim, eldata.gdbtype, layout, storageOrder);
     if (res==false)
     {
         set_status("DDD: failed to read image data from " + quote(eldata.file));
         return false;
     }
 
-
-    if (cdim == 3 && layout == PixelCache::L_PLANAR)
+    if ((storageOrder == PixelCache::COL_MAJOR) || (cdim == 3 && layout == PixelCache::L_PLANAR))
     {
         res = eldata.imagedata.write_image_interleaved(eldata.file);
         if (res==false)
@@ -2295,7 +2392,6 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         else
             eldata.plottype = PlotElement::RGBIMAGE;
     }
-
 
     return true;
 }

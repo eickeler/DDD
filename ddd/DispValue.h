@@ -97,6 +97,7 @@ class DispValue {
 				  const string& member_name);
     DispValue *find_child(const string &name) const;
     DispValue *find_child_member(std::vector<string> candidates) const;
+    DispValue *find_child_member_deep(std::vector<string> candidates) const;
 
     // Plotting stuff
     bool getGnuplotType(string expr, string &gdbtype, string &gnuplottype, string &sizestr) const;
