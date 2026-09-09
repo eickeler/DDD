@@ -39,8 +39,8 @@
 
 // ------------------- PixelCache -------------------------------------------
 
-bool PixelCache::read_image(string file, int xdim, int ydim,
-                            int cdim, string gdbtype, Layout layout_)
+bool PixelCache::read_image(string file, int xdim, int ydim, int cdim, 
+                            string gdbtype, Layout layout_, StorageOrder major_)
 {
     // Clear current content
     width     = 0;
@@ -49,6 +49,7 @@ bool PixelCache::read_image(string file, int xdim, int ydim,
     pixel_size = 0;
     pixmap.clear();
     layout = layout_;
+    storage_order  = major_;
 
     if (xdim <= 0 || ydim <= 0 || cdim <= 0)
         return false;
@@ -153,6 +154,18 @@ bool PixelCache::write_image_interleaved(const string& filename)
                 green += pixel_size;
                 std::fwrite(blue,  pixel_size, 1, fp);
                 blue  += pixel_size;
+            }
+        }
+    }
+    else if (storage_order==COL_MAJOR && channels==1)
+    {
+        //write transpose
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                uint8_t* pixel = (y + (x * height)) * pixel_size + pixmap.data();
+                std::fwrite(pixel,   pixel_size, 1, fp);
             }
         }
     }

@@ -55,8 +55,14 @@ struct PixelCache
         L_PLANAR         // plane0 all, plane1 all, ...
     };
 
+    enum StorageOrder {
+        ROW_MAJOR,          // normal row major format
+        COL_MAJOR        // fortran style column major format
+    };
+
     DataType data_type = DT_UINT8;
     Layout   layout = L_INTERLEAVED;
+    StorageOrder storage_order = ROW_MAJOR;
 
     int      width = 0;
     int      height = 0;
@@ -72,17 +78,27 @@ struct PixelCache
         return width > 0 && height > 0 && channels > 0 && !pixmap.empty();
     }
 
-    bool read_image(string file, int xdim, int ydim, int cdim, string gdbtype, Layout layout);
+    bool read_image(string file, int xdim, int ydim, int cdim, string gdbtype, Layout layout, StorageOrder storage_order=ROW_MAJOR);
     bool write_image_interleaved(const string& filename);
     bool savePNM(const string& filename);
     bool saveNRRD(const string& filename);
 
     void *pixelat(int x, int y, int c = 0)
     {
-        if (layout==L_PLANAR)
-            return &pixmap[((c * height + y) * width + x) * pixel_size];
+        if (storage_order==ROW_MAJOR)
+        {
+            if (layout==L_PLANAR)
+                return &pixmap[((c * height + y) * width + x) * pixel_size];
+            else
+                return &pixmap[((y * width + x) * channels + c) * pixel_size];
+        }
         else
-            return &pixmap[((y * width + x) * channels + c) * pixel_size];
+        {
+            if (layout==L_PLANAR)
+                return &pixmap[((c * width + x) * height + y) * pixel_size];
+            else
+                return &pixmap[((x * height + y) * channels + c) * pixel_size];
+        }
 
     }
 
