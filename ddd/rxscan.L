@@ -378,5 +378,6 @@ D6[(][^:]*:{P}[)]:.*	                RETURN(&rxpypos);
 D7{D}(\.{D})?	                        RETURN(&rxfixednum);
 D8".*"	                                RETURN(&rxstring);
 D9{D}\.{D}                              RETURN(&rxint_dot_int);
+E0,{_}[<]incomplete{W}sequence{W}\\{D}[>]	RETURN(&rxincomplete_seq);
 (.|\n)				        RETURN(0);  // Anything else
 %%

@@ -270,6 +270,17 @@ string DispValue::normalize_base(const string& base) const
 }
 
 // Parsing
+DispValue *DispValue::parse(string& value, const string& name)
+{
+    // strip GDB's "<incomplete sequence \NNN>" charset-decoding artifact
+#if RUNTIME_REGEX
+    static regex rxincomplete_seq(", <incomplete sequence \\\\[0-7]+>");
+#endif
+    value.gsub(rxincomplete_seq, "");
+
+    return parse(0, 0, value, name, name);
+}
+
 DispValue *DispValue::parse(DispValue *parent, 
 			    int        depth,
 			    string&    value,

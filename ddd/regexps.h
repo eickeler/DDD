@@ -98,6 +98,7 @@ extern const regex rxgdb_begin_of_display_info;
 extern const regex rxgdb_disp_nr;
 extern const regex rxgraph_cmd;
 extern const regex rxidentifier;
+extern const regex rxincomplete_seq;
 extern const regex rxindex;
 extern const regex rxint;
 extern const regex rxint_dot_int;

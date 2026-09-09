@@ -153,6 +153,7 @@ const regex rxgdb_disp_nr		(rx_matcher, (void *)"48");
 const regex rxjdbpos                	(rx_matcher, (void *)"49");
 const regex rxgraph_cmd			(rx_matcher, (void *)"50");
 const regex rxidentifier		(rx_matcher, (void *)"51");
+const regex rxincomplete_seq		(rx_matcher, (void *)"E0");
 const regex rxindex			(rx_matcher, (void *)"52");
 
 #if !WITH_RUNTIME_REGEX

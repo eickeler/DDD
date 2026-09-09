@@ -216,10 +216,7 @@ public:
     static bool expand_repeated_values;
 
     // Parse VALUE into a DispValue tree
-    static DispValue *parse(string& value, const string& name)
-    {
-	return parse(0, 0, value, name, name);
-    }
+    static DispValue *parse(string& value, const string& name);
 
     // Duplicator
     DispValue *dup() const
