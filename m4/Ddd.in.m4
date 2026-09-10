@@ -183,11 +183,6 @@ Ddd*openSelection: off
 Ddd*termCommand: @XTERM@ -bg 'TEXT_BACKGROUND_COLOR' -fg 'black' \
 -cr 'RUN_COLOR' -fa '@FONT@' -title 'DDD: Execution Window' -e /bin/sh -c
 
-! The command to invoke to select fonts.
-! The string `@FONT@' is replaced by the current DDD default font.
-Ddd*fontSelectCommand: @XFONTSEL@ -bg 'grey' -fg 'black' -fn '@FONT@' \
--title 'DDD: @TYPE@ selector' -print
-
 
 ! The terminal type provided by `termCommand' (that is, the value of
 ! the TERM environment variable to be passed to the debugged program)
@@ -1250,7 +1245,11 @@ Shift<Key>Next:		next-page(extend)	    \n\
 ~Ctrl ~Shift ~Meta<Key>End:		gdb-end-of-line()	\n\
 ~Ctrl ~Shift ~Meta<Key>R7:		gdb-beginning-of-line()	\n\
 ~Ctrl ~Shift ~Meta<Key>R13:		gdb-end-of-line()	\n\
-~Ctrl ~Shift ~Meta<Key>Tab:		gdb-complete-command()	\n
+~Ctrl ~Shift ~Meta<Key>Tab:		gdb-complete-command()	\n\
+~s ~c ~m ~a Button1<Btn4Down>: \
+	scroll-one-line-down() scroll-one-line-down() scroll-one-line-down() process-bselect(extend-adjust)\n\
+~s ~c ~m ~a Button1<Btn5Down>: \
+	scroll-one-line-up() scroll-one-line-up() scroll-one-line-up() process-bselect(extend-adjust)\n
 
 dnl Basic translations for all other texts and text fields
 define(EMACS_TRANSLATIONS, [SHORTCUTS \
@@ -3541,7 +3540,6 @@ Use the buttons above to view and change other preferences.\n\
 Click on LBL(Reset) to restore the saved preferences.
 
 
-Ddd*preferences*appearance*default.labelString:	 Default Font
 Ddd*preferences*appearance*variableWidth.labelString: Variable Width Font
 Ddd*preferences*appearance*fixedWidth.labelString:	 Fixed Width Font
 Ddd*preferences*appearance*data.labelString:	         Data Font
@@ -3549,7 +3547,6 @@ Ddd*preferences*appearance*data.labelString:	         Data Font
 Ddd*preferences*appearance*name.text.columns:	 20
 Ddd*preferences*appearance*size.label.labelString:	 Size
 Ddd*preferences*appearance*size.text.columns:	 3
-Ddd*preferences*appearance*browse.labelString:	 Browse...
 
 
 Ddd*preferences*helpers*helpString: \
