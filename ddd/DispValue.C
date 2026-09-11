@@ -1883,7 +1883,12 @@ bool DispValue::_plot(PlotAgent *&plotter) const
 
     // Plot all array children into one window
     for (int i = 0; i < nchildren(); i++)
+    {
 	child(i)->_plot(plotter);
+
+        if (plotter == nullptr)
+            return false;
+    }
 
     return true;
 }
@@ -1930,9 +1935,6 @@ bool DispValue::plot2d(PlotAgent *&plotter) const
     {
         if (gdb->program_language()== LANGUAGE_C)
         {
-            PlotElement &eldata = plotter->start_plot(make_title(full_name()));
-            eldata.plottype = PlotElement::DATA_2D;
-
             // get variable type and dimensions of array
             string gdbtype;
             string answer = gdb_question("whatis " + m_full_name);
@@ -1960,6 +1962,9 @@ bool DispValue::plot2d(PlotAgent *&plotter) const
             if (plotter==nullptr)
                 return false;
 
+            PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+            eldata.plottype = PlotElement::DATA_2D;
+
             // write memory block to file
             string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
             answer = gdb_question(question);
@@ -1968,6 +1973,10 @@ bool DispValue::plot2d(PlotAgent *&plotter) const
                 set_status(answer);
                 return false;
             }
+
+            // check if plotter was deleted in the meantime
+            if (plotter==nullptr)
+                return false;
 
             eldata.gdbtype = gdbtype;
             eldata.xdim = length;
@@ -2021,8 +2030,6 @@ bool DispValue::plot2d(PlotAgent *&plotter) const
 
 bool DispValue::plot3d(PlotAgent *&plotter) const
 {
-    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
-    eldata.plottype = PlotElement::DATA_3D;
     if (gdb->program_language()== LANGUAGE_C)
     {
         // get variable type and dimensions of array
@@ -2054,6 +2061,9 @@ bool DispValue::plot3d(PlotAgent *&plotter) const
         if (plotter==nullptr)
             return false;
 
+        PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+        eldata.plottype = PlotElement::DATA_3D;
+
         // write memory block to file
         string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + ydim + "*" + xdim + "*"  + sizestr;
         answer = gdb_question(question);
@@ -2063,6 +2073,10 @@ bool DispValue::plot3d(PlotAgent *&plotter) const
             return false;
         }
 
+        // check if plotter was deleted in the meantime
+        if (plotter==nullptr)
+            return false;
+
         eldata.xdim = xdim;
         eldata.ydim = ydim;
         eldata.gdbtype = gdbtype;
@@ -2070,6 +2084,8 @@ bool DispValue::plot3d(PlotAgent *&plotter) const
     }
     else
     {
+        PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+        eldata.plottype = PlotElement::DATA_3D;
         plotter->open_stream(eldata);
 
         int index;
@@ -2110,9 +2126,6 @@ bool DispValue::plot3d(PlotAgent *&plotter) const
 
 bool DispValue::plotVector(PlotAgent *&plotter) const
 {
-    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
-    eldata.plottype = PlotElement::DATA_2D;
-
     // get variable type
     string gdbtype;
     string answer = gdb_question("whatis " + m_full_name + "[0]");
@@ -2140,6 +2153,9 @@ bool DispValue::plotVector(PlotAgent *&plotter) const
     if (plotter==nullptr)
         return false;
 
+    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+    eldata.plottype = PlotElement::DATA_2D;
+
     // write memory block to file
     string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + length + "*" + sizestr;
     answer = gdb_question(question);
@@ -2149,6 +2165,7 @@ bool DispValue::plotVector(PlotAgent *&plotter) const
         return false;
     }
 
+    // check if plotter was deleted in the meantime
     if (plotter==nullptr)
         return false;
 
@@ -2228,14 +2245,12 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         int fixedCols = -1;
 
         string t = gdb_question("ptype " + m_full_name);
-        printf("answer: %s\n", t.chars());
         int pos = t.index("Matrix<");
         if (pos >= 0)
         {
             string args = t.after(pos + 6);   // skip "Matrix<"
             args = args.before('>');
 
-            printf("after args.before('>')   %s\n", args.chars());
             if (args.contains(','))
             {
                 args = args.after(args.index(','));
@@ -2330,9 +2345,6 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         return false;
     }
 
-    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
-    eldata.plottype = PlotElement::IMAGE;
-
     string address = pixmapChild->value();
     if (!address.empty())
     {
@@ -2366,6 +2378,9 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
     if (plotter==nullptr)
         return false;
 
+    PlotElement &eldata = plotter->start_plot(make_title(full_name()));
+    eldata.plottype = PlotElement::IMAGE;
+
     string question = "dump binary memory " + eldata.file + " " + address + " " + address + "+" + xdimstr + "*" + ydimstr + "*" + cdimstr + "*" + sizestr;
     answer = gdb_question(question);
     if (answer.contains("Cannot") || answer.contains("Invalid"))
@@ -2374,6 +2389,7 @@ bool DispValue::plotImage(PlotAgent *&plotter) const
         return false;
     }
 
+    // check if plotter was deleted in the meantime
     if (plotter==nullptr)
         return false;
 

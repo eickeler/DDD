@@ -74,12 +74,13 @@ PlotElement &PlotAgent::start_plot(const string& title)
     if (need_reset)
 	reset();
 
-    PlotElement st;
+    elements.emplace_back();
+
+    PlotElement &st = elements.back();
     st.title = title;
     st.file = tempfile();
-    elements.push_back(st);
 
-    return elements.back();
+    return st;
 }
 
 void PlotAgent::open_stream(const PlotElement &emdata)

@@ -746,11 +746,17 @@ PlotAgent *new_plotter(const string& name, DispValue *source)
         "  GPVAL_TERM_XSIZE, GPVAL_TERM_YSIZE, GPVAL_TERM_SCALE"
         "'\n";
 
-    plotter->start_with(init);
     plot->plotter = plotter;
+    plotter->start_with(init);
+
+    if (plot->plotter != plotter)
+        return nullptr;  // died while being started
 
     // Fetch plot settings
     configure_plot(plot);
+
+    if (plot->plotter != plotter)
+        return nullptr;  // died while being started
 
     return plotter;
 }

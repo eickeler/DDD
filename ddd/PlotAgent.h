@@ -35,7 +35,7 @@
 #include "pixelcache.h"
 
 #include <fstream>
-#include <vector>
+#include <deque>
 #include <algorithm>
 
 #include <stdint.h>
@@ -65,7 +65,7 @@ public:
 
 private:
 
-    std::vector<PlotElement> elements;  // Data for the elements of the plot command
+    std::deque<PlotElement> elements;   // Data for the elements of the plot command
     std::ofstream plot_os;		// Stream used for adding data
 
     string init_commands;	// Initialization commands
