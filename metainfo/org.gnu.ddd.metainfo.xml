@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+<id>org.gnu.ddd</id>
+
+<name>GNU DDD (Data Display Debugger)</name>
+<summary>
+Graphical front end for the command-line debuggers GDB and CUDA-GDB
+</summary>
+
+<metadata_license>FSFAP</metadata_license>
+<project_license>GPL-3.0-or-later</project_license>
+
+<description>
+<p>
+GNU DDD (Data Display Debugger)
+is a graphical front end for the command-line debuggers GDB and CUDA-GDB.
+</p>
+<p>
+DDD provides interactive graphical data display
+(visualizing data structures as graphs),
+it enables source-level debugging
+with breakpoints, watchpoints, and call stacks,
+and it has support for multiple debuggers,
+with active development focused on GDB and CUDA-GDB.
+</p>
+</description>
+
+<categories>
+<category>Development</category>
+<category>Debugger</category>
+</categories>
+
+<provides>
+<binary>ddd</binary>
+</provides>
+
+<url type="homepage">https://www.gnu.org/software/ddd/</url>
+<url type="vcs-browser">https://cgit.git.savannah.gnu.org/cgit/ddd.git/</url>
+
+<project_group>GNU</project_group>
+
+<developer id="org.gnu">
+<name>GNU DDD Maintainers</name>
+<name translatable="no" xml:lang="en">Michael Eager</name>
+<name translatable="no" xml:lang="en">Stefan Eickeler</name>
+</developer>
+
+<launchable type="desktop-id">org.gnu.ddd.desktop</launchable>
+
+<icon type="stock">ddd</icon>
+
+<screenshots>
+<screenshot type="default">
+<caption>Display linked-list</caption>
+<image>https://www.gnu.org/software/ddd/all.png</image>
+</screenshot>
+<screenshot>
+<caption>Plots</caption>
+<image>https://www.gnu.org/software/ddd/plots.png</image>
+</screenshot>
+<screenshot>
+<caption>Images</caption>
+<image>https://www.gnu.org/software/ddd/images.png</image>
+</screenshot>
+<screenshot>
+<caption>Registers</caption>
+<image>https://www.gnu.org/software/ddd/registers.jpg</image>
+</screenshot>
+</screenshots>
+
+<content_rating type="oars-1.0"/>
+
+<releases>
+<release version="3.4.1" date="2024-08-12">
+<description>
+<p>
+Enhancements:
+</p>
+<ul>
+<li>
+Font handling has been redesigned to use XFT client-side fonts.
+The font preference menu now has a drop-down menu to select compatible fonts.
+</li>
+<li>
+Add side-by-side view for source and data.
+</li>
+<li>
+Add dark mode.
+</li>
+<li>
+Line number width adapts to the size of source file.
+</li>
+<li>
+Display of UTF-8 in source window and debugger console.
+</li>
+<li>
+Convert ddd.1 (ddd.man) to UTF-8.
+</li>
+<li>
+Change default editors gvim or emacs, instead of kdevelop and vi in xterm.
+</li>
+<li>
+Remove Make and Edit buttons from Tool Bar.
+</li>
+<li>
+Fix dialogs for register, breakpoints, displays.
+</li>
+</ul>
+
+<p>
+Build issues:
+</p>
+<ul>
+<li>
+Several issues which prevented building on macOS have been resolved.
+</li>
+<li>
+DDD is now built with internal X11 default attributes, vsl definitions.
+Several --enable-builtin-x options removed.
+</li>
+<li>
+Additional derived files are built in the build directory instead of
+the source directory.
+</li>
+<li>
+Support parallel make (-j &gt;n&lt;).
+</li>
+<li>
+Eliminate unneeded functions and headers.
+</li>
+<li>
+Cleanup and reorganization in multiple areas: M4 use in Makefile, GDBAgent.
+</li>
+<li>
+Correct prereq script for Ubuntu/Debian.
+</li>
+</ul>
+
+<p>
+Miscellaneous:
+</p>
+<ul>
+<li>
+Obsolete files have been removed: PROBLEMS, ddd.spec, GDB manual, FONTS
+</li>
+<li>
+Update splash screen to ddd-3.4
+</li>
+<li>
+DDD Reference manual is available under Help menu.
+</li>
+<li>
+Documents are now in doc directory in distribution tarball and
+are installed in /usr/share/ddd-&lt;version&gt;/doc.
+</li>
+</ul>
+
+<p>
+Bugs fixed:
+</p>
+<ul>
+<li>
+#25109, All-registers display doesn't work
+</li>
+<li>
+#28923: ddd/Ddd gets overwritten by ddd/ddd when building on os x (r7479)
+</li>
+<li>
+#50156: ddd error on i386-apple-darwin15.6.0
+</li>
+<li>
+#65738: Xt error (Unresolved inheritance operation) on launch on macOS
+(fix upstream macOS)
+</li>
+<li>
+#63928: Resource mismanagement causes DDD/GDB interaction to hang
+</li>
+<li>
+#64188: ddd 3.4.0 fails to build on macOS without HAVE_SYS_IOCTL_H (r7364)
+</li>
+<li>
+#64283: INSTALL refers to incorrect file etc/install-prereq (r7368)
+</li>
+<li>
+#64321: HAVE_FNCTL_H never defined (r7366)
+</li>
+<li>
+#64322: Splash screen has version '3.3' (r7365)
+</li>
+<li>
+#64394: Wrong encoding for version output
+</li>
+<li>
+#64398: Empty ddd.1 manpage generated and installed on OS X 10.8 and later
+</li>
+<li>
+#64586: FONTS file is missing (r7472)
+</li>
+<li>
+#64587: mouse wheel in data display
+</li>
+<li>
+#65454: termcap compatible library may be called tinfo (r7471)
+</li>
+<li>
+#65455: Fails to build with parallel make (r7469)
+</li>
+<li>
+#65456: Build fails with LTO
+</li>
+</ul>
+</description>
+</release>
+<release version="3.4.0" date="2023-05-10">
+<description>
+<p>
+New maintainers:
+</p>
+<ul>
+<li>
+Michael Eager &lt;eager@eagercon.com&gt;
+</li>
+<li>
+Stefan Eickeler &lt;mail@eickeler.de&gt;
+</li>
+</ul>
+
+<p>
+Enhancements:
+</p>
+<ul>
+<li>
+Workaround for UTF-8 - the source code is internally converted to latin1.
+</li>
+<li>
+Cursor follows the scrollbar in source window to improve usage of mouse wheel.
+</li>
+<li>
+Add display of STL data types based on gdb pretty-printers.
+</li>
+<li>
+Interface for Gnuplot fixed and updated to current version of Gnuplot.
+</li>
+<li>
+Speed of doubleclick reduced.
+</li>
+<li>
+Switched to hex as default for memory examination.
+</li>
+<li>
+Support mouse wheel in panner widget and data display.
+</li>
+<li>
+Height restriction of 1000 pixels for DataDisplay and SourceView removed.
+</li>
+<li>
+Size of dialog boxes increased.
+</li>
+<li>
+Speed up parsing of variables.
+</li>
+<li>
+Command-line options fixed and documentation updated.
+</li>
+<li>
+Popup error dialog boxes for missing source code deactivated.
+</li>
+<li>
+Panner data display adapted to motif design
+and improved handling of mouse wheel.
+</li>
+</ul>
+
+<p>
+Build issues:
+</p>
+<ul>
+<li>
+Fix Ubuntu compilation errors.
+</li>
+<li>
+Fix GCC warnings.
+</li>
+<li>
+Update to current flex &amp; bison.
+</li>
+<li>
+Use Liberation fonts instead of Adobe fonts.
+</li>
+<li>
+Clean up font usage.
+</li>
+<li>
+Build method simplified and improved.
+</li>
+<li>
+Update icons.
+</li>
+<li>
+Switched from DynArray and VarArray to std::vector.
+</li>
+<li>
+Clean up generation of icons.
+</li>
+<li>
+Regenerate documentation with current texinfo.
+</li>
+<li>
+Remove PostScript and EPS files.
+</li>
+<li>
+Remove DVI docs.
+</li>
+<li>
+Remove unused, obsolete, or irrelevelant files.
+</li>
+<li>
+Update logo to DDD-3.4.
+</li>
+<li>
+Simplify generation of distribution tarball.
+</li>
+<li>
+Generate derived files in build directory, not source directory.
+</li>
+<li>
+Add etc/prereq to check for prerequisites.
+</li>
+<li>
+Reorganize files into subdirectories.
+</li>
+<li>
+Remove Lesstif, use Motif.
+</li>
+<li>
+Add additional documentation: FONTS.
+</li>
+<li>
+Use autoconf-2.71.
+</li>
+<li>
+Use "make dist" to create distribution tarball.
+</li>
+<li>
+Cleanup generation of graphics.
+</li>
+</ul>
+
+<p>
+Bug fixes:
+</p>
+<ul>
+<li>
+Bug #25109, All-registers display doesn't work.
+</li>
+<li>
+Bug #33172: DDD has problems parsing Temporary breakpoints.
+</li>
+<li>
+Bug #58191: Improper handling of GDB's extended-prompt setting
+</li>
+<li>
+Bug #46725: Source Code View stops displaying at german umlaut
+</li>
+<li>
+Bug: fixed plotting of arrays using gnuplot
+</li>
+<li>
+Bug: unusable data status displays disabled, warnings fixed.
+</li>
+<li>
+Bug #29815: ddd SVN fails to compile on Ubuntu lucid.
+</li>
+<li>
+Bug #30862: gcc 4.4.4 needs #include &lt;cstdio.h&gt; in cstrclass.C
+</li>
+<li>
+Bug #33960: strclass.C:1546: error: ‘EOF’ was not declared in this scope.
+</li>
+<li>
+Bug #25109: All-registers display doesn't work.
+</li>
+<li>
+Bug: Error disassembling code.
+</li>
+<li>
+Bug: case-insensitive sorting of filenames.
+</li>
+<li>
+Bug: DDD fails compile with Xt 1.2.0.
+</li>
+<li>
+Fix build failure on OSX 10.9 DP6.
+</li>
+<li>
+Infinite VSL recursion fixed for rednil theme
+</li>
+<li>
+Fixed "no such file or directory" for File->Open_Soure
+</li>
+<li>
+Fix regex escape warning
+</li>
+<li>
+Fixed abort signal at inference of gdb and program output
+</li>
+<li>
+Fix invalid signal handler signature
+</li>
+<li>
+Suppress bogus stringop-overflow warning
+</li>
+<li>
+Fixed startup bug without active window
+</li>
+<li>
+Fixed progress bar for variable parsing
+</li>
+<li>
+Bug #40701: layout.C: 2 * bad if test
+</li>
+<li>
+Bug #41649: Unable to run bashdb via ddd
+</li>
+<li>
+Bug #50747: Add support for GDB's ProcessRecord
+</li>
+<li>
+Bug #34882: dbx debugger mouseover "Run" command causes 100% CPU usage
+</li>
+<li>
+Bug #55842: Current execution marker doesn't move when step command
+</li>
+<li>
+Bug #29717: DDD with remake
+</li>
+<li>
+Bug: remake problem with empty command line
+</li>
+<li>
+SR #110812: Recognize GDB question with "(y or [n])"
+</li>
+<li>
+Bug #746806 from Red Hat Bugzilla: DDD does't honor the --args parameter when executed from the commandline
+</li>
+</ul>
+</description>
+</release>
+<release version="3.3.12" date="2009-02-11">
+<description>
+<p>
+DDD 3.3.12 features much improved support for debugging Python, Bash and Make,
+as well as various bug fixes.
+</p>
+</description>
+</release>
+</releases>
+</component>

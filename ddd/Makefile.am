@@ -53,8 +53,10 @@ dddrootdir    = $(pkgdatadir)-@VERSION@
 dddappdir     = $(pkgdatadir)-@VERSION@/@ddd@
 desktopdir    = @DDD_XDG_DATADIR@/applications
 iconsdir      = @DDD_XDG_DATADIR@/pixmaps
+metainfodir   = @DDD_XDG_DATADIR@/metainfo
 ddddocdir     = $(dddrootdir)/doc
 infodir       = $(dddrootdir)/info
+
 
 
 # -----------------------------------------------------------------------------
@@ -1435,6 +1437,7 @@ DIST_STUFF = $(srcdir)/header.ps $(srcdir)/trailer.ps \
 	     $(htmldir)/ddd.html $(srcdir)/ad2c.sed \
 	     style.css $(srcdir)/fix-html.sed \
 	     $(srcdir)/unumlaut.sed $(srcdir)/ddd.desktop $(srcdir)/../icons/ddd.png \
+	     $(srcdir)/../metainfo/org.gnu.ddd.metainfo.xml \
 	     $(srcdir)/../doc/ANNOUNCE $(srcdir)/../doc/AUTHORS  \
 	     $(srcdir)/../doc/COPYING  $(srcdir)/../doc/COPYING.DOC  \
 	     $(srcdir)/../doc/COPYING.LESSER  $(srcdir)/../doc/CREDITS  \
@@ -1484,6 +1487,8 @@ progstuff: $(PROG_STUFF)
 desktop_DATA = $(srcdir)/ddd.desktop
 
 icons_DATA = $(srcdir)/../icons/ddd.png
+
+metainfo_DATA = $(srcdir)/../metainfo/org.gnu.ddd.metainfo.xml
 
 ddddoc_DATA = $(srcdir)/../doc/NEWS $(srcdir)/../doc/COPYING \
 	      $(srcdir)/../doc/CREDITS $(builddocdir)/ddd.info.txt
