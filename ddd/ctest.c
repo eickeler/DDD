@@ -243,7 +243,7 @@ void in_out_test ()
 }
 
 /*--------------------------------------------------------------------------*/
-int main (int argc, char *argv)
+int main (int argc, char **argv)
 {
     int i = 42;
     tree_test();
