@@ -119,8 +119,8 @@ XtResource ddd_resources[] = {
         XmRBoolean,
         sizeof(Boolean),
         XtOffsetOf(AppData, log),
-        XtRString,
-        XtPointer(0)
+        XmRImmediate,
+        XtPointer(False)
     },
 
     { 

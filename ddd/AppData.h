@@ -59,8 +59,8 @@
 #define XtCOpenSelection         "OpenSelection"
 #define XtNtrace                 "trace"
 #define XtCTrace                 "Trace"
-#define XtNLog                   "Log"
-#define XtCLog                   "Log"
+#define XtNLog                   "dlog"
+#define XtCLog                   "Dlog"
 #define XtNplayLog               "playLog"
 #define XtCPlayLog               "PlayLog"
 #define XtNrestartCommands       "restartCommands"
@@ -391,7 +391,7 @@ struct AppData {
     Boolean   auto_debugger;
     Boolean   open_selection;
     Boolean   trace;
-    int	      log;
+    Boolean   log;
     const _XtString    play_log;
     const _XtString    restart_commands;
     Boolean   source_init_commands;

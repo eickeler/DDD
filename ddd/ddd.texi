@@ -1933,12 +1933,12 @@ Giving this option is equivalent to setting the @DDD{}
 @samp{showLicense} resource to @var{on}.  @xref{Diagnostics}, for
 details.
 
-@item --log
+@item --dlog
 @flindex log
 @flindex ~
 Show the interaction between @DDD{} and the inferior debugger on
 standard error.  This is useful for debugging @DDD{}.
-If @option{--log} is specified and @option{--trace} is not specified,
+If @option{--dlog} is specified and @option{--trace} is not specified,
 this information is written into
 @file{~/.@value{ddd}/log} (@file{~} stands for your home directory),
 such that you can also do a post-mortem debugging.  @xref{Logging}, for

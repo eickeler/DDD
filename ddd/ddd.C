@@ -522,12 +522,10 @@ static XrmOptionDescRec options[] = {
                                         XrmoptionNoArg,  XPointer(ON) },
 { XRMOPTSTR("-trace"),                 XRMOPTSTR(XtNtrace),                
                                         XrmoptionNoArg,  XPointer(ON) },
-
-{ XRMOPTSTR("--log"),                   XRMOPTSTR(XtNLog),              
-                                        XrmoptionNoArg, XPointer(OFF) },
-{ XRMOPTSTR("-log"),                   XRMOPTSTR(XtNLog),              
-                                        XrmoptionNoArg, XPointer(OFF) },
-
+{ XRMOPTSTR("--dlog"),                 XRMOPTSTR(XtNLog),
+                                        XrmoptionNoArg, XPointer(ON) },
+{ XRMOPTSTR("-dlog"),                  XRMOPTSTR(XtNLog),
+                                        XrmoptionNoArg, XPointer(ON) },
 { XRMOPTSTR("--play-log"),                   XRMOPTSTR(XtNplayLog),              
                                         XrmoptionSepArg, XPointer(0) },
 { XRMOPTSTR("-play-log"),                   XRMOPTSTR(XtNplayLog),              
@@ -1996,7 +1994,7 @@ ddd_exit_t pre_main_loop(int argc, char *argv[])
     // `--nw'   - no windows (GDB)
     // `-L'     - no windows (XDB)
     // `--PLAY' - logplayer mode (DDD)
-    // '--log'	- generate log file (DDD)
+    // '--dlog'	- generate log file (DDD)
     // and options that would otherwise be eaten by Xt
     std::vector<string> saved_options;
     string gdb_name = "";
