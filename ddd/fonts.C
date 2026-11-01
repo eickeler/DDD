@@ -97,19 +97,80 @@ static void get_derived_sizes(Dimension size,
 
 static void setup_xft_fonts(AppData& ad, XrmDatabase& db)
 {
-    if (ad.fixed_width_font_size >=80)
+    if (ad.fixed_width_font_size >=80 || ad.fixed_width_font_size < 6)
         ad.fixed_width_font_size = 11; // size seem to be in points -> set default
 
-    if (ad.variable_width_font_size>=80)
+    if (ad.variable_width_font_size>=80 || ad.variable_width_font_size < 6)
         ad.variable_width_font_size = 11; // size seem to be in points -> set default
 
     // according to hints from Joe Nelson
     XrmPutLineResource(&db, "Ddd*gdb_w.renderTable: tt");
     XrmPutLineResource(&db, "Ddd*help_area*text.renderTable: tt");
-
-
     XrmPutLineResource(&db, "Ddd*renderTable: rm,tt,llogo,logo,small,tb,key,bf,sl,bs,accel");
 
+    // the font configuration is moved to the functions CvtStringToXmRenderTable() and make_rendition()
+    // in x11/converters.C to work around a bug in the Motif library.
+    //
+    // XrmPutLineResource(&db, "Ddd*tt*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*tt*fontName: ") + ad.fixed_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*tt*fontSize: ") + itostring(ad.fixed_width_font_size)).chars());
+    //
+    // XrmPutLineResource(&db, "Ddd*tb*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*tb*fontName: ") + ad.fixed_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*tb*fontSize: ") + itostring(ad.fixed_width_font_size)).chars());
+    // XrmPutLineResource(&db, "Ddd*tb*fontStyle: Bold");
+    //
+    //
+    // XrmPutLineResource(&db, "Ddd*rm*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*rm*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*rm*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    //
+    // XrmPutLineResource(&db, "Ddd*bf*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*bf*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*bf*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    // XrmPutLineResource(&db, "Ddd*bf*fontStyle: Bold");
+    //
+    // XrmPutLineResource(&db, "Ddd*sl*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*sl*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*sl*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    // XrmPutLineResource(&db, "Ddd*sl*fontStyle: Bold"); // Oblique fonts do not work in Motif
+    //
+    // XrmPutLineResource(&db, "Ddd*bs*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*bs*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*bs*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    // XrmPutLineResource(&db, "Ddd*bs*fontStyle: Bold"); // combination of Bold and Oblique not possible in Motif
+    //
+    // XrmPutLineResource(&db, "Ddd*small*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*small*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*small*fontSize: ") + itostring(ad.variable_width_font_size*.8)).chars());
+    //
+    // XrmPutLineResource(&db, "Ddd*llogo*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*llogo*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*llogo*fontSize: ") + itostring(ad.variable_width_font_size*2)).chars());
+    // XrmPutLineResource(&db, (string("Ddd*llogo*fontStyle: Bold").chars()));
+    //
+    // XrmPutLineResource(&db, "Ddd*logo*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*logo*fontName: ") + ad.variable_width_font).chars() );
+    // XrmPutLineResource(&db, (string("Ddd*logo*fontSize: ") + itostring(ad.variable_width_font_size*1.2)).chars());
+    // XrmPutLineResource(&db, "Ddd*logo*fontStyle: Bold");
+    //
+    // XrmPutLineResource(&db, "Ddd*key*fontType: FONT_IS_XFT");
+    // XrmPutLineResource(&db, (string("Ddd*key*fontName: ") + ad.variable_width_font).chars());
+    // XrmPutLineResource(&db, (string("Ddd*key*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    // XrmPutLineResource(&db, "Ddd*key*fontStyle: Bold");
+    //
+    // if (ad.retro_style)
+    // {
+    //     XrmPutLineResource(&db, "Ddd*accel*fontType: FONT_IS_XFT");
+    //     XrmPutLineResource(&db, (string("Ddd*accel*fontName: ") + ad.variable_width_font).chars());
+    //     XrmPutLineResource(&db, (string("Ddd*accel*fontSize: ") + itostring(ad.variable_width_font_size)).chars());
+    // }
+    // else
+    // {
+    //     XrmPutLineResource(&db, "Ddd*accel*fontType: FONT_IS_XFT");
+    //     XrmPutLineResource(&db, (string("Ddd*accel*fontName: ") + ad.fixed_width_font).chars());
+    //     XrmPutLineResource(&db, (string("Ddd*accel*fontSize: ") + itostring(ad.variable_width_font_size*0.8)).chars());
+    // }
 }
 
 string make_xftfont(const AppData& ad, DDDFont base)
