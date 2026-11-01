@@ -91,6 +91,8 @@ char HelpCB_rcsid[] =
 #include "logo.h"
 #include "AppData.h"
 #include "SourceWidget.h"
+#include "sashes.h"
+#include "scrollbar.h"
 
 #include <vector>
 
@@ -1180,9 +1182,13 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     MMaddCallbacks(simple_edit_menu, XtPointer(fi->key));
 
     arg = 0;
+    XtSetArg(args[arg], XmNpaneMaximum, 5000);           arg++;
     Widget help_index = 
 	verify(XmCreateScrolledList(area, XMST("index"), args, arg));
     XtManageChild(help_index);
+
+    if (!app_data.retro_style)
+        modernize_scrollbar(help_index);
 
     Widget view_index;
     MMDesc manual_menu[] = 
@@ -1218,8 +1224,11 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     XtSetArg(args[arg], XmNeditable, False);             arg++;
     XtSetArg(args[arg], XmNeditMode, XmMULTI_LINE_EDIT); arg++;
     XtSetArg(args[arg], XmNvalue,    "");                arg++;
+    XtSetArg(args[arg], XmNpaneMaximum, 5000);           arg++;
     Widget help_man = 
 	verify(XmCreateScrolledText(area, XMST("text"), args, arg));
+    if (!app_data.retro_style)
+        modernize_scrollbar(help_man);
     XtManageChild(help_man);
     fi->text = help_man;
 
@@ -1254,6 +1263,7 @@ void ManualStringHelpCB(Widget widget, const MString& title,
     
     XtManageChild(form);
     InstallButtonTips(text_dialog);
+    install_sash_handlers(area);
 
     // Set title
     if (!title.isNull())
@@ -1522,9 +1532,14 @@ void TextHelpCB(Widget widget, XtPointer client_data, XtPointer)
     XtSetArg(args[arg], XmNcolumns,          columns);           arg++;
     XtSetArg(args[arg], XmNeditable,         False);             arg++;
     XtSetArg(args[arg], XmNeditMode,         XmMULTI_LINE_EDIT); arg++;
-    XtSetArg(args[arg], XmNvalue,            text); arg++;
+    XtSetArg(args[arg], XmNvalue,            text);              arg++;
+    XtSetArg(args[arg], XmNpaneMaximum, 5000);                   arg++;
     Widget help_text = verify(
 	XmCreateScrolledText(area, XMST("text"), args, arg));
+
+    if (!app_data.retro_style)
+        modernize_scrollbar(help_text);
+
     XtManageChild(help_text);
     fi->text = help_text;
 
