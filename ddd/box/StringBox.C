@@ -92,7 +92,7 @@ void StringBox::_draw(Widget w,
     color.color.green = xcol.green;
     color.color.alpha = 0xFFFF;
 
-    XftDrawStringUtf8(draw, &color, m_font, origin[X], origin[Y] + m_ascent, (const FcChar8*)m_string.chars(), m_string.length());
+    XftDrawStringUtf8(draw, &color, m_font, std::min(origin[X], 32767), std::min(origin[Y] + m_ascent, 32767), (const FcChar8*)m_string.chars(), m_string.length());
     XftColorFree(XtDisplay(w), visual, cmap, &color);
     XftDrawDestroy(draw);
 }

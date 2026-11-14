@@ -51,8 +51,13 @@ void FallBox::__draw(Widget w,
     BoxSize space   = r.space();
     BoxPoint origin = r.origin();
 
+    origin[X] = std::min(origin[X], 32767);
+    origin[Y] = std::min(origin[Y], 32767);
+    space[X] = std::min(space[X], 32767);
+    space[Y] = std::min(space[Y], 32767);
+
     XDrawLine(XtDisplay(w), XtWindow(w), gc, origin[X], origin[Y],
-	origin[X] + space[X], origin[Y] + space[Y]);
+	std::min(origin[X] + space[X], 32767), std::min(origin[Y] + space[Y], 32767));
 }
 
 // Print
@@ -99,8 +104,13 @@ void RiseBox::__draw(Widget w,
     BoxSize space   = r.space();
     BoxPoint origin = r.origin();
 
-    XDrawLine(XtDisplay(w), XtWindow(w), gc, origin[X], origin[Y] + space[Y],
-	origin[X] + space[X], origin[Y]);
+    origin[X] = std::min(origin[X], 32767);
+    origin[Y] = std::min(origin[Y], 32767);
+    space[X] = std::min(space[X], 32767);
+    space[Y] = std::min(space[Y], 32767);
+
+    XDrawLine(XtDisplay(w), XtWindow(w), gc, origin[X], std::min(origin[Y] + space[Y], 32767),
+	std::min(origin[X] + space[X], 32767), origin[Y]);
 }
 
 // Print
