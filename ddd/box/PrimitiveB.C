@@ -56,17 +56,22 @@ void RuleBox::_draw(Widget w,
     BoxPoint width(extend(X) ? space[X] : size(X),
 		   extend(Y) ? space[Y] : size(Y));
 
+    origin[X] = std::min(origin[X], 32767);
+    origin[Y] = std::min(origin[Y], 32767);
+    width[X] = std::min(width[X], 32767);
+    width[Y] = std::min(width[Y], 32767);
+
     if (width[Y] == 1)
     {
 	// Horizontal line
 	XDrawLine(XtDisplay(w), XtWindow(w), gc,
-		  origin[X], origin[Y], origin[X] + width[X], origin[Y]);
+		  origin[X], origin[Y], std::min(origin[X] + width[X], 32767), origin[Y]);
     }
     else if (width[X] == 1)
     {
 	// Vertical line
 	XDrawLine(XtDisplay(w), XtWindow(w), gc,
-		  origin[X], origin[Y], origin[X], origin[Y] + width[Y]);
+		  origin[X], origin[Y], origin[X], std::min(origin[Y] + width[Y], 32767));
     }
     else
     {

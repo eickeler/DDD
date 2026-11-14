@@ -522,6 +522,9 @@ void graphEditSizeChanged(Widget w)
         myWidth  += OVERVIEW_BASE+OVERVIEW_MARGIN;
         myHeight += OVERVIEW_BASE+OVERVIEW_MARGIN;
 
+        myWidth = std::min(myWidth, Dimension(32767));
+        myHeight = std::min(myHeight, Dimension(32767));
+
         width  = max(parentWidth, myWidth);
         height = max(parentHeight, myHeight);
         // printf("result %d %d\n", width, height);
@@ -529,6 +532,9 @@ void graphEditSizeChanged(Widget w)
     }
     else
     {
+        myWidth = std::min(myWidth, Dimension(32767));
+        myHeight = std::min(myHeight, Dimension(32767));
+
         width  = max(parentWidth, myWidth);
         height = max(parentHeight, myHeight);
         _w->graphEditP.overview_enabled = False;
