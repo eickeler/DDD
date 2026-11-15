@@ -1227,14 +1227,14 @@ FIG2JPG = $(FIG2DEV) -L jpeg -q 100
 
 # The Ghostscript command.  (gs)
 GS = gs
-GSOPT = -q -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -dCompatibilityLevel=1.4
+GSOPT = -q -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -dCompatibilityLevel=1.4
 
 # We use giftoppm/ppmtogif to get optimal GIF compression.
 .fig.pdf:
 	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
-	(cd `dirname $<` && $(FIG2PDF) `basename $<` ) > $@-17
-	$(GS) $(GSOPT) -o $@ $@-17
-	rm $@-17
+	(cd `dirname $<` && $(FIG2PDF) `basename $<` ) > $@.tmp.pdf
+	$(GS) $(GSOPT) -o $@ $@.tmp.pdf
+	rm $@.tmp.pdf
 
 %.jpg: %.fig 
 	@-test -d $(buildpicdir) || mkdir $(buildpicdir)
