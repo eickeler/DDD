@@ -118,7 +118,7 @@ with @DDD{}} for @DDD{} Version @value{VERSION}.
 
 @group
 @noindent
-Copyright @copyright{} 2024 Michael J. Eager  and
+Copyright @copyright{} 2026 Michael J. Eager  and
 Stefan Eickeler.
 @sp 1
 @noindent
@@ -704,7 +704,7 @@ Using @value{DDD} with GDB
 
 @group
 @noindent
-Copyright @copyright{} 2024 Michael J. Eager and Stefan Eickeler @*
+Copyright @copyright{} 2026 Michael J. Eager and Stefan Eickeler @*
 
 @noindent
 Copyright @copyright{} 2004 Universität des Saarlandes @*
@@ -1101,6 +1101,9 @@ for Python, Bash and Make.
 @item August, 2024
 @DDD() 3.4.1:  Support client-side fonts; bug fixes.
 Manual:  Remove references to Ladebug and XDB.
+
+@item December, 2026
+@DDD() 3.5.0:  New release.
 @end table
 
 @node Sample Session

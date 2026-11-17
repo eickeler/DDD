@@ -1,4 +1,4 @@
-DDD 3.4.0 is available					-*- text -*-
+DDD 3.5.0 is available					-*- text -*-
 **********************
 
 What is DDD?
@@ -23,31 +23,20 @@ DDD has been updated to build and run on the latest releases of
 Ubuntu, Fedora, and OpenSuse.  The build process has been streamlined
 and all warnings resolved.  There have been improvements in font 
 handling, including removing dependance on Adobe fonts.  There 
-have been a number of functional improvements.  Finally, approximately
-30 bugs have been fixed.  
+have been a number of functional improvements.  Finally, a number
+of bugs have been fixed.
 
 (For detailed information about the most recent release, please 
-see the file "NEWS".  Information about past releases is in the 
+see the file "NEWS".  Information about releases before DDD-3.4 is in the
 file "NEWS-OLD".)
 
 Where can you get it?  How can you compile it?
 ==============================================
-The ddd-3.4.0.tar.gz distribution file can be found here:
+The ddd-3.5.0.tar.gz distribution file can be found here:
 http://ftp.gnu.org/gnu/ddd/.
-
-You can also build DDD from the project Subversion repository.  
-Information about viewing or downloading these sources can be
-found here: https://savannah.gnu.org/svn/?group=ddd
-
-The releases can be found under 'branches' while the current (and
-possibly unstable) sources are found under 'trunk'.  The current 
-ddd-3.4) release is svn.savannah.gnu.org/ddd/branch/DDD_3_4_0..
 
 For a list of prequisites and instruction for building DDD, see 
 the INSTALL file.
-
-The most recent release candidates of DDD are available at
-http://alpha.gnu.org/gnu/ddd/
 
 Known and unknown problems
 ==========================
@@ -55,16 +44,12 @@ DDD is based on X Window System (also called X or X11) and the
 Motif Toolkit.  Both have a decades-long history.  X is being 
 replaced on several Linux distributions by Wayland, with improvements 
 in speed and security.  The XWayland server supports X clients on 
-systems running Wayland.  DDD has not been tested using XWayland.
-
-DDD uses server-side fonts while most modern applications use client
-side client-side fonts.  If you wish to change fonts, please read 
-the FONTS file.
+systems running Wayland.
 
 This release of DDD has not been built or tested on MacOS or z/OS.
 Testers are welcomed and invited to submit bug reports.
 
-The previous release, ddd-3.3.12 (released in 2009), supported a 
+A previous release, ddd-3.3.12 (released in 2009), supported a
 variety of Unix or Linux hosts distributions which are no longer 
 available.  It also supported a variety of debug engines such as
 DBX, PYDB, BASHDB, and PERLDB.  While the code to support building
@@ -76,6 +61,7 @@ DDD depends on recognizing the prompt used by GDB to tell when
 GDB has completed printing and is ready for input.  Changing the 
 GDB prompt, for example, in a .gdbinit file, will result in DDD
 being unable to communicate with GDB.
+
 
 What if I need help with DDD?
 =============================

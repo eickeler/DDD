@@ -1,6 +1,95 @@
 DDD News						-*- text -*-
 ********
 
+DDD-3.5.0 (Fiordland)
+=====================
+
+New Features
+------------
+Added data display with a pixel inspector powered by Gnuplot.
+    Supports OpenCV, CImg, dlib, Eigen, Armadillo, ImageLib, and user-defined
+    image structures.
+    Improve graph scaling and add mini-mapt for navigation.
+
+Add high resolution icons and source code glyphs.
+
+Add source view syntax highlighting and coloring.
+
+Add source code tabs.
+
+Add command line option (--dlog) to generate log file.
+
+Add "Reload" option to File menu.
+
+Modernized graphical user interface.
+
+Add .ddd/settings.xml file for non-GUI configuration settings.
+
+
+Enhancements
+------------
+Use client-side X fonts (FreeType 2) instead of server side fonts.
+
+Improvements in font selection menus.
+
+Dark mode added.
+
+Increase/decrease font size in Source view using Ctrl+< and Ctrl+>.
+
+Improved style for status bar, scrollbars, other widgets, add classic Motif style.
+
+Use UTF-8 symbols in Motif resources.
+
+Updated user manual.
+
+Improve application support for Gnome.
+
+Replace panner in graph window with mini-map.
+
+
+Miscelaneous
+------------
+Remove requirement for Athena Widgets (libXaw).
+
+Alternative icons and splash screen.
+
+New configure option: --with-xdg-datadir.
+
+Remove rarely used options (status at top, toolbars at bottom).
+
+Remove panner in graph window, replace with mini-map.
+
+C++17 now required to build DDD.
+
+Save default.xml in install share directory.
+
+Update splash screen to ddd-3.5.
+
+Internal improvements:
+  Generate backtrace on segfault
+  Replace private classes with C++ STL classes.
+  Improve application support for Gnome.
+  Internal reorganization of GDB support code.
+
+Bugs fixed:
+#66124: Missing header AppData.h without Athena support
+#66082: Missing basename.h include in SourceCode.h
+#66125: Problems with session management after restart
+#66175: Breakpoint property dialog errors
+#66186: FreeBSD bug in FreeType search
+#66393: Undefined reference to app_data
+#66998: Icons too small
+#68155: CommandTool repositioned when Data Window opened/closed
+#68290: GDB 7.1+ current-line arrow prefix "=>" makes find_pc() fail
+#66186: FreeBSD configure/Makefile freetype error
+#66199: FreeBSD "waiting until GDB gets ready"
+#66394: /etc/prereq fail on Debian
+#66998: Icons very smal
+#67243: DDD segfaults during startup
+#68155: CommandTool repositioned when Data Window opened/closed
+
+
+
 DDD-3.4.1 (Serengeti)
 =====================
 
@@ -10,8 +99,6 @@ Font handling has been redesigned to use XFT client-side fonts.  The font
 preference menu now has a drop-down menu to select compatible fonts.
 
 Add side-by-side view for source and data.
-
-Add dark mode.
 
 Line number width adapts to the size of source file.
 
@@ -161,3 +248,6 @@ Command-line options fixed and documentation updated
 Popup error dialog boxes for missing source code deactivated
 Panner data display adapted to motif design and improved handling of mouse wheel
 
+
+
+For older release notes, see NEWS-OLD.

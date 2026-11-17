@@ -92,6 +92,16 @@ Configure DDD from tarball
 Download a tarball located at http://ftp.gnu.org/gnu/ddd/.
 
   $ tar xfz ddd-<version>.tar.gz
+
+Verify that you have all prerequisites installed.
+
+  $ ddd-<version>/etc/prereq
+
+If this prerequiste check indicates that you are missing required
+libraries, install them using your package manager and repeat.
+
+Create a build directory which will contain DDD binaries.
+
   $ mkdir build
   $ cd build
 
@@ -124,24 +134,27 @@ not already installed on your system.
 
 DDD sources can be obtained from the FSF GNU Savannah website:
 https://savannah.gnu.org/git/?group=ddd.
-We recommend that you do not download the entire DDD repository.  
-It is more than 1.1Gb, including all branches and tags.
 
-You may download a specific release of DDD or the top of the 
-development tree.  To download a release, including latest updates,
-use "branches/<release>" for <module> in the following commands.  If 
-you want to download the top of the development tree, use "trunk"
-for <module> in the following commands.  
-
-The latest release of DDD is "DDD_3_4".  Note that the top of the
+The latest release of DDD is "DDD_3.5.0_RELEASE".  Note that the top of the
 development tree may contain changes which have not been completely
 tested. 
 
 Download the latest sources:
+
   $ git clone https://git.savannah.gnu.org/git/ddd.git ddd
-Configure for building DDD:
+
+Update configure for building DDD:
+
   $ cd ddd
   $ autoreconf -ifv
+
+Verify that you have all prerequisites installed.
+
+  $ /etc/prereq --maint
+
+If this prerequiste check indicates that you are missing required
+libraries, install them using your package manager and repeat.
+
   $ cd ..
   $ mkdir build
   $ cd build
@@ -246,7 +259,8 @@ To run DDD, you need:
 
    * An X server.  Without X, DDD does not run.
 
-     If you are running a UNIX-like system, you certainly have X.  
+     On systems running Wayland, install Xwayland.
+     The prerequisite check will give you the package name for your distribution.
 
    * GDB, the GNU debugger (the so-called `inferior' debugger).
 
@@ -372,20 +386,6 @@ Options set this way include:
 
 `LDFLAGS'
      Linker flags used by both the C and C++ compiler
-
-
-
-Using a Different Build Directory
----------------------------------
-
-You can compile the DDD package in a different directory from the one
-containing the source code.  Doing so allows you to compile it on more
-than one kind of computer at the same time.  To do this, you must use
-a version of `make' that supports the `VPATH' variable, such as GNU
-`make'.  `cd' to the directory where you want the object files and
-executables to go and run the `configure' script.  `configure'
-automatically checks for the source code in the directory that
-`configure' is in and in `..'.
 
 
 External Packages
@@ -537,14 +537,3 @@ maintainers at `http://savannah.gnu.org/bugs/?group=ddd'.  Be sure to
 include a context diff (`diff -c2') between the original and the
 changed file(s).
 
-
-Documentation
-=============
-
-The DDD Manual, contained in the file `ddd/ddd.texi', is the official
-DDD reference.  
-
-Preformatted versions of the DDD Manual (in info, PostScript, and PDF
-formats) can be found in the `doc/' subdirectory.  A HTML version
-comes in a separate package.  Note that DDD also has various on-line
-facilities.

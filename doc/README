@@ -1,67 +1,54 @@
 DDD Documentation					-*- text -*-
 *****************
 
-This directory contains various documentation related to DDD in
-PostScript format.
-
 ddd-paper.ps -- `DDD---A Free Graphical Front-End for UNIX Debuggers'
+ddd-paper.pdf -- `DDD---A Free Graphical Front-End for UNIX Debuggers'
 
     A six-page DDD survey including some screen shots.  The paper
     also highlights some internal aspects of DDD.  Appeared in ACM
     SIGPLAN Notices 31(1), pp. 22--27, January 1996.
 
-    Included in the DDD source distribution.
+    Available at https://www.gnu.org/software/ddd/manual/pdf/ddd-paper.pdf
 
 
-ddd.ps -- `Debugging with DDD'
+ddd.pdf -- `Debugging with DDD'
+ddd.html -- `Debugging with DDD'
 
-    The DDD manual, in PostScript format.  The official, up-to-date
-    DDD reference.  Includes several screen shots.
+    The DDD manual.  The official, up-to-date DDD reference.  
+    Includes several screen shots.
 
-    Included in the DDD source distribution.
-
-
-html/index.html -- `Debugging with DDD'
-
-    The DDD manual, in HTML format.  Suitable for viewing with a HTML
-    browser, such as Mozilla or Netscape.  Includes several screen
-    shots.
-
-    This directory is contained in a separate package.
-
+    Available at https://www.gnu.org/software/ddd/manual/pdf/ddd.pdf
+    or https://www.gnu.org/software/ddd/manual/html_mono/ddd.html
 
 ddd.info -- `Debugging with DDD'
 
     The DDD manual, in Info format.  Suitable for viewing with an Info
     browser, such as `info' or Emacs.
 
-    Included in the DDD source distribution.
+    Installed with DDD.
 
 
 ddd.man -- `DDD manual page'
 
     The DDD manual page.  Just a short reference.
 
-    Included in the DDD source distribution.
-
+    Installed with DDD.
 
 
 ddd-thesis.ps -- `DDD - ein Debugger mit graphischer Datendarstellung'
 
-    Dorothea's Master's Thesis on DDD (in German).
+    Dorothea Lütkehaus's Master's Thesis on DDD (in German).
 
     Not included in the DDD distribution; available via anonymous FTP in 
 
         ftp://ftp.ips.tu-bs.de/pub/local/softech/ddd/doc/ddd-thesis.ps
+	(not currently available)
 
 
-gdb.ps -- `Debugging with GDB'
+gdb.html/pdf -- `Debugging with GDB'
 
-    The GDB manual, in PostScript format.
-
-    Not included in the DDD distribution; available via anonymous FTP in 
-
-        ftp://ftp.ips.tu-bs.de/pub/local/softech/ddd/doc/gdb.ps
+    The GDB manual, in several formats, can be found at 
+    https://sourceware.org/gdb/documentation/.
 
 
 sample.dddinit -- `Sample DDD initialization file'
@@ -79,6 +66,7 @@ vse.ps -- `Visual Prettyprinting'
     Not included in the DDD distribution; available via anonymous FTP in 
 
         ftp://ftp.ips.tu-bs.de/pub/local/softech/ddd/doc/vse.ps
+	(not currently available)
 
 
 $Id$
