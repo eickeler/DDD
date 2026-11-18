@@ -71,6 +71,176 @@ with active development focused on GDB and CUDA-GDB.
 <content_rating type="oars-1.0"/>
 
 <releases>
+<release version="3.5.0" date="2026-11-19">
+<description>
+<p>
+New Features:
+</p>
+<ul>
+<li>
+Added data display with a pixel inspector powered by Gnuplot.
+    Supports OpenCV, CImg, dlib, Eigen, Armadillo, ImageLib, and user-defined
+    image structures.
+    Improve graph scaling and add mini-map for navigation.
+</li>
+<li>
+Add high resolution icons and source code glyphs.
+</li>
+<li>
+Add source view syntax highlighting and coloring.
+</li>
+<li>
+Add source code tabs.
+</li>
+<li>
+Add command line option (--dlog) to generate log file.
+</li>
+<li>
+Add "Reload" option to File menu.
+</li>
+<li>
+Modernized graphical user interface.
+</li>
+<li>
+Add .ddd/settings.xml file for non-GUI configuration settings.
+</li>
+</ul>
+
+<p>
+Enhancements:
+</p>
+<ul>
+<li>
+Use client-side X fonts (FreeType 2) instead of server side fonts.
+</li>
+<li>
+Improvements in font selection menus.
+</li>
+<li>
+Dark mode added.
+</li>
+<li>
+Increase/decrease font size in Source view using Ctrl++&lt; and Ctrl+&gt;.
+</li>
+<li>
+Improved style for status bar, scrollbars, other widgets, add classic Motif style.
+</li>
+<li>
+Use UTF-8 symbols in Motif resources.
+</li>
+<li>
+Updated user manual.
+</li>
+<li>
+Improve application support for Gnome.
+</li>
+<li>
+Replace panner in graph window with mini-map.
+</li>
+</ul>
+
+<p>
+Miscellaneous:
+</p>
+<ul>
+<li>
+Remove requirement for Athena Widgets (libXaw).
+</li>
+<li>
+Alternative icons and splash screen.
+</li>
+<li>
+New configure option: --with-xdg-datadir.
+</li>
+<li>
+Remove rarely used options (status at top, toolbars at bottom).
+</li>
+<li>
+Remove panner in graph window, replace with mini-map.
+</li>
+<li>
+C++17 now required to build DDD.
+</li>
+<li>
+Save default.xml in install share directory.
+</li>
+<li>
+Update splash screen to ddd-3.5.
+</li>
+</ul>
+<p>
+Internal improvements:
+</p>
+
+<ul>
+<li>
+Generate backtrace on segfault
+</li>
+<li>
+Replace private classes with C++ STL classes.
+</li>
+<li>
+Improve application support for Gnome.
+</li>
+<li>
+Internal reorganization of GDB support code.
+</li>
+</ul>
+
+<p>
+Bugs fixed:
+</p>
+<ul>
+<li>
+
+#66124: Missing header AppData.h without Athena support
+</li>
+<li>
+#66082: Missing basename.h include in SourceCode.h
+</li>
+<li>
+#66125: Problems with session management after restart
+</li>
+<li>
+#66175: Breakpoint property dialog errors
+</li>
+<li>
+#66186: FreeBSD bug in FreeType search
+</li>
+<li>
+#66393: Undefined reference to app_data
+</li>
+<li>
+#66998: Icons too small
+</li>
+<li>
+#68155: CommandTool repositioned when Data Window opened/closed
+</li>
+<li>
+#68290: GDB 7.1+ current-line arrow prefix "=>" makes find_pc() fail
+</li>
+<li>
+#66186: FreeBSD configure/Makefile freetype error
+</li>
+<li>
+#66199: FreeBSD "waiting until GDB gets ready"
+</li>
+<li>
+#66394: /etc/prereq fail on Debian
+</li>
+<li>
+#66998: Icons very small
+</li>
+<li>
+#67243: DDD segfaults during startup
+</li>
+<li>
+#68155: CommandTool repositioned when Data Window opened/closed
+</li>
+</ul>
+</description>
+</release>
+
 <release version="3.4.1" date="2024-08-12">
 <description>
 <p>
@@ -221,7 +391,7 @@ New maintainers:
 Michael Eager &lt;eager@eagercon.com&gt;
 </li>
 <li>
-Stefan Eickeler &lt;mail@eickeler.de&gt;
+Stefan Eickeler &lt;eickeler@gnu.org&gt;
 </li>
 </ul>
 
@@ -444,14 +614,6 @@ SR #110812: Recognize GDB question with "(y or [n])"
 Bug #746806 from Red Hat Bugzilla: DDD does't honor the --args parameter when executed from the commandline
 </li>
 </ul>
-</description>
-</release>
-<release version="3.3.12" date="2009-02-11">
-<description>
-<p>
-DDD 3.3.12 features much improved support for debugging Python, Bash and Make,
-as well as various bug fixes.
-</p>
 </description>
 </release>
 </releases>

@@ -9,7 +9,7 @@ New Features
 Added data display with a pixel inspector powered by Gnuplot.
     Supports OpenCV, CImg, dlib, Eigen, Armadillo, ImageLib, and user-defined
     image structures.
-    Improve graph scaling and add mini-mapt for navigation.
+    Improve graph scaling and add mini-map for navigation.
 
 Add high resolution icons and source code glyphs.
 
@@ -47,7 +47,7 @@ Improve application support for Gnome.
 Replace panner in graph window with mini-map.
 
 
-Miscelaneous
+Miscellaneous
 ------------
 Remove requirement for Athena Widgets (libXaw).
 
@@ -84,7 +84,7 @@ Bugs fixed:
 #66186: FreeBSD configure/Makefile freetype error
 #66199: FreeBSD "waiting until GDB gets ready"
 #66394: /etc/prereq fail on Debian
-#66998: Icons very smal
+#66998: Icons very small
 #67243: DDD segfaults during startup
 #68155: CommandTool repositioned when Data Window opened/closed
 
@@ -167,7 +167,7 @@ Bugs fixed:
 DDD-3.4.0
 =========
 New maintainers: 
-Michael Eager <eager@eagercon.com> and Stefan Eickeler <mail@eickeler.de>
+Michael Eager <eager@eagercon.com> and Stefan Eickeler <eickeler@gnu.org>
 
 Changes in DDD-3.4.0
 ====================
