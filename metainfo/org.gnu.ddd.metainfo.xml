@@ -167,6 +167,8 @@ Save default.xml in install share directory.
 <li>
 Update splash screen to ddd-3.5.
 </li>
+<li>
+Add metainfo.xml file.
 </ul>
 <p>
 Internal improvements:

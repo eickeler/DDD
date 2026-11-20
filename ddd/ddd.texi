@@ -1102,7 +1102,7 @@ for Python, Bash and Make.
 @DDD() 3.4.1:  Support client-side fonts; bug fixes.
 Manual:  Remove references to Ladebug and XDB.
 
-@item December, 2026
+@item November, 2026
 @DDD() 3.5.0:  New release.
 @end table
 

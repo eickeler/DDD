@@ -65,6 +65,8 @@ Save default.xml in install share directory.
 
 Update splash screen to ddd-3.5.
 
+Added metainfo.xml file.
+
 Internal improvements:
   Generate backtrace on segfault
   Replace private classes with C++ STL classes.
