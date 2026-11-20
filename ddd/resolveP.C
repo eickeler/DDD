@@ -51,13 +51,23 @@ static string dirname(const string& file)
 	return ".";
 }
 
-// Return full path of current program
+// Return full path of current program, with symbolic links resolved.
 static string myFile()
 {
     const char *my_name = saved_argv()[0];
     if (my_name == 0)
 	my_name = ddd_NAME;
-    return cmd_file(my_name);
+
+    string file = cmd_file(my_name);
+
+    char *real_file = realpath(file.chars(), 0);
+    if (real_file != 0)
+    {
+        file = real_file;
+        free(real_file);
+    }
+
+    return file;
 }
 
 // Return my individual prefix: If I'm installed as `/usr/local/bin/ddd',
@@ -89,8 +99,12 @@ string resolvePath(const string& file, bool include_user)
 	sys_index = prefixes.size();
 
 	string prefix = myPrefix();
+	prefixes.push_back(prefix + "/share/" ddd_NAME "-" DDD_VERSION);
+	prefixes.push_back(prefix + "/share/" ddd_NAME);
 	prefixes.push_back(prefix + "/" ddd_NAME "-" DDD_VERSION);
 	prefixes.push_back(prefix + "/" ddd_NAME);
+
+	prefixes.push_back(prefix);
 
 	prefixes.push_back("/usr/local/share/" ddd_NAME "-" DDD_VERSION);
 	prefixes.push_back("/usr/local/share/" ddd_NAME);
